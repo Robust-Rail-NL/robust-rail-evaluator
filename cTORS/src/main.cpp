@@ -28,10 +28,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
-	cout << "							   LOCATION TEST 										 " << endl;
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
+	cout << "------------------------------------------------------------------" << endl;
+	cout << "LOCATION TEST" << endl;
+	cout << "--------------------------------------------------------------------------" << endl;
 
+	// TODO: check whether both the "location.json" and the "config.json" exist in the folder specified by the path_location to give proper error message
 	LocationEngine engine(path_location);
 	const Location &location = engine.GetLocation();
 	const vector<Track *> &tracks = location.GetTracks();

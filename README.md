@@ -2,12 +2,12 @@
 
 This evaluator is the extension of the outcome of the research outcome called: [TORS: A Train Unit Shunting and Servicing Simulator](https://research-portal.uu.nl/en/publications/tors-a-train-unit-shunting-and-servicing-simulator-2)
 
-The resulting Train Unit Shunting and Servicing problem motivates advanced research in planning and scheduling in general since it integrates several known individually hard problems while incorporating many real-life details. The developed an event-based simulator called TORS (Dutch acronym for Train Shunting and Servicing Simulator), that provides the user with a state and all feasible actions. After an action is picked, the evaluator calculates the result and the process repeats. This simulator facilitates research into a realistic application of multi-agent path finding and path evaluation.
+The resulting Train Unit Shunting and Servicing problem motivates advanced research in planning and scheduling in general since it integrates several known individually hard problems while incorporating many real-life details. The developed an event-based simulator called TORS (Dutch acronym for Train Shunting and Servicing Simulator), that provides the user with a state and all feasible actions. After an action is picked, the evaluator calculates the result and the process repeats. This simulator facilitates research into a realistic application of multi-agent pathfinding and path evaluation.
 
 This implementation consists of a backend written in C++, and a front-end written in python. **It is highly advised to use only the backend (C++)**.
 
-## Project setup
-The basic project setup uses the structure provided by cmake. The subfolders are subprojects:
+## Project set up
+The basic project set up uses the structure provided by cmake. The subfolders are subprojects:
 * cTORS: The c++ implementation of the evaluator.
 * cTORSTest: Unit test like version of the main functionalities
 
@@ -31,7 +31,7 @@ conda activate my_proto_env
 ```
 
 
-If conda asks to init first (CondaError: Run 'conda init' before 'conda activate'):
+If Conda asks to `init` first (CondaError: Run 'conda init' before 'conda activate'):
 ```bash
 conda init
 source ~/.bashrc
@@ -110,17 +110,18 @@ Arguments:
 
 **--mode** **"INTER"** - Interactive, the user has to choose a valid action per for each situation (state) 
 
-**--mode** **"EVAL_AND_SOTE"** -  same as EVAL mode but also stores the results, also precise: **--path_eval_result** **"~/my_evaluation_results.txt"** - to precise the .txt file to store the results
+**--mode** **"EVAL_AND_STORE"** - same as EVAL mode but also stores the results, also precise: **--path_eval_result** **"~/my_evaluation_results.txt"** - to precise the .txt file to store the results
 
 **--path_location** **"~/my_location_folder"** - specifies the path to the location file which must be called as `location.json`
 
-**--path_scenario** **"~/my_scenarion"** - specifies the path to the scenario file e.g., `my_scenario.json`
+**--path_scenario** **"~/my_scenario"** - specifies the path to the scenario file e.g., `my_scenario.json`
 
-**--path_plan** **"~/my_scenarion.json"** -specifies the path to the plan file e.g., `my_plan.json`
+**--path_plan** **"~/my_scenario.json"** -specifies the path to the plan file e.g., `my_plan.json`
 
 **--departure_delay**: a certain amount of departure delay can be allowed - by default it is 0 (no departure delay is allowed) 
 
-**--plan_type** **"Evaluator"** - plan follows a evaluator (robusst-rail-evaluator) plan format
+**--plan_type** **"Evaluator"** - plan follows an evaluator (robust-rail-evaluator) plan format
+
 **--plan_type** **"Solver"** - plan follows a Solver plan format (plan was issued by robust-rail-solver)
 
 ### Example
@@ -139,7 +140,7 @@ Or run the bash file [run_eval_example.sh](./run_eval_example.sh):
 ./run_eval_example.sh
 ```
 
-*Example for plan evaluation wiht storage -* In the project directory run:
+*Example for plan evaluation with storage -* In the project directory run:
 ```bash
 ./build/TORS --mode "EVAL_AND_STORE" \
     --path_location "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst" \
@@ -162,9 +163,9 @@ Click on [**Description**](doc/Description_TORS.md).
 
 
 ##  Usage of the Plan evaluator in Testing Environment
-This mode of the program was mainly designed to evaluate the feasibility of different robust-rail-solver plans (shunting yard schedules) -- `TEST_CASE("Plan Compatibility test")` --, and to test the validity of the location and scenario associated to the given plan -- `TEST_CASE("Scenario and Location Compatibility test")` --. Nevertheless, this environment can be used to evaluate `robust-rail-solver` or `robust-rail-evaluator` formated plans in a test environment providing an overview about the test cases' success rate.
+This mode of the program was mainly designed to evaluate the feasibility of different robust-rail-solver plans (shunting yard schedules) -- `TEST_CASE("Plan Compatibility test")` --, and to test the validity of the location and scenario associated to the given plan -- `TEST_CASE("Scenario and Location Compatibility test")` --. Nevertheless, this environment can be used to evaluate `robust-rail-solver` or `robust-rail-evaluator` formatted plans in a test environment providing an overview about the test cases' success rate.
 
-Note: This evaluator takes as input a robust-rail-solver plan (robust-rail-solver plan format is used). Nevertheless, it can also evaluate `robust-rail-evaluator` formated plans as well.  
+Note: This evaluator takes as input a robust-rail-solver plan (robust-rail-solver plan format is used). Nevertheless, it can also evaluate `robust-rail-evaluator` formatted plans as well.  
 
 ### Plan/Scenario/Location testing - robust-rail-solver issued plan
 
@@ -200,9 +201,9 @@ The tool was developed on Linux and building the tool on macOS might cause compi
 
 (*) With gcc@9 Homebrew protobufer native libraries must be modified which is not a good practice
 
-(*) With llvm Homebrew installation basic C Test files cannot be compiled on Intel-based mac systems
+(*) With llvm Homebrew installation basic C Test files cannot be compiled on Intel-based Mac systems
 
-(*) Compile process is sucessfull under native clang (14), however, SIGILL - illegal instruction signal errors can happen during the tool's execution.  
+(*) Compile process is successful under native clang (14), however, SIGILL - illegal instruction signal errors can happen during the tool's execution.  
  
 
 
@@ -255,7 +256,7 @@ conda init
 
 In principle the robust-rail tools are built in a single Docker do ease the development and usage. Nevertheless, it is possible to use/build `robust-rail-evaluator` as a standalone tool
 
-## Dev-Container setup
+## Dev-Container set up
 The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/tutorial)** is highly recommended in macOS environment. Running **VS Code** inside a Docker container is useful, since it allows compiling and use evaluator without platform dependencies. In addition, **Dev-Container** allows to an easy to use dockerized development since the mounted code base can be modified real-time in a docker environment via **VS Code**.
 
 * 1st - Install **Docker**
@@ -264,7 +265,7 @@ The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/
 
 * 3rd - Open the project in **VS Code**
 
-* 4th - `Ctrl+Shif+P` → Dev Containers: Rebuild Container (it can take a few minutes) - this command will use the [Dockerfile](.devcontainer/Dockerfile) and [devcontainer.json](.devcontainer/devcontainer.json) definitions unde [.devcontainer](.devcontainer).
+* 4th - `Ctrl+Shif+P` → Dev Containers: Rebuild Container (it can take a few minutes) - this command will use the [Dockerfile](.devcontainer/Dockerfile) and [devcontainer.json](.devcontainer/devcontainer.json) definitions under [.devcontainer](.devcontainer).
 
 * 5th - Build process of the tool is below: 
 Note: all the dependencies are already contained by the Docker instance.

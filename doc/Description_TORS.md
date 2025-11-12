@@ -74,23 +74,23 @@ The following actions are available:
 
 * `Arrive(inc)`: Let the shunting unit described by the Incoming instance inc arrive. 
 
-* `Exit(su, out)`: Exit the shunting unit su, according to the outgoing goal described by out. Note that you need to specify which shunting unit you want to exit. This is because of the matching problem, where out does not describe a uniquely identifiable shunting unit. 
+* `Exit(su, out)`: Exit the shunting unit `su`, according to the outgoing goal described by out. Note that you need to specify which shunting unit you want to exit. This is because of the matching problem, where out does not describe a uniquely identifiable shunting unit. 
 
-* `BeginMove(su)`: Begin a move operation for shunting unit su. 
+* `BeginMove(su)`: Begin a move operation for shunting unit `su`. 
 
-* `EndMove(su)`: End a move operation for the shunting unit su. This means park the shunting unit. 
+* `EndMove(su)`: End a move operation for the shunting unit `su`. This means park the shunting unit. 
 
-* `Move(su, to_track)`: Move shunting unit su to track to_track. 
+* `Move(su, to_track)`: Move shunting unit `su` to track to_track. 
 
 * `Setback(su)`: Setback the shunting unit (that is, change the unit's direction). 
 
 * `Service(su, task, train, facility)`: Execute the specified service task on the train in the shunting unit su at the given facility. 
 
-* `Split(su, split_index)`: Split the shunting unit su at the specified index. TU3 - TU2 - TU1> with split index 2 is split into TU3> and TU2 - TU1>. 
+* `Split(su, split_index)`: Split the shunting unit `su` at the specified index. TU3 - TU2 - TU1> with split index 2 is split into TU3> and TU2 - TU1>. 
 
-* `Combine(su1, su2)`: Combine the two adjacent shunting units su1 and su2 into one unit. 
+* `Combine(su1, su2)`: Combine the two adjacent shunting units `su1` and `su2` into one unit. 
 
-* `Wait(su)`: Let the shunting unit su wait until the next event.
+* `Wait(su)`: Let the shunting unit `su` wait until the next event.
 
 ### Move actions and duration 
 

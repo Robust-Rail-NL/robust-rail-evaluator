@@ -23,8 +23,14 @@ pair<bool, string> blocked_track_rule::IsValid(const State* state, const Action*
 	// action in between. So all tracks we run through are fully traversed by the ShuntingUnit.
 	for ( size_t i = 1; i + 1 < ress.size(); ++i ) {
 		auto res = ress.at(i);
+		if ( ress.at(i-1) == ress.at(i+1) ) {
+			// This is (probably) a saw move. Delegate checking whether there's enough room on the track to the length_track_rule.
+			cout << "Ignoring saw move at position " << i << ", track " << res->toString() << ", id " << res->GetID() << endl;
+			continue;
+		}
 		if ( state->GetOccupations(res).size() > 0 ) {
-			return make_pair(false, "Track " + res->toString() + " is occupied.");
+			cout << "Collission detected at position " << i << ", track " << res->toString() << ", id " << res->GetID()  << endl;
+			return make_pair(false, "Track " + res->toString() + ", id " + res->GetID() + " is occupied.");
 		}
 	}
 	return make_pair(true, "");

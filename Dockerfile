@@ -39,7 +39,7 @@ WORKDIR /workspace
 
 RUN git clone --branch docker https://github.com/Robust-Rail-NL/robust-rail-evaluator.git
 RUN conda env create -f /workspace/robust-rail-evaluator/env.yml && conda init
-#RUN bash robust-rail-evaluator/build.sh
+RUN bash /workspace/robust-rail-evaluator/build.sh
 
 # Set default command to keep the container running
 CMD [ "bash" ]

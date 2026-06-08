@@ -37,8 +37,8 @@ RUN apt update && apt install -y cmake
 # Create workspace directory
 WORKDIR /workspace
 
-RUN git clone https://github.com/Robust-Rail-NL/robust-rail-evaluator.git
-RUN ./build.sh
+RUN git clone --branch docker https://github.com/Robust-Rail-NL/robust-rail-evaluator.git
+RUN bash robust-rail-evaluator/build.sh
 
 # Set default command to keep the container running
 CMD [ "bash" ]

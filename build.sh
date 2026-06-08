@@ -1,6 +1,9 @@
 #!/bin/bash
 
-cd robust-rail-evaluator
+# This file is intended to be run from inside a Docker container build from
+# the included Dockerfile.
+
+cd /workspace/robust-rail-evaluator
 conda env create -f env.yml
 conda init
 source ~/.bashrc

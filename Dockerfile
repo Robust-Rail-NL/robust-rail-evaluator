@@ -1,31 +1,24 @@
-# Use Ubuntu 20.04 as the base image
-FROM ubuntu:20.04
+# Build stage: installs toolchain, conda, and compiles the C++ project
+FROM ubuntu:20.04 AS builder
 
-# Set environment variables to avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update package list and install dependencies
-RUN apt update && apt install -y \
-    wget \
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    build-essential \
     curl \
     git \
-    build-essential \
     software-properties-common \
     && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
-    && apt update \
-    && apt install -y gcc-9 g++-9 \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    gcc-9 g++-9 cmake \
     && rm -rf /var/lib/apt/lists/*
 
-# Set GCC and G++ 9.4.0 as the default versions
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
 
-# Verify GCC and G++ installation
-RUN gcc --version && g++ --version
-
-# Install Conda (Anaconda 24.1.2)
 ARG TARGETARCH
-
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         MINIFORGE_ARCH="x86_64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
@@ -37,19 +30,36 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     && bash Miniforge.sh -b -p /opt/conda \
     && rm Miniforge.sh
 
-
-# Set Conda environment variables
 ENV PATH="/opt/conda/bin:$PATH"
 
-# Download and install CMake 3.16.3
-RUN apt update && apt install -y cmake
-
-# Create workspace directory
 WORKDIR /workspace
 
-RUN git clone --branch docker https://github.com/Robust-Rail-NL/robust-rail-evaluator.git
-RUN conda env create -f /workspace/robust-rail-evaluator/env.yml && conda init
-RUN bash /workspace/robust-rail-evaluator/build.sh
+COPY . .
 
-# Set default command to keep the container running
-CMD [ "bash" ]
+RUN conda env create -f env.yml && conda init
+
+RUN apt-get update && apt-get install -y \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN bash /workspace/build.sh
+
+
+# Runtime stage: only the binary and its shared library dependencies
+FROM ubuntu:20.04
+
+LABEL org.opencontainers.image.source="https://github.com/Robust-Rail-NL/robust-rail-evaluator" \
+      org.opencontainers.image.description="TORS evaluator" \
+      org.opencontainers.image.version="0.2" \
+      org.opencontainers.image.licenses="Apache-2.0"
+
+WORKDIR /workspace
+
+COPY --from=builder /workspace/build/TORS build/TORS
+COPY --from=builder /workspace/build/cTORS/libcTORS.so /usr/local/lib/libcTORS.so
+COPY --from=builder /opt/conda/envs/my_proto_env/lib/libprotobuf.so* /usr/local/lib/
+COPY data/ data/
+
+RUN ldconfig
+
+ENTRYPOINT ["build/TORS"]

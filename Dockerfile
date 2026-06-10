@@ -24,9 +24,19 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
 RUN gcc --version && g++ --version
 
 # Install Conda (Anaconda 24.1.2)
-RUN curl -o Anaconda.sh https://repo.anaconda.com/archive/Anaconda3-2024.02-1-Linux-x86_64.sh \
-    && bash Anaconda.sh -b -p /opt/conda \
-   && rm Anaconda.sh
+ARG TARGETARCH
+
+RUN if [ "$TARGETARCH" = "amd64" ]; then \
+        MINIFORGE_ARCH="x86_64"; \
+    elif [ "$TARGETARCH" = "arm64" ]; then \
+        MINIFORGE_ARCH="aarch64"; \
+    else \
+        echo "Unsupported architecture: $TARGETARCH" && exit 1; \
+    fi \
+    && curl -L -o Miniforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-${MINIFORGE_ARCH}.sh" \
+    && bash Miniforge.sh -b -p /opt/conda \
+    && rm Miniforge.sh
+
 
 # Set Conda environment variables
 ENV PATH="/opt/conda/bin:$PATH"

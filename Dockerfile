@@ -14,6 +14,12 @@ RUN apt-get update \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y \
+    libpython3-dev \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /workspace
 
 COPY . .
@@ -26,7 +32,7 @@ FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.source="https://github.com/Robust-Rail-NL/robust-rail-evaluator" \
       org.opencontainers.image.description="TORS evaluator" \
-      org.opencontainers.image.version="0.2" \
+      org.opencontainers.image.version="0.3" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 RUN apt-get update \

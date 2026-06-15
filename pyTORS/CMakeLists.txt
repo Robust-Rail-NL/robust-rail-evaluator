@@ -10,7 +10,7 @@ include(FetchContent)
 
 FetchContent_Declare(pybind
   GIT_REPOSITORY https://github.com/pybind/pybind11.git
-  GIT_TAG v2.5.0)
+  GIT_TAG v2.13.6)
 FetchContent_GetProperties(pybind)
 if(NOT pybind_POPULATED)
   FetchContent_Populate(pybind)

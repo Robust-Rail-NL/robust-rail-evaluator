@@ -53,6 +53,9 @@ LABEL org.opencontainers.image.source="https://github.com/Robust-Rail-NL/robust-
       org.opencontainers.image.version="0.2" \
       org.opencontainers.image.licenses="Apache-2.0"
 
+RUN groupadd --gid 1000 tors \
+    && useradd --uid 1000 --gid 1000 -m tors
+
 WORKDIR /workspace
 
 COPY --from=builder /workspace/build/TORS build/TORS
@@ -60,6 +63,9 @@ COPY --from=builder /workspace/build/cTORS/libcTORS.so /usr/local/lib/libcTORS.s
 COPY --from=builder /opt/conda/envs/my_proto_env/lib/libprotobuf.so* /usr/local/lib/
 COPY data/ data/
 
-RUN ldconfig
+RUN ldconfig \
+    && chown -R tors:tors /workspace
+
+USER tors
 
 ENTRYPOINT ["build/TORS"]

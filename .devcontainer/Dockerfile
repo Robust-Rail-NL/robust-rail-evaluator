@@ -17,7 +17,14 @@ RUN apt-get update \
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
 
+RUN groupadd --gid 1000 dev \
+    && useradd --uid 1000 --gid 1000 -m dev
+
 ARG TARGETARCH
+RUN mkdir -p /opt/conda && chown dev:dev /opt/conda
+
+USER dev
+
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
         MINIFORGE_ARCH="x86_64"; \
     elif [ "$TARGETARCH" = "arm64" ]; then \
@@ -25,9 +32,9 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
     else \
         echo "Unsupported architecture: $TARGETARCH" && exit 1; \
     fi \
-    && curl -L -o Miniforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-${MINIFORGE_ARCH}.sh" \
-    && bash Miniforge.sh -b -p /opt/conda \
-    && rm Miniforge.sh
+    && curl -L -o /tmp/Miniforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-${MINIFORGE_ARCH}.sh" \
+    && bash /tmp/Miniforge.sh -b -p /opt/conda \
+    && rm /tmp/Miniforge.sh
 
 ENV PATH="/opt/conda/bin:$PATH"
 

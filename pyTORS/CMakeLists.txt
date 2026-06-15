@@ -21,12 +21,9 @@ pybind11_add_module(pyTORS MODULE module.cpp docstrings.h)
 target_link_libraries(pyTORS PRIVATE cTORS)
 
 #Find Python
-set(CMAKE_PREFIX_PATH "${CONDA_ENV}")
-
 set(Python_FIND_STRATEGY LOCATION)
-set(Python_FIND_VIRTUALENV ONLY)
+set(Python_FIND_VIRTUALENV FIRST)
 find_package(Python COMPONENTS Interpreter Development)
-include_directories("${CONDA_ENV}/include/python3.8")
 
 # Add target to generate pyi file, 
 if(Python_FOUND)

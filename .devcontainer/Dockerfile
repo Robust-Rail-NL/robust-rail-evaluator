@@ -10,7 +10,9 @@ RUN apt-get update \
     curl \
     git \
     libprotobuf-dev \
+    libpython3-dev \
     protobuf-compiler \
+    python3 \
     && rm -rf /var/lib/apt/lists/*
 
 USER ubuntu

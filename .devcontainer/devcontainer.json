@@ -8,10 +8,10 @@
         "ms-vscode.cmake-tools",
         "ms-vscode.cpptools",
         "ms-vscode.cpptools-extension-pack",
-        "ms-vscode.cpptools-themes",
-        "ms-dotnettools.csharp"
+        "ms-vscode.cpptools-themes"
     ],
     "mounts": [
         "source=.,target=/workspace,type=bind"
-    ]
+    ],
+    "postCreateCommand": "conda env create -f env.yml && bash build.sh"
 }

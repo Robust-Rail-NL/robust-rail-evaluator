@@ -18,26 +18,6 @@ The basic project set up uses the structure provided by cmake. The subfolders ar
 
 
 # First steps
-### Create and activate a `conda` environment
-
-Create env:
-```bash
-conda env create -f env.yml
-```
-
-Activate environment:
-```bash
-conda activate my_proto_env
-```
-
-
-If Conda asks to `init` first (CondaError: Run 'conda init' before 'conda activate'):
-```bash
-conda init
-source ~/.bashrc
-conda activate my_proto_env
-```
-
 ### Build with setuptools
 You can build the evaluator and the python library with the following command.
 ```sh
@@ -48,11 +28,10 @@ python setup.py install
 
 ### Build the evaluator from C++ source
 In the source directory execute the following commands:
-**Don't forget to specify** the `-DCONDA_ENV="path/to/conda_env"`
 ```bash
 mkdir build
 cd build
-cmake .. -DCONDA_ENV="path/to/conda_env"
+cmake ..
 cmake --build .
 ```
 This has been tested with gcc 9.4.0 Older versions may not support the c++17 standard. 
@@ -61,7 +40,7 @@ This has been tested with gcc 9.4.0 Older versions may not support the c++17 sta
 ```bash
 mkdir build
 cd build
-cmake .. -DCONDA_ENV="path/to/conda_env -DCMAKE_BUILD_TYPE=Debug"
+cmake .. -DCMAKE_BUILD_TYPE=Debug
 cmake --build .
 ```
 
@@ -69,7 +48,7 @@ To go back from debug to release:
 ```bash
 mkdir build
 cd build
-cmake .. -DCONDA_ENV="path/to/conda_env -DCMAKE_BUILD_TYPE=Release"
+cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
 
@@ -177,7 +156,7 @@ To specify the `location`, `scenario`, `plan` and `evaluation resutls` files, us
 export LOCATION_PATH="/path/to/location_folder" # where the location.json file can be found
 export SCENARIO_PATH="/path/to/scenario_folder/scenario.json"
 export PLAN_PATH="/path/to/plan_folder/plan.json"
-export RESULT_PLAN="/path/to/result_folder/evaluation_resutls.txt"
+export RESULT_PLAN="/path/to/result_folder/evaluation_results.txt"
 ```
 
 To run the test, use:
@@ -241,17 +220,6 @@ apt-get install cmake
 apt-get install python3-dev
 ```
 
-### Install anaconda3
-
-```bash
-wget https://repo.anaconda.com/archive/Anaconda3-2024.06-1-Linux-x86_64.sh
-bash Anaconda3-2024.06-1-Linux-x86_64.sh
-
-sudo rm Anaconda3-2024.06-1-Linux-x86_64.sh
-conda init
-```
-
-
 # Building process - Dev-Container
 
 In principle the robust-rail tools are built in a single Docker do ease the development and usage. Nevertheless, it is possible to use/build `robust-rail-evaluator` as a standalone tool
@@ -270,19 +238,6 @@ The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/
 * 5th - Build process of the tool is below: 
 Note: all the dependencies are already contained by the Docker instance.
 
-### Create and activate a `conda` environment
-
-Create env:
-```bash
-conda env create -f env.yml
-source ~/.bashrc
-```
-
-Activate environment:
-```bash
-conda activate my_proto_env
-```
-
 ### Build with setuptools
 You can build evaluator and the pyTORS library with the following command.
 ```sh
@@ -293,11 +248,10 @@ python setup.py install
 
 ### Compile the evaluator from C++ source
 In the source directory execute the following commands:
-**Don't forget to specify** the `-DCONDA_ENV="path/to/conda_env"`
 ```bash
 mkdir build
 cd build
-cmake .. -DCONDA_ENV="path/to/conda_env
+cmake ..
 cmake --build .
 ```
 

@@ -54,7 +54,7 @@ message(STATUS "------- First step -------")
 
 FetchContent_Declare(json
   GIT_REPOSITORY https://github.com/nlohmann/json.git
-  GIT_TAG v3.7.3)
+  GIT_TAG v3.11.3)
 
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
@@ -160,12 +160,6 @@ set(TORS_SOURCE_FILES
 
 message(STATUS "------- Third step -------")
 
-set(CONDA_ENV "" CACHE PATH "Path to Conda environment")
-
-
-set(CMAKE_PREFIX_PATH "${CONDA_ENV}")
-message(STATUS "Using conda environment: ${CONDA_ENV}")
-
 find_package(Protobuf REQUIRED)
 
 # set(PROTOS_DIR "../protos")
@@ -185,7 +179,6 @@ message(STATUS "********************************************************")
 message(STATUS "Using protoc executable: ${Protobuf_PROTOC_EXECUTABLE}")
 message(STATUS "Using protobuf library: ${Protobuf_LIBRARIES}")
 message(STATUS "Protobuf include directories: ${Protobuf_INCLUDE_DIRS}")
-include_directories("${CONDA_ENV}/include")
 set(PROTOS_DIR "${CMAKE_SOURCE_DIR}/protos")
 
 message(STATUS "Protobufs directory: ${PROTOS_DIR}")

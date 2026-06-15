@@ -32,8 +32,8 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y libprotobuf32t64 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --gid 1000 tors \
-    && useradd --uid 1000 --gid 1000 -m tors
+RUN groupadd --gid 999 tors \
+    && useradd --uid 999 --gid 999 -m tors
 
 WORKDIR /workspace
 
@@ -42,7 +42,7 @@ COPY --from=builder /workspace/build/cTORS/libcTORS.so /usr/local/lib/libcTORS.s
 COPY data/ data/
 
 RUN ldconfig \
-    && chown -R tors:tors /workspace
+    && chown -R 999:999 /workspace
 
 USER tors
 

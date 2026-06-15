@@ -12,10 +12,7 @@ RUN apt-get update \
     protobuf-compiler \
     && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --gid 1000 dev \
-    && useradd --uid 1000 --gid 1000 -m dev
-
-USER dev
+USER ubuntu
 
 WORKDIR /workspace
 

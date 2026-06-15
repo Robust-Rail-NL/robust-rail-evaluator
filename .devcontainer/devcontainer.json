@@ -13,6 +13,6 @@
     "mounts": [
         "source=.,target=/workspace,type=bind"
     ],
-    "remoteUser": "dev",
-    "postCreateCommand": "conda env create -f env.yml && bash build.sh"
+    "remoteUser": "ubuntu",
+    "postCreateCommand": "bash build.sh"
 }

@@ -18,10 +18,11 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 100 \
     && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 100
 
 RUN groupadd --gid 1000 dev \
-    && useradd --uid 1000 --gid 1000 -m dev
+    && useradd --uid 1000 --gid 1000 -m dev \
+    && chgrp dev /opt \
+    && chmod g+w /opt
 
 ARG TARGETARCH
-RUN mkdir -p /opt/conda && chown dev:dev /opt/conda
 
 USER dev
 

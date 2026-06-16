@@ -14,5 +14,5 @@
         "source=.,target=/workspace,type=bind"
     ],
     "remoteUser": "ubuntu",
-    "postCreateCommand": "bash build.sh"
+    "postCreateCommand": "mkdir -p build && cd build && cmake .. && cmake --build ."
 }

@@ -20,7 +20,10 @@ WORKDIR /workspace
 
 COPY . .
 
-RUN bash /workspace/build.sh
+RUN mkdir -p build \
+    && cd build \
+    && cmake .. \
+    && cmake --build .
 
 
 # Runtime stage: only the binary and its shared library dependencies

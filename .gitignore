@@ -18,8 +18,6 @@ TORS/log_tensorboard
 TORS/ppo_tors.zip
 
 #visual studio code
-launch.json
-settings.json
 !data
 data/*
 !data/Demo

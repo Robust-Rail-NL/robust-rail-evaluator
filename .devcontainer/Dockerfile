@@ -8,6 +8,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    gdb \
     git \
     libprotobuf-dev \
     libpython3-dev \

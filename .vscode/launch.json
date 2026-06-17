@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "TORS: Eval (kleine_binckhorst)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/TORS",
+            "args": [
+                "--mode", "EVAL",
+                "--path_location", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst",
+                "--path_scenario", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json",
+                "--path_plan", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json",
+                "--departure_delay", "0",
+                "--plan_type", "Solver"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cmake build debug"
+        },
+        {
+            "name": "TORS: Interactive (kleine_binckhorst)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/TORS",
+            "args": [
+                "--mode", "INTER",
+                "--path_location", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst",
+                "--path_scenario", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json",
+                "--path_plan", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json",
+                "--departure_delay", "0",
+                "--plan_type", "Solver"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cmake build debug"
+        }
+    ]
+}

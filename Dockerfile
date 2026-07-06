@@ -29,9 +29,10 @@ RUN mkdir -p build \
 # Runtime stage: only the binary and its shared library dependencies
 FROM ubuntu:24.04
 
+ARG VERSION=0.0.0
 LABEL org.opencontainers.image.source="https://github.com/Robust-Rail-NL/robust-rail-evaluator" \
       org.opencontainers.image.description="TORS evaluator" \
-      org.opencontainers.image.version="0.3" \
+      org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0"
 
 RUN apt-get update \

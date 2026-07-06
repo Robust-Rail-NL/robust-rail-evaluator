@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 
 # set the project name
-project(TORS VERSION 0.1)
+project(TORS VERSION 1.3.0)
 
 # Verbose.
 #set(CMAKE_VERBOSE_MAKEFILE on)

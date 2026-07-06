@@ -274,6 +274,33 @@ python -m pybind11_mkdoc -o pyTORS/docstrings.h cTORS/include/*.h -I build/cTORS
 ```
 This produces as output the `cTORS/doc` folder and the `pyTORS/docstrings.h` source file. This last file is used in `pyTORS/module.cpp` to generate the python docs.
 
+# Publishing the TORS image
+
+The version is tracked in a single place: `CMakeLists.txt`'s `project(TORS VERSION X.Y.Z)`. The
+Dockerfile's `org.opencontainers.image.version` label and the image tags pushed to `ghcr.io` are both
+derived from it, so nothing else needs editing by hand.
+
+### Bump the version
+```sh
+./bump-version.sh <major|minor|patch|X.Y.Z>
+```
+This edits `CMakeLists.txt`, commits the change, and creates a local, annotated git tag (`vX.Y.Z`).
+Nothing is pushed automatically — push the commit and tag yourself once you're happy with them:
+```sh
+git push --follow-tags
+```
+
+### Build and push the image
+```sh
+./docker-push.sh
+```
+This builds a multi-arch (`linux/amd64`, `linux/arm64`) image and pushes it to
+`ghcr.io/robust-rail-nl/tors`, tagged with the current version and `:latest`. It requires a `buildx`
+builder using the `docker-container` driver with `network=host` (needed because the default driver's
+isolated network namespace can fail to resolve private/LAN DNS); the script creates one named
+`robust-rail-builder` if it doesn't already exist. This builder name is shared with sibling
+Robust-Rail-NL projects (e.g. `robust-rail-solver`) that need the same setup.
+
 ## Contributors
 * Koos van der Linden: Software, Writing - Original draft
 * Roland Kromes: Software - Extensions

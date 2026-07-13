@@ -16,10 +16,10 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "DEBUGINFOD_URLS", "value": ""}],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
+            "miDebuggerPath": "${workspaceFolder}/.vscode/gdb-wrapper.sh",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -44,10 +44,10 @@
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [],
+            "environment": [{"name": "DEBUGINFOD_URLS", "value": ""}],
             "externalConsole": false,
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb",
+            "miDebuggerPath": "${workspaceFolder}/.vscode/gdb-wrapper.sh",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

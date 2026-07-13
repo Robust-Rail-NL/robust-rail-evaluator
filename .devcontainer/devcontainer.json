@@ -4,15 +4,20 @@
         "dockerfile": "Dockerfile"
     },
     "workspaceFolder": "/workspace",
-    "extensions": [
-        "ms-vscode.cmake-tools",
-        "ms-vscode.cpptools",
-        "ms-vscode.cpptools-extension-pack",
-        "ms-vscode.cpptools-themes"
-    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cmake-tools",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
+                "ms-vscode.cpptools-themes"
+            ]
+        }
+    },
     "mounts": [
         "source=.,target=/workspace,type=bind"
     ],
+    "runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined"],
     "remoteUser": "ubuntu",
     "postCreateCommand": "mkdir -p build && cd build && cmake .. && cmake --build ."
 }

@@ -107,8 +107,8 @@ message ShuntingUnit {
 	// Unique ID of this ShuntingUnit
 	string id = 1;
 
-	// The TrainUnits contained in this ShuntingUnit
-	repeated TrainUnit members = 2;
+	// The IDs of the TrainUnits contained in this ShuntingUnit
+	repeated string memberIDs = 2;
 
     // The parents of a current ShuntingUnit, 
     // that is, the shuntingunits which have been merged into this one,

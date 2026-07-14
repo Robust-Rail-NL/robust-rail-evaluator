@@ -454,9 +454,9 @@ PBAction RunResult::CreateBeginMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (auto &trainUnit : pb_shuntingUnit.members())
+    for (const string &trainUnitId : pb_shuntingUnit.memberids())
     {
-        PBaction.add_trainunitids(trainUnit.id());
+        PBaction.add_trainunitids(trainUnitId);
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -477,9 +477,9 @@ PBAction RunResult::CreateEndMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (auto &trainUnit : pb_shuntingUnit.members())
+    for (const string &trainUnitId : pb_shuntingUnit.memberids())
     {
-        PBaction.add_trainunitids(trainUnit.id());
+        PBaction.add_trainunitids(trainUnitId);
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -568,9 +568,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
         PB_HIP_ShuntingUnit hip_shuntingUnit = hip_action.shuntingunit();
 
-        for (auto &trainUnit : hip_shuntingUnit.members())
+        for (const string &trainUnitId : hip_shuntingUnit.memberids())
         {
-            action_.add_trainunitids(trainUnit.id());
+            action_.add_trainunitids(trainUnitId);
         }
 
         // Check if the shunting unit is In/OutStanding train
@@ -633,9 +633,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Split);
 
-                auto &trainUnits = hip_shuntingUnit.members();
+                auto &trainUnitIds = hip_shuntingUnit.memberids();
 
-                task_action->add_trainunitids(trainUnits[0].id());
+                task_action->add_trainunitids(trainUnitIds[0]);
 
                 pb_actions.push_back(action_);
 
@@ -648,9 +648,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Combine);
 
-                for (auto &trainUnit : hip_shuntingUnit.members())
+                for (const string &trainUnitId : hip_shuntingUnit.memberids())
                 {
-                    task_action->add_trainunitids(trainUnit.id());
+                    task_action->add_trainunitids(trainUnitId);
                 }
 
                 pb_combne_actions.push_back(action_);
@@ -706,9 +706,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
             task_action->set_location(hip_action.location());
 
-            for (auto &trainUnit : hip_shuntingUnit.members())
+            for (const string &trainUnitId : hip_shuntingUnit.memberids())
             {
-                task_action->add_trainunitids(trainUnit.id());
+                task_action->add_trainunitids(trainUnitId);
             }
 
             for (PB_HIP_Recource resource : hip_action.resources())

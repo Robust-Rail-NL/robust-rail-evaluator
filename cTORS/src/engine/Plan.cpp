@@ -11,6 +11,19 @@ const vector<int> GetTrainIDs(const PBList<string> &pb_train_ids)
     return trains;
 }
 
+// Every ShuntingUnit must contain at least one train unit. An empty result here almost
+// always means the plan JSON used the old "members" (embedded TrainUnit) field instead
+// of "memberIDs" (string list) - that key is silently dropped by the lenient JSON parser
+// rather than rejected, so this check turns that into an early, actionable error instead
+// of a confusing crash much later when the (wrongly) empty ID list is used.
+const PBList<string> &GetShuntingUnitMemberIDs(const PB_HIP_ShuntingUnit &su)
+{
+    if (su.memberids().empty())
+        throw invalid_argument("ShuntingUnit '" + su.id() + "' has no memberIDs in the plan JSON. "
+            "Is this a legacy plan using the old 'members' (embedded TrainUnit) field instead of 'memberIDs' (ID list)?");
+    return su.memberids();
+}
+
 POSAction &POSAction::operator=(const POSAction &pa)
 {
     if (this != &pa)
@@ -454,7 +467,7 @@ PBAction RunResult::CreateBeginMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (const string &trainUnitId : pb_shuntingUnit.memberids())
+    for (const string &trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
         PBaction.add_trainunitids(trainUnitId);
     }
@@ -477,7 +490,7 @@ PBAction RunResult::CreateEndMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (const string &trainUnitId : pb_shuntingUnit.memberids())
+    for (const string &trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
         PBaction.add_trainunitids(trainUnitId);
     }
@@ -568,7 +581,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
         PB_HIP_ShuntingUnit hip_shuntingUnit = hip_action.shuntingunit();
 
-        for (const string &trainUnitId : hip_shuntingUnit.memberids())
+        for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
         {
             action_.add_trainunitids(trainUnitId);
         }
@@ -633,7 +646,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Split);
 
-                auto &trainUnitIds = hip_shuntingUnit.memberids();
+                auto &trainUnitIds = GetShuntingUnitMemberIDs(hip_shuntingUnit);
 
                 task_action->add_trainunitids(trainUnitIds[0]);
 
@@ -648,7 +661,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Combine);
 
-                for (const string &trainUnitId : hip_shuntingUnit.memberids())
+                for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
                 {
                     task_action->add_trainunitids(trainUnitId);
                 }
@@ -706,7 +719,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
             task_action->set_location(hip_action.location());
 
-            for (const string &trainUnitId : hip_shuntingUnit.memberids())
+            for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
             {
                 task_action->add_trainunitids(trainUnitId);
             }

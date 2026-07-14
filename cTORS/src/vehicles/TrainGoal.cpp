@@ -1,7 +1,7 @@
 #include "TrainGoals.h"
 
 const Train* GetTrainById(const vector<Train>& trains, const string& id) {
-	int iid = id == "****" ? -1 : stoi(id);
+	int iid = (id == "****" || id.empty()) ? -1 : stoi(id);
 	for(auto& train: trains) {
 		if(train.GetID() == iid) return &train;
 	}

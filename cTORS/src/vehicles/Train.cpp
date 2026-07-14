@@ -29,7 +29,7 @@ void Task::Serialize(PBTask* pb_task) const {
 }
 
 Train::Train(const PBTrainUnit& pb_train) 
-	: Train(pb_train.id()=="****" ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
+	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
 
 bool Train::operator==(const Train& train) const {
 	return (id != -1 && id == train.id) || this == &train;

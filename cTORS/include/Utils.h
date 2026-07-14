@@ -90,9 +90,14 @@ inline void parse_json_to_pb(const fs::path& file_path, google::protobuf::Messag
         throw runtime_error("The file " + file_path.string() + " does not exist.");
     stringstream buffer;
     buffer << fileInput.rdbuf();
-    auto status = google::protobuf::util::JsonStringToMessage(buffer.str(), message);
+    google::protobuf::util::JsonParseOptions options;
+    options.ignore_unknown_fields = true;
+    options.case_insensitive_enum_parsing = true;
+    auto status = google::protobuf::util::JsonStringToMessage(buffer.str(), message, options);
     debug_out("Parse JSON " << file_path.string() << " / Status: " << status.ToString());
     fileInput.close();
+    if (!status.ok())
+        throw runtime_error("Failed to parse " + file_path.string() + ": " + status.ToString());
 }
 
 inline void parse_json_to_pb(const string& filename, google::protobuf::Message* message) {

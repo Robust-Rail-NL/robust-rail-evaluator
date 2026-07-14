@@ -8,19 +8,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ],
                 "standingType": "InStanding"
             },
@@ -40,19 +29,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2901",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2901"
                 ]
             },
             "location": "14"
@@ -65,19 +43,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2901",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2901"
                 ],
                 "standingType": "InStanding"
             },
@@ -97,19 +64,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "41",
@@ -172,19 +128,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "47",
@@ -203,19 +148,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "41",
@@ -310,19 +244,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "47",
@@ -341,27 +264,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "41",
@@ -384,27 +289,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "41"
@@ -417,27 +304,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "47",
@@ -456,19 +325,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "8",
@@ -507,19 +365,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "8"
@@ -532,19 +379,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "11",
@@ -591,19 +427,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "11",
@@ -622,19 +447,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ]
             },
             "location": "2",
@@ -745,19 +559,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ]
             },
             "location": "2"
@@ -770,19 +573,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10"
@@ -795,19 +587,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10",
@@ -826,19 +607,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10",
@@ -941,19 +711,8 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "41",
@@ -972,19 +731,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8"
@@ -997,19 +745,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8",
@@ -1072,19 +809,8 @@
             },
             "shuntingUnit": {
                 "id": "3",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "41",
@@ -1103,27 +829,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "15"
@@ -1136,27 +844,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "15",
@@ -1179,27 +869,9 @@
             },
             "shuntingUnit": {
                 "id": "4",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "41",
@@ -1218,19 +890,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2901",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2901"
                 ]
             },
             "location": "14"
@@ -1243,19 +904,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2901",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2901"
                 ]
             },
             "location": "14",
@@ -1302,19 +952,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2901",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2901"
                 ],
                 "standingType": "OutStanding"
             },
@@ -1334,19 +973,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ]
             },
             "location": "3"
@@ -1359,19 +987,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ]
             },
             "location": "3"
@@ -1384,19 +1001,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2902",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2902"
                 ],
                 "standingType": "OutStanding"
             },

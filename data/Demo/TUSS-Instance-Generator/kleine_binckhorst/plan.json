@@ -8,19 +8,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "41",
@@ -79,23 +68,12 @@
             "startTime": "300",
             "endTime": "300",
             "taskType": {
-                "predefined": "Arrive"
+                "predefined": "StandIn"
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "47",
@@ -110,23 +88,12 @@
             "startTime": "600",
             "endTime": "900",
             "taskType": {
-                "predefined": "Move"
+                "predefined": "Movx"
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "41",
@@ -185,23 +152,12 @@
             "startTime": "600",
             "endTime": "600",
             "taskType": {
-                "predefined": "Arrive"
+                "predefined": "Arrivx"
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "47",
@@ -220,27 +176,9 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "41",
@@ -275,31 +213,13 @@
             "startTime": "900",
             "endTime": "900",
             "taskType": {
-                "predefined": "Arrive"
+                "predefined": "Arrivx"
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "47",
@@ -318,19 +238,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "8",
@@ -369,19 +278,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "8"
@@ -394,19 +292,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8",
@@ -445,19 +332,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8"
@@ -470,19 +346,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "11",
@@ -529,19 +394,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "11",
@@ -560,19 +414,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10"
@@ -585,19 +428,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10",
@@ -616,19 +448,8 @@
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "10",
@@ -727,23 +548,12 @@
             "startTime": "3600",
             "endTime": "3600",
             "taskType": {
-                "predefined": "Exit"
+                "predefined": "Exix"
             },
             "shuntingUnit": {
                 "id": "0",
-                "members": [
-                    {
-                        "id": "2401",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 4,
-                            "length": 69.36,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "16"
-                        }
-                    }
+                "memberIDs": [
+                    "2401"
                 ]
             },
             "location": "41",
@@ -762,19 +572,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8"
@@ -787,19 +586,8 @@
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "8",
@@ -858,23 +646,12 @@
             "startTime": "3900",
             "endTime": "3900",
             "taskType": {
-                "predefined": "Exit"
+                "predefined": "Exix"
             },
             "shuntingUnit": {
                 "id": "1",
-                "members": [
-                    {
-                        "id": "2601",
-                        "type": {
-                            "displayName": "SLT",
-                            "carriages": 6,
-                            "length": 100.54,
-                            "combineDuration": "180",
-                            "splitDuration": "120",
-                            "backNormTime": "120",
-                            "backAdditionTime": "15"
-                        }
-                    }
+                "memberIDs": [
+                    "2601"
                 ]
             },
             "location": "41",
@@ -893,27 +670,9 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "2"
@@ -926,27 +685,9 @@
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "2",
@@ -981,31 +722,13 @@
             "startTime": "4200",
             "endTime": "4200",
             "taskType": {
-                "predefined": "Exit"
+                "predefined": "Exix"
             },
             "shuntingUnit": {
                 "id": "2",
-                "members": [
-                    {
-                        "id": "2801",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 3,
-                            "length": 59.5,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    },
-                    {
-                        "id": "2802",
-                        "type": {
-                            "displayName": "SNG",
-                            "carriages": 4,
-                            "length": 75.7,
-                            "combineDuration": "180",
-                            "splitDuration": "120"
-                        }
-                    }
+                "memberIDs": [
+                    "2801",
+                    "2802"
                 ]
             },
             "location": "41",

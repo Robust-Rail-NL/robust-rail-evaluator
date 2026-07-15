@@ -276,16 +276,19 @@ This produces as output the `cTORS/doc` folder and the `pyTORS/docstrings.h` sou
 
 # Publishing the TORS image
 
-The version is tracked in a single place: `CMakeLists.txt`'s `project(TORS VERSION X.Y.Z)`. The
+The version is tracked in a single place: `CMakeLists.txt`'s `project(TORS VERSION X.Y.Z)`, plus a
+`TORS_VERSION_SUFFIX` variable right below it for prerelease suffixes (e.g. `alpha.1`) — CMake's
+`project(VERSION ...)` is numeric-only and rejects suffixes, so it can't hold them directly. The
 Dockerfile's `org.opencontainers.image.version` label and the image tags pushed to `ghcr.io` are both
-derived from it, so nothing else needs editing by hand.
+derived from these two fields, so nothing else needs editing by hand.
 
 ### Bump the version
 ```sh
-./bump-version.sh <major|minor|patch|X.Y.Z>
+./bump-version.sh <major|minor|patch|prerelease|X.Y.Z[-suffix]>
 ```
-This edits `CMakeLists.txt`, commits the change, and creates a local, annotated git tag (`vX.Y.Z`).
-Nothing is pushed automatically — push the commit and tag yourself once you're happy with them:
+This edits `CMakeLists.txt`, commits the change, and creates a local, annotated git tag
+(`vX.Y.Z[-suffix]`). Nothing is pushed automatically — push the commit and tag yourself once you're
+happy with them:
 ```sh
 git push --follow-tags
 ```

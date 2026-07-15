@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.11)
 
 # set the project name
-project(TORS VERSION 2.0.0-alpha.1)
+project(TORS VERSION 2.0.0)
+# CMake's project(VERSION ...) is numeric-only and rejects prerelease suffixes
+# (e.g. "-alpha.1"); track any such suffix here instead. Empty for stable
+# releases. bump-version.sh keeps this and the project() version in sync.
+set(TORS_VERSION_SUFFIX "alpha.1")
 
 # Verbose.
 #set(CMAKE_VERBOSE_MAKEFILE on)

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Build and push the multi-arch TORS evaluator image to ghcr.io.
 #
-# The version is read from CMakeLists.txt's project(TORS VERSION ...) (the
-# single source of truth — use bump-version.sh to change it) and passed into
-# the image as a build-arg, so the Dockerfile LABEL never needs a separate
-# edit.
+# The version is read from CMakeLists.txt's project(TORS VERSION ...) plus
+# TORS_VERSION_SUFFIX (the single source of truth — use bump-version.sh to
+# change it) and passed into the image as a build-arg, so the Dockerfile
+# LABEL never needs a separate edit.
 #
 # :latest is applied unconditionally for now — this repo doesn't yet have a
 # prerelease/stable branch split like robust-rail-solver's dev/noproto.
@@ -27,8 +27,12 @@ set -euo pipefail
 IMAGE="ghcr.io/robust-rail-nl/tors"
 BUILDER_NAME="robust-rail-builder"
 
-VERSION=$(sed -n 's:.*project(TORS VERSION \([0-9.]*\)).*:\1:p' CMakeLists.txt)
-[[ -n "$VERSION" ]] || { echo "Could not read project(TORS VERSION ...) from CMakeLists.txt" >&2; exit 1; }
+RELEASE=$(sed -n 's:.*project(TORS VERSION \([0-9.]*\)).*:\1:p' CMakeLists.txt)
+[[ -n "$RELEASE" ]] || { echo "Could not read project(TORS VERSION ...) from CMakeLists.txt" >&2; exit 1; }
+SUFFIX=$(sed -n 's:.*set(TORS_VERSION_SUFFIX "\(.*\)").*:\1:p' CMakeLists.txt)
+
+VERSION="$RELEASE"
+[[ -n "$SUFFIX" ]] && VERSION="$RELEASE-$SUFFIX"
 
 TAGS=(-t "$IMAGE:$VERSION" -t "$IMAGE:latest")
 

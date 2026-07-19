@@ -49,7 +49,7 @@ void ArriveActionGenerator::Generate(const State* state, list<const Action*>& ou
 	} 
 	// Then handle the rest
 	for (auto in : incoming) {
-		if (!in->IsInstanding() && state->GetTime() >= in->GetTime()) {
+		if (!in->IsInstanding() && (config->IsIgnoreTime() || state->GetTime() >= in->GetTime())) {
 			out.push_back(Generate(state, Arrive(in)));
 		}
 	}

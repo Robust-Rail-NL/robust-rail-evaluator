@@ -56,7 +56,7 @@ void ExitActionGenerator::Generate(const State *state, list<const Action *> &out
 			if (ou->GetStandingIndex() > minIndex)
 				continue;
 		}
-		else if (state->GetTime() < ou->GetTime())
+		else if (!config->IsIgnoreTime() && state->GetTime() < ou->GetTime())
 			continue;
 		for (const auto &[su, suState] : state->GetShuntingUnitStates())
 		{

@@ -11,7 +11,7 @@
 //      --path_plan: specifies the path to the plan file e.g., my_plan.json
 //      --plan_type: specifies the type of the plan, when follows robust-rail-evaluator format use --plan_type Evaluator, when plan is issued by robust-rail-solver use --plan_type Solver
 
-int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay);
+int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay, bool &ignoreTime);
 
 int main(int argc, char *argv[])
 {
@@ -22,8 +22,9 @@ int main(int argc, char *argv[])
 	std::string plan_type;
 	std::string path_eval_result;
 	int departureDelay;
+	bool ignoreTime;
 
-	if (parse(argc, argv, mode, path_location, path_scenario, path_plan, plan_type, path_eval_result, departureDelay) != 0)
+	if (parse(argc, argv, mode, path_location, path_scenario, path_plan, plan_type, path_eval_result, departureDelay, ignoreTime) != 0)
 	{
 		return 1;
 	}
@@ -34,6 +35,8 @@ int main(int argc, char *argv[])
 
 	// TODO: check whether both the "location.json" and the "config.json" exist in the folder specified by the path_location to give proper error message
 	LocationEngine engine(path_location);
+	if (ignoreTime)
+		engine.SetIgnoreTime(true);
 	const Location &location = engine.GetLocation();
 	const vector<Track *> &tracks = location.GetTracks();
 
@@ -273,7 +276,7 @@ int main(int argc, char *argv[])
 }
 
 // Parse input arguments for configuration
-int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay)
+int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay, bool &ignoreTime)
 {
 	std::map<std::string, std::string> args;
 	for (int i = 1; i < argc; i += 2)
@@ -371,6 +374,14 @@ int parse(int argc, char *argv[], std::string &mode, std::string &path_location,
 	{
 		// If the parameter is not spcified, the delay is 0 time
 		departureDelay = 0;
+	}
+	if (args.find("--ignoretime") != args.end())
+	{
+		ignoreTime = (args["--ignoretime"] == "true" || args["--ignoretime"] == "1");
+	}
+	else
+	{
+		ignoreTime = false;
 	}
 
 	std::cout << "Configuration:" << std::endl;

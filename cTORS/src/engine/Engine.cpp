@@ -41,11 +41,11 @@ const Scenario &LocationEngine::GetScenario(const string &scenarioFileString)
 	return *it->second;
 }
 
-inline void CheckScenarioEnded(const State *state)
+inline void CheckScenarioEnded(const State *state, bool ignoreTime = false)
 {
 	if (state->GetTime() > state->GetEndTime())
 	{
-		if ((state->GetIncomingTrains().size() + state->GetOutgoingTrains().size()) > 0)
+		if (!ignoreTime && (state->GetIncomingTrains().size() + state->GetOutgoingTrains().size()) > 0)
 		{
 			throw ScenarioFailedException("End of Scenario reached, but there are remaining incoming or outgoing trains.");
 		}
@@ -55,7 +55,7 @@ inline void CheckScenarioEnded(const State *state)
 void LocationEngine::Step(State *state)
 {
 	ExecuteImmediateEvents(state);
-	CheckScenarioEnded(state);
+	CheckScenarioEnded(state, config.IsIgnoreTime());
 	EventQueue disturbances; // Currently an empty queue of disturbances. TODO get the disturbances from the Scenario
 	while (!state->IsActionRequired() && state->GetNumberOfEvents() > 0)
 	{
@@ -70,7 +70,7 @@ void LocationEngine::Step(State *state)
 			evnt = state->PopEvent();
 		ExecuteEvent(state, evnt);
 		ExecuteImmediateEvents(state);
-		CheckScenarioEnded(state);
+		CheckScenarioEnded(state, config.IsIgnoreTime());
 	}
 	debug_out("Step done.");
 	state->AddExtraInfo("Step done.");
@@ -78,7 +78,7 @@ void LocationEngine::Step(State *state)
 
 bool LocationEngine::IsStateActive(const State *state) const
 {
-	CheckScenarioEnded(state);
+	CheckScenarioEnded(state, config.IsIgnoreTime());
 	return state->IsActionRequired();
 }
 
@@ -234,6 +234,13 @@ void LocationEngine::ApplyAction(State *state, const SimpleAction &action)
 
 void LocationEngine::ApplyWaitAllUntil(State *state, int time)
 {
+	if (state->GetShuntingUnitStates().empty())
+	{
+		state->SetTime(time);
+		ExecuteImmediateEvents(state);
+		CheckScenarioEnded(state, config.IsIgnoreTime());
+		return;
+	}
 	for (auto &[su, suState] : state->GetShuntingUnitStates())
 	{
 		if (!suState.waiting && time - state->GetTime() > 0 && !suState.HasActiveAction())
@@ -484,7 +491,6 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 		}
 	}
 	bool result = (state->GetShuntingUnits().size() == 0);
-	EndSession(state);
 
 	if (result)
 	{
@@ -500,6 +506,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 	}
 
 	state->file.close();
+	EndSession(state);
 	return result;
 }
 

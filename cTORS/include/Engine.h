@@ -69,6 +69,10 @@ public:
 	void EndSession(State* state);
 	/** Get a reference to the Location of this Engine */
 	inline const Location& GetLocation() const { return location; }
+	/** Set the ignoretime flag on this engine's config */
+	void SetIgnoreTime(bool v) { config.SetIgnoreTime(v); }
+	/** Get the ignoretime flag from this engine's config */
+	bool IsIgnoreTime() const { return config.IsIgnoreTime(); }
 	/** Get the Scenario given in the file path */
 	const Scenario& GetScenario(const string& scenarioFileString);
 	

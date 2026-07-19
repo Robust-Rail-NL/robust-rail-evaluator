@@ -695,6 +695,7 @@ public:
 class ActionGenerator {
 protected:
 	const Location* location; /**< a reference to the Location object */
+	const Config* config;     /**< a reference to the Config object */
 	/** Run an initial error check on the action and return the ShuntingUnit from the State */
 	inline const ShuntingUnit* InitialCheck(const State* state, const SimpleAction& action) const {
 		return InitialCheck(state, action.GetTrainIDs());
@@ -705,7 +706,7 @@ public:
 	ActionGenerator() = delete;
 	ActionGenerator(const ActionGenerator& am) = delete;
 	/** Construct this ActionGenerator based on the parameters defined in the json object */
-	ActionGenerator(const json& params, const Location* location) : location(location) {}
+	ActionGenerator(const json& params, const Location* location, const Config* config) : location(location), config(config) {}
 	/** The default destructor */
 	~ActionGenerator() = default;
 	/** Generate actions given the State and store the result in the out list */
@@ -772,7 +773,7 @@ public:
 class name : public ActionGenerator { \
 public: \
 	/** Construct this name based on the parameters defined in the json object */ \
-	name(const json& params, const Location* location) : ActionGenerator(params, location) {}; \
+	name(const json& params, const Location* location, const Config* config) : ActionGenerator(params, location, config) {}; \
 	OVERRIDE_ACTIONGENERATOR(name) \
 };
 #endif
@@ -801,7 +802,7 @@ private:
 			const Track* previous, int duration, list<const Action*> &out) const;
 public:
 	/** Construct this MoveActionGenerator based on the parameters defined in the json object */ \
-	MoveActionGenerator(const json& params, const Location* location);
+	MoveActionGenerator(const json& params, const Location* location, const Config* config);
 	/** Generate a Path for the given Move action */
 	const Path& GeneratePath(const State* state, const Move& action) const;
 	OVERRIDE_ACTIONGENERATOR(MoveActionGenerator)
@@ -815,7 +816,7 @@ private:
 	int GetDuration(const State* state, const ShuntingUnit* su, int numDrivers) const;
 public:
 	/** Construct this SetbackActionGenerator based on the parameters defined in the json object */ \
-	SetbackActionGenerator(const json& params, const Location* location);
+	SetbackActionGenerator(const json& params, const Location* location, const Config* config);
 	OVERRIDE_ACTIONGENERATOR(SetbackActionGenerator)
 };
 

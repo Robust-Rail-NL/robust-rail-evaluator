@@ -47,7 +47,7 @@ const string MoveAction::toString() const {
 	return "Move " + su->toString() + " to " + GetDestinationTrack()->toString() + " (route: " + Join(GetTracks(), " - ") + ")";
 }
 
-MoveActionGenerator::MoveActionGenerator(const json& params, const Location* location) : ActionGenerator(params, location) {
+MoveActionGenerator::MoveActionGenerator(const json& params, const Location* location, const Config* config) : ActionGenerator(params, location, config) {
 	params.at("no_routing_duration").get_to(noRoutingDuration);
 	params.at("constant_time").get_to(constantTime);
 	params.at("default_time").get_to(defaultTime);

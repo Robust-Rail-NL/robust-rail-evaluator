@@ -46,7 +46,7 @@ pair<bool, string> ActionManager::IsValid(const State *state, const Action *acti
 
 #ifndef ADD_GENERATOR
 #define ADD_GENERATOR(name, generator) \
-	AddGenerator(name, new generator(config->GetActionParameters(name), location));
+	AddGenerator(name, new generator(config->GetActionParameters(name), location, config));
 #endif
 
 #ifndef ADD_VALIDATOR

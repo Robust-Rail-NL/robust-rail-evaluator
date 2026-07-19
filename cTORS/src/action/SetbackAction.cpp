@@ -22,7 +22,7 @@ const string SetbackAction::toString() const {
 }
 
 
-SetbackActionGenerator::SetbackActionGenerator(const json& params, const Location* location) : ActionGenerator(params, location) {
+SetbackActionGenerator::SetbackActionGenerator(const json& params, const Location* location, const Config* config) : ActionGenerator(params, location, config) {
 	params.at("constant_time").get_to(constantTime);
 	params.at("default_time").get_to(defaultTime);
 	params.at("norm_time").get_to(normTime);

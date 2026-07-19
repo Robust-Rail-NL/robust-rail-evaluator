@@ -27,6 +27,7 @@ private:
 	map<string, bool> businessRules;
 	map<string, bool> actionRules;
 	map<string, json> actionParams;
+	bool ignoreTime = false;
 
 	void ImportBusinessRules(const json& j);
 	void ImportActionRules(const json& j);
@@ -41,6 +42,10 @@ public:
 	bool IsGeneratorActive(const string& name) const;
 	/** Get the parameters for the ActionGenerator defined by the name */
 	const json GetActionParameters(const string& name) const;
+	/** Returns true iff the --ignoretime flag is active */
+	bool IsIgnoreTime() const { return ignoreTime; }
+	/** Set the ignoretime flag */
+	void SetIgnoreTime(bool v) { ignoreTime = v; }
 };
 
 #endif

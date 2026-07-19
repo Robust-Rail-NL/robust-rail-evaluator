@@ -24,7 +24,7 @@ public: \
  * uses these rules to validate actions
  */
 class BusinessRule {
-private:
+protected:
 	const Config* config;
 public:
 	BusinessRule() = delete;

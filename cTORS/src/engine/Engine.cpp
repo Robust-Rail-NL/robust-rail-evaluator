@@ -52,6 +52,13 @@ inline void CheckScenarioEnded(const State *state)
 	}
 }
 
+/** Safety valve for LocationEngine::EvaluatePlan: if this many consecutive
+ * iterations of the outer loop pass with no change in state->GetTime() and
+ * no advance of the plan action iterator, the loop is stuck and cannot make
+ * progress (see doc/known-issue-plan-evaluation-hang.md) - abort instead of
+ * spinning forever. */
+static const int MAX_STALLED_EVALUATE_PLAN_ITERATIONS = 100;
+
 void LocationEngine::Step(State *state)
 {
 	ExecuteImmediateEvents(state);
@@ -367,6 +374,8 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 	auto state = StartSession(scenario);
 	Step(state);
 	auto it = plan.GetActions().begin();
+	int stalledIterations = 0;
+	int lastTime = state->GetTime();
 	while (it != plan.GetActions().end())
 	{
 		try
@@ -376,25 +385,41 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 				state->PrintStateInfo();
 			}
 
+			auto itBefore = it;
 			if (state->GetTime() >= it->GetSuggestedStart())
 			{
 
-			
+
 				cout << "**********************************************************ACTION**********************************************************" << endl;
-				
+
 				cout << "Applying action  " << (it->GetAction())->toString() << " at T" << state->GetTime() << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]" << endl;
-			
+
 				cout << "**************************************************************************************************************************" << endl;
 
 				debug_out("Applying action " << (it->GetAction())->toString() << " at T" << state->GetTime()
 											 << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]");
-				
+
 				ApplyActionAndStep(state, *(it->GetAction()));
 				it++;
 			}
 			else
 			{
 				ApplyWaitAllUntil(state, it->GetSuggestedStart());
+			}
+
+			if (it == itBefore && state->GetTime() == lastTime)
+			{
+				if (++stalledIterations >= MAX_STALLED_EVALUATE_PLAN_ITERATIONS)
+				{
+					throw ScenarioFailedException("EvaluatePlan made no progress (state time stuck at T" + to_string(state->GetTime()) +
+												   ", plan action iterator not advancing) for " + to_string(MAX_STALLED_EVALUATE_PLAN_ITERATIONS) +
+												   " consecutive iterations; aborting instead of spinning forever.");
+				}
+			}
+			else
+			{
+				stalledIterations = 0;
+				lastTime = state->GetTime();
 			}
 		}
 		catch (ScenarioFailedException &e)
@@ -442,6 +467,8 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 
 	Step(state);
 	auto it = plan.GetActions().begin();
+	int stalledIterations = 0;
+	int lastTime = state->GetTime();
 	while (it != plan.GetActions().end())
 	{
 		try
@@ -449,9 +476,10 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 
 			state->SaveState();
 
+			auto itBefore = it;
 			if (state->GetTime() >= it->GetSuggestedStart())
 			{
-				state->file << "**********************************************************ACTION**********************************************************" << endl;				
+				state->file << "**********************************************************ACTION**********************************************************" << endl;
 				state->file << "Applying action " << (it->GetAction())->toString() << " at T" << state->GetTime() << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]" << endl;
 				state->file << "**************************************************************************************************************************" << endl;
 
@@ -463,6 +491,21 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 			else
 			{
 				ApplyWaitAllUntil(state, it->GetSuggestedStart());
+			}
+
+			if (it == itBefore && state->GetTime() == lastTime)
+			{
+				if (++stalledIterations >= MAX_STALLED_EVALUATE_PLAN_ITERATIONS)
+				{
+					throw ScenarioFailedException("EvaluatePlan made no progress (state time stuck at T" + to_string(state->GetTime()) +
+												   ", plan action iterator not advancing) for " + to_string(MAX_STALLED_EVALUATE_PLAN_ITERATIONS) +
+												   " consecutive iterations; aborting instead of spinning forever.");
+				}
+			}
+			else
+			{
+				stalledIterations = 0;
+				lastTime = state->GetTime();
 			}
 		}
 		catch (ScenarioFailedException &e)

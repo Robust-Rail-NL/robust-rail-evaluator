@@ -8,9 +8,9 @@
             "program": "${workspaceFolder}/build/TORS",
             "args": [
                 "--mode", "EVAL",
-                "--path_location", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst",
-                "--path_scenario", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json",
-                "--path_plan", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json",
+                "--path_location", "${workspaceFolder}/data/Bugs/hanging",
+                "--path_scenario", "${workspaceFolder}/data/Bugs/hanging/scenario.json",
+                "--path_plan", "${workspaceFolder}/data/Bugs/hanging/plan.json",
                 "--departure_delay", "0",
                 "--plan_type", "Solver"
             ],

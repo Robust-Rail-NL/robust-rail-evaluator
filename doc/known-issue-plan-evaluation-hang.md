@@ -136,14 +136,15 @@ proceed while the plan waits on it.
 2. **Diff against a plan that completes.** `KleineBinckhorst_30t_random_98s_test`
    finishes fine — compare its task-type mix and action ordering against
    the three that hang to narrow down the structural trigger.
-3. **Add a safety valve regardless of root cause.** `EvaluatePlan`'s outer
-   loop has no iteration cap or forward-progress check. Even once the root
-   cause is fixed, consider detecting "N consecutive iterations with no
-   change in `state->GetTime()` and no advance of `it`" and throwing a
-   clear `ScenarioFailedException` instead of spinning — this is cheap,
-   independently valuable (turns *any* future instance of this class of bug
-   into a loud failure instead of a disk-filling hang), and worth doing
-   first since it bounds the blast radius while the real fix is pending.
+3. **DONE — safety valve added.** Both `LocationEngine::EvaluatePlan`
+   overloads (`cTORS/src/engine/Engine.cpp`) now track consecutive
+   iterations with no change in `state->GetTime()` and no advance of `it`;
+   after `MAX_STALLED_EVALUATE_PLAN_ITERATIONS` (100) such iterations they
+   throw `ScenarioFailedException`, which the existing `catch` block turns
+   into a normal "Scenario failed." / plan-invalid result instead of an
+   infinite loop. Verified against the `data/Bugs/hanging` fixture (also
+   wired up as the first `.vscode/launch.json` configuration): the
+   previously-infinite run now terminates in well under a second.
 4. Once fixed, re-run the four hanging plans above end-to-end and confirm
    they now produce a real result (valid or not) instead of spinning.
 

@@ -425,7 +425,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 		catch (ScenarioFailedException &e)
 		{
 			cout << "------------------------------------RESULT------------------------------------" << endl;
-			cout << "Scenario failed." << endl;
+			cout << e.what() << endl;
 			cout << "------------------------------------------------------------------------------" << endl;
 			return false;
 			break;
@@ -511,7 +511,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 		catch (ScenarioFailedException &e)
 		{
 			state->file << "------------------------------------RESULT------------------------------------" << endl;
-			state->file << "Scenario failed." << endl;
+			state->file << e.what() << endl;
 			state->file << "------------------------------------------------------------------------------" << endl;
 			return false;
 			break;

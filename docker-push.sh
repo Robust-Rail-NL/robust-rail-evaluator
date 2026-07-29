@@ -6,11 +6,9 @@
 # change it) and passed into the image as a build-arg, so the Dockerfile
 # LABEL never needs a separate edit.
 #
-# :latest is applied unconditionally for now — this repo doesn't yet have a
-# prerelease/stable branch split like robust-rail-solver's dev/noproto.
-# Revisit this (gate :latest behind a version-shape regex, as solver does)
-# once a prerelease line exists here, e.g. when migrating away from
-# protobuf.
+# The :latest tag is only applied to final releases (no TORS_VERSION_SUFFIX).
+# Prerelease versions (e.g. 2.0.0-alpha.4 on the noproto branch) are pushed
+# under their own tag only, so they never shadow the current stable image.
 #
 # Requires a buildx builder using the "docker-container" driver with
 # network=host. The default driver runs the BuildKit container in an
@@ -34,7 +32,8 @@ SUFFIX=$(sed -n 's:.*set(TORS_VERSION_SUFFIX "\(.*\)").*:\1:p' CMakeLists.txt)
 VERSION="$RELEASE"
 [[ -n "$SUFFIX" ]] && VERSION="$RELEASE-$SUFFIX"
 
-TAGS=(-t "$IMAGE:$VERSION" -t "$IMAGE:latest")
+TAGS=(-t "$IMAGE:$VERSION")
+[[ -z "$SUFFIX" ]] && TAGS+=(-t "$IMAGE:latest")
 
 if ! docker buildx inspect "$BUILDER_NAME" >/dev/null 2>&1; then
     docker buildx create --name "$BUILDER_NAME" --driver docker-container --driver-opt network=host

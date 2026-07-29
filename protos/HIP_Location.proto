@@ -99,13 +99,25 @@ message TaskType {
 }
 
 enum PredefinedTaskType {
+	// The HIP generator emits lowercase enum values; alias them onto the
+	// canonical PascalCase names rather than relying on protobuf's
+	// case_insensitive_enum_parsing, which only tries an UPPER_CASE fallback
+	// and does not match PascalCase.
+	option allow_alias = true;
+
 	// Movement
 	Move = 0;
+	move = 0;
 	Split = 1;
+	split = 1;
 	Combine = 2;
+	combine = 2;
 
 	// Special
 	Wait = 3;
+	wait = 3;
 	Arrive = 4;
+	arrive = 4;
 	Exit = 5;
+	exit = 5;
 }

@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "TORS: Eval (kleine_binckhorst)",
+            "name": "TORS: Eval (hanging bug)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/TORS",
@@ -11,6 +11,35 @@
                 "--path_location", "${workspaceFolder}/data/Bugs/hanging",
                 "--path_scenario", "${workspaceFolder}/data/Bugs/hanging/scenario.json",
                 "--path_plan", "${workspaceFolder}/data/Bugs/hanging/plan.json",
+                "--departure_delay", "0",
+                "--plan_type", "Solver"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [{"name": "DEBUGINFOD_URLS", "value": ""}],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "${workspaceFolder}/.vscode/gdb-wrapper.sh",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cmake build debug"
+        },
+        {
+            "name": "TORS: Eval (plan parsing)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/TORS",
+            "args": [
+                "--mode", "EVAL_AND_STORE",
+                "--path_location", "${workspaceFolder}/data/Bugs/plan-parsing",
+                "--path_scenario", "${workspaceFolder}/data/Bugs/plan-parsing/scenario.json",
+                "--path_eval_result", "${workspaceFolder}/data/Bugs/plan-parsing/eval-result.txt",
+                "--path_plan", "${workspaceFolder}/data/Bugs/plan-parsing/plan.json",
                 "--departure_delay", "0",
                 "--plan_type", "Solver"
             ],

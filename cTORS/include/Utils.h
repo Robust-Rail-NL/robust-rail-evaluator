@@ -83,6 +83,34 @@ string Join(list<Obj> objects, const string& sep) {
   return Join(objects.begin(), objects.end(), sep);
 }
 
+// The shared interchange schemaVersion carried by Location, Scenario, and
+// Plan. Independent monotonic integer, decoupled from tool release versions;
+// increments only on breaking changes to the wire format. See
+// SCHEMA_CHANGELOG.md in robust-rail-generator for what changed at each
+// version.
+constexpr int EXPECTED_SCHEMA_VERSION = 1;
+
+// Warn-and-continue: a missing or unexpected schemaVersion is logged, never
+// a hard reject. Messages that don't declare a schemaVersion field (e.g.
+// TORS-internal formats) are silently skipped.
+inline void warn_on_schema_version_mismatch(const fs::path& file_path, const google::protobuf::Message& message) {
+    const google::protobuf::Descriptor* descriptor = message.GetDescriptor();
+    const google::protobuf::FieldDescriptor* field = descriptor->FindFieldByName("schemaVersion");
+    if (field == nullptr)
+        return;
+    const google::protobuf::Reflection* reflection = message.GetReflection();
+    if (!reflection->HasField(message, field)) {
+        cerr << "Warning: " << file_path.string() << ": schemaVersion is missing; assuming "
+             << EXPECTED_SCHEMA_VERSION << "." << endl;
+        return;
+    }
+    int version = reflection->GetInt32(message, field);
+    if (version != EXPECTED_SCHEMA_VERSION) {
+        cerr << "Warning: " << file_path.string() << ": schemaVersion " << version
+             << " does not match expected " << EXPECTED_SCHEMA_VERSION << "." << endl;
+    }
+}
+
 inline void parse_json_to_pb(const fs::path& file_path, google::protobuf::Message* message) {
     ifstream fileInput;
     fileInput.open(file_path);
@@ -98,6 +126,7 @@ inline void parse_json_to_pb(const fs::path& file_path, google::protobuf::Messag
     fileInput.close();
     if (!status.ok())
         throw runtime_error("Failed to parse " + file_path.string() + ": " + status.ToString());
+    warn_on_schema_version_mismatch(file_path, *message);
 }
 
 inline void parse_json_to_pb(const string& filename, google::protobuf::Message* message) {

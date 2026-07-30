@@ -7,6 +7,10 @@ import "Utilities.proto";
 // meaning that everything in the following message does not change on a regular basis.
 // Practically speaking, Location contains a definition for the track and facilities.
 message Location {
+    // The shared interchange schema version. Present as an explicit-presence
+    // field so readers can distinguish "absent" from "sent as 0".
+    optional int32 schemaVersion = 8;
+
     repeated TrackPart trackParts = 1;
     repeated Facility facilities = 2;
 

@@ -9,6 +9,10 @@ import "Utilities.proto";
 // A Scenario contains the part of the problem specification which varies daily,
 // that is the trains which come in and go out of the shunting area.
 message Scenario {
+// The shared interchange schema version. Present as an explicit-presence
+// field so readers can distinguish "absent" from "sent as 0".
+optional int32 schemaVersion = 13;
+
 repeated Train in = 6;
    repeated Train inStanding = 10;
    repeated Train out = 7;

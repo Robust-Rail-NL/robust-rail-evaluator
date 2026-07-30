@@ -6,6 +6,10 @@ import "HIP_Scenario.proto";
 
 // This message contains the result of a shunting algorithm.
 message Plan {
+	// The shared interchange schema version. Present as an explicit-presence
+	// field so readers can distinguish "absent" from "sent as 0".
+	optional int32 schemaVersion = 3;
+
 	repeated Action actions = 1;
 
 	// A list of all TrackParts. From this a rail graph can be constructed.

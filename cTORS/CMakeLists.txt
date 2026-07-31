@@ -69,6 +69,15 @@ message(STATUS "------- Second step -------")
 set(PROJECT_SOURCE_DIR "src")
 set(PROJECT_INCLUDE_DIR "include")
 
+# TORS_VERSION/TORS_VERSION_SUFFIX come from the top-level project(TORS
+# VERSION ...) / set(TORS_VERSION_SUFFIX ...), inherited from the parent
+# scope. Generate a header so the running binary can report its own version.
+set(TORS_FULL_VERSION "${TORS_VERSION}")
+if(TORS_VERSION_SUFFIX)
+	set(TORS_FULL_VERSION "${TORS_FULL_VERSION}-${TORS_VERSION_SUFFIX}")
+endif()
+configure_file(${PROJECT_INCLUDE_DIR}/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/Version.h @ONLY)
+
 # Includes
 set(TORS_HEADER_FILES
 	${PROJECT_INCLUDE_DIR}/Action.h

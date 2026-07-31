@@ -1,5 +1,6 @@
 #include <iostream>
 #include "Engine.h"
+#include "Version.h"
 
 // Usage:
 // ./TORS --mode EVAL/INTER --path_location ~/my_location_folder --path_scenario ~/my_scenarion.json --path_plan ~/my_plan.json --plan_type Evaluator/Solver
@@ -15,6 +16,8 @@ int parse(int argc, char *argv[], std::string &mode, std::string &path_location,
 
 int main(int argc, char *argv[])
 {
+	cout << "TORS " << TORS_VERSION << endl;
+
 	std::string mode;
 	std::string path_location;
 	std::string path_scenario;

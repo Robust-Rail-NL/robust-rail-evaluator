@@ -354,15 +354,17 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 {
 	vector<Track *> locationTracks = location.GetTracks();
 
-	// Contains the number of (incoming) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> incomingTrainTypes;
-	// Contains the number of (outgoing) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> outgoingTrainTypes;
+	// Train types are keyed by (displayName, carriages) - displayName alone is not
+	// unique, since two carriage variants of one family (e.g. "SLT") can coexist.
+	// Contains the number of (incoming) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> incomingTrainTypes;
+	// Contains the number of (outgoing) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> outgoingTrainTypes;
 
-	// Contains the number of (inStanding) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> inStandingTrainTypes;
-	// Contains the number of (outStanding) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> outStandingTrainTypes;
+	// Contains the number of (inStanding) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> inStandingTrainTypes;
+	// Contains the number of (outStanding) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> outStandingTrainTypes;
 
 	int totalTaskTime = 0;
 	for (const Incoming *train : incomingTrains)
@@ -394,7 +396,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			// Calculates the number of arrival train types, this will be compared with the number of departing train types
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
-				string trainType = trainUnit.GetType()->displayName;
+				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
 				if (incomingTrainTypes.find(trainType) != incomingTrainTypes.end())
 					incomingTrainTypes[trainType] = 0;
 				incomingTrainTypes[trainType] += 1;
@@ -405,7 +407,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			// Calculates the train types which were already on the shunting yard, this will be compared with the number of departing train types
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
-				string trainType = trainUnit.GetType()->displayName;
+				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
 				if (inStandingTrainTypes.find(trainType) != inStandingTrainTypes.end())
 					inStandingTrainTypes[trainType] = 0;
 
@@ -464,10 +466,11 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
 				string trainType = trainUnit.GetType()->displayName;
-				if (outgoingTrainTypes.find(trainType) != outgoingTrainTypes.end())
-					outgoingTrainTypes[trainType] = 0;
+				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
+				if (outgoingTrainTypes.find(typeKey) != outgoingTrainTypes.end())
+					outgoingTrainTypes[typeKey] = 0;
 
-				outgoingTrainTypes[trainType] += 1;
+				outgoingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
 			}
@@ -480,10 +483,11 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			{
 
 				string trainType = trainUnit.GetType()->displayName;
-				if (outStandingTrainTypes.find(trainType) != outStandingTrainTypes.end())
-					outStandingTrainTypes[trainType] = 0;
+				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
+				if (outStandingTrainTypes.find(typeKey) != outStandingTrainTypes.end())
+					outStandingTrainTypes[typeKey] = 0;
 
-				outStandingTrainTypes[trainType] += 1;
+				outStandingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
 
@@ -505,8 +509,8 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			size_t position = typeCurrentTrainUnitLong.find("-"); // removes "-X" part
 			string typeCurrentTrainUnit = typeCurrentTrainUnitLong.substr(0, position);
 
-			// If one of the train unit type is different from another, then the rain combination cannot be done
-			if (typeCurrentTrainUnit.find(typeFirstTrainUnit) != std::string::npos)
+			// If one of the train unit type is different from another, then the train combination cannot be done
+			if (typeCurrentTrainUnit != typeFirstTrainUnit)
 			{
 				throw invalid_argument("Train units with different types cannot be combined: Train unit [" + typeFirstTrainUnit + "] is not copatible with Train unit [" + typeCurrentTrainUnit + "]");
 			}
@@ -518,9 +522,10 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 	for (const auto &[trainType, count] : incomingTrainTypes)
 	{
+		string trainTypeLabel = trainType.first + "-" + to_string(trainType.second);
 		if (outgoingTrainTypes[trainType] > count + inStandingTrainTypes[trainType] - outStandingTrainTypes[trainType])
 		{
-			throw invalid_argument("The number of departure trains of type: [" + trainType + "] : " + to_string(outgoingTrainTypes[trainType]) + "does not match the number of arrived trains of type[" + trainType + "] : " + to_string(count) + "plus the number of instanding trains of type [" + trainType + "] : " + to_string(inStandingTrainTypes[trainType]) + "or the required number of outstanding trains of type [" + trainType + "] : " + to_string(outStandingTrainTypes[trainType]) + "is too high compared to the instanding, incoming and outgoing trains");
+			throw invalid_argument("The number of departure trains of type: [" + trainTypeLabel + "] : " + to_string(outgoingTrainTypes[trainType]) + "does not match the number of arrived trains of type[" + trainTypeLabel + "] : " + to_string(count) + "plus the number of instanding trains of type [" + trainTypeLabel + "] : " + to_string(inStandingTrainTypes[trainType]) + "or the required number of outstanding trains of type [" + trainTypeLabel + "] : " + to_string(outStandingTrainTypes[trainType]) + "is too high compared to the instanding, incoming and outgoing trains");
 		}
 	}
 

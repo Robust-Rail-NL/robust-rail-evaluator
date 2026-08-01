@@ -49,9 +49,11 @@ struct TrainUnitType {
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Get a string representation of this TrainUnitType */
 	const string& toString() const { return displayName; }
-	/** Returns true iff the two TrainUnitType%s have the same name */
-	bool operator==(const TrainUnitType& t) const { return (displayName == t.displayName); }
-	/** Returns true iff the two TrainUnitType%s do not have the same name */
+	/** Returns true iff the two TrainUnitType%s have the same name and carriage count.
+	 * Name alone is not unique: two variants of the same family (e.g. "SLT") can
+	 * differ only in carriages. */
+	bool operator==(const TrainUnitType& t) const { return (displayName == t.displayName && carriages == t.carriages); }
+	/** Returns true iff the two TrainUnitType%s do not have the same name and carriage count */
 	bool operator!=(const TrainUnitType& t) const { return !(*this == t); }
 	/** Serialize this TrainUnitType to a protobuf object */
 	void Serialize(PBTrainUnitType* pb_tt) const;

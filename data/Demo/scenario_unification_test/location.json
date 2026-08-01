@@ -5,7 +5,7 @@
       "type": "RailRoad",
       "aSide": ["2"],
       "bSide": ["3"],
-      "length": 200,
+      "length": 300,
       "name": "rail0",
       "sawMovementAllowed": false,
       "parkingAllowed": true

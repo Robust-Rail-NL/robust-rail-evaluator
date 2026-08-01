@@ -114,11 +114,11 @@ bool ShuntingUnit::MatchesShuntingUnit(const ShuntingUnit* su) const {
 		bool haveIDleft = (exp.GetID() != -1 && left.GetID() != -1);
 		bool haveIDright = (exp.GetID() != -1 && right.GetID() != -1);
 		if ((haveIDleft && exp.GetID() != left.GetID()) ||
-			(!haveIDleft && exp.GetType()->displayName != left.GetType()->displayName))
+			(!haveIDleft && *exp.GetType() != *left.GetType()))
 			leftValid = false;
 		if ((haveIDright && exp.GetID() != right.GetID()) ||
-			(!haveIDright && exp.GetType()->displayName != right.GetType()->displayName))
-			rightValid = false;	
+			(!haveIDright && *exp.GetType() != *right.GetType()))
+			rightValid = false;
 		if(!leftValid && !rightValid) return false;
 	}
 	return true;
@@ -139,11 +139,11 @@ bool ShuntingUnit::MatchesTrainIDs(const vector<int>& ids, const vector<const Tr
 		bool haveIDleft = (exp != -1 && left != -1);
 		bool haveIDright = (exp != -1 && right != -1);
 		if ((haveIDleft && exp != left) ||
-			(!haveIDleft && expType->displayName != leftType->displayName))
+			(!haveIDleft && *expType != *leftType))
 			leftValid = false;
 		if ((haveIDright && exp != right) ||
-			(!haveIDright && expType->displayName != rightType->displayName))
-			rightValid = false;	
+			(!haveIDright && *expType != *rightType))
+			rightValid = false;
 		if(!leftValid && !rightValid) return false;
 	}
 	return true;

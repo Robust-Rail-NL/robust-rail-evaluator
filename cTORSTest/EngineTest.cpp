@@ -147,6 +147,11 @@ namespace cTORSTest
 
 		CHECK(scenario.GetStartTime() == 0);
 		CHECK(scenario.GetEndTime() == 1000);
+
+		// CheckScenarioCorrectness's per-type count balancing is keyed on
+		// (displayName, carriages) - this fixture's in/out counts are balanced
+		// per carriage variant (1 TT/1 and 1 TT/2 each way), so this must not throw.
+		CHECK_NOTHROW(scenario.CheckScenarioCorrectness(location));
 	}
 
 	TEST_CASE("Plan test")

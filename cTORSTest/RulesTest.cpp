@@ -55,4 +55,51 @@ namespace cTORSTest
 		CHECK(ltr.IsValid(&state, &nonElecMoveAction).first);
 		cout << " Executed all tests "  << endl;
 	}
+
+	TEST_CASE("Service task rules test") {
+		Scenario scenario;
+
+		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train train(1, &testType);
+		ShuntingUnit su(1, {train});
+		state.AddShuntingUnit(&su, &r0, &b0);
+
+		const ShuntingUnit* stateSU = state.GetShuntingUnitByID(1);
+		const Train* stateTrain = stateSU->GetTrainByID(1);
+		// Outgoing owns (and deletes) its ShuntingUnit, so it needs its own copy,
+		// distinct from stateSU which is owned by state.
+		Outgoing outgoing(1, new ShuntingUnit(1, {train}), &r0, &b0, 0, false, 0);
+		ExitAction exitAction(stateSU, 0, &outgoing);
+
+		Config config;
+		mandatory_service_task_rule mstr(&config);
+		optional_service_task_rule ostr(&config);
+
+		SUBCASE("no unfinished tasks") {
+			CHECK(mstr.IsValid(&state, &exitAction).first);
+			CHECK(ostr.IsValid(&state, &exitAction).first);
+		}
+
+		SUBCASE("unfinished mandatory task blocks the mandatory rule only") {
+			state.AddTaskToTrain(stateTrain, Task("clean", false, 100, {}));
+			CHECK(!mstr.IsValid(&state, &exitAction).first);
+			CHECK(ostr.IsValid(&state, &exitAction).first);
+		}
+
+		SUBCASE("unfinished optional task blocks the optional rule only") {
+			state.AddTaskToTrain(stateTrain, Task("clean", true, 100, {}));
+			CHECK(mstr.IsValid(&state, &exitAction).first);
+			CHECK(!ostr.IsValid(&state, &exitAction).first);
+		}
+	}
 }

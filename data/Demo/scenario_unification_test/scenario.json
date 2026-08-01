@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "in": {
+    "trains": [
+      {
+        "entryTrackPart": "2",
+        "firstParkingTrackPart": "1",
+        "arrival": "100",
+        "departure": "100",
+        "id": "10",
+        "members": [
+          {
+            "trainUnit": { "id": "101", "typeDisplayName": "TestType" },
+            "tasks": [
+              { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "inStanding": { "trains": [] },
+  "out": {
+    "trainRequests": [
+      {
+        "leaveTrackPart": "3",
+        "lastParkingTrackPart": "1",
+        "arrival": "500",
+        "departure": "600",
+        "displayName": "20",
+        "trainUnits": [
+          { "id": "101", "typeDisplayName": "TestType" }
+        ],
+        "standingIndex": 0
+      }
+    ]
+  },
+  "outStanding": { "trainRequests": [] },
+  "nonServiceTraffic": [],
+  "disabledTrackParts": [],
+  "workers": [],
+  "startTime": "0",
+  "endTime": "1000",
+  "trainUnitTypes": [
+    {
+      "displayName": "TestType",
+      "carriages": 1,
+      "length": 100,
+      "combineDuration": "100",
+      "splitDuration": "100",
+      "backNormTime": "100",
+      "backAdditionTime": "100",
+      "travelSpeed": "50",
+      "startUpTime": "100",
+      "typePrefix": "TT",
+      "needsLoco": false,
+      "isLoco": false,
+      "needsElectricity": false,
+      "idPrefix": 0
+    }
+  ]
+}

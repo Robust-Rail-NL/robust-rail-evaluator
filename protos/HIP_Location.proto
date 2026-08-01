@@ -120,4 +120,20 @@ enum PredefinedTaskType {
 	arrive = 4;
 	Exit = 5;
 	exit = 5;
+
+	// Interchange concepts (Scenario TaskSpec / Plan Action task types)
+	Walking = 6;
+	walking = 6;
+	// NOTE: no lowercase alias for Break — "break" is a reserved C++ keyword
+	// and cannot be used as a generated enum value name. If the generator
+	// ever emits a lowercase "break" string, it will fail to match this
+	// enum (case_insensitive_enum_parsing only tries an UPPER_CASE fallback,
+	// per the note above) and needs to be confirmed/handled explicitly.
+	Break = 7;
+	NonService = 8;
+	nonService = 8;
+	StandIn = 9;
+	standIn = 9;
+	StandOut = 10;
+	standOut = 10;
 }

@@ -55,6 +55,8 @@ typedef proto_tors::Run PBRun;                                  /**< The protobu
 // HIP based protobuf types
 typedef HIP_protos::Scenario PB_HIP_Scenario;
 typedef HIP_protos::IncomingTrain PB_HIP_TrainGoal;
+typedef HIP_protos::TrainRequest PB_HIP_TrainRequest;
+typedef HIP_protos::IncomingTrainUnit PB_HIP_IncomingTrainUnit;
 typedef HIP_protos::ShuntingUnit PB_HIP_ShuntingUnit;
 
 typedef HIP_protos::TrainUnit PB_HIP_TrainUnit;
@@ -62,6 +64,9 @@ typedef HIP_protos::TrainUnitType PB_HIP_TrainUnitType;
 typedef HIP_protos::TaskType PB_HIP_TaskType;
 typedef HIP_protos::PredefinedTaskType PB_HIP_PredefinedTaskType;
 typedef HIP_protos::TaskSpec PB_HIP_Task;
+typedef HIP_protos::NonServiceTraffic PB_HIP_NonServiceTraffic;
+typedef HIP_protos::DisabledTrackPart PB_HIP_DisabledTrackPart;
+typedef HIP_protos::MemberOfStaff PB_HIP_MemberOfStaff;
 
 typedef HIP_protos::Location PB_HIP_Location;
 typedef HIP_protos::Facility PB_HIP_Facility;

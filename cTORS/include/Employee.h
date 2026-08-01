@@ -36,8 +36,10 @@ public:
 	Employee(const string& id, const string& name, const string& type, const vector<string>& skills, 
 		const vector<TimeShift>& shifts, const vector<TimeShift>& breakWindows, const int breakDuration, const bool canMoveTrains) :
 		id(id), name(name), type(type), skills(skills), shifts(shifts), breakWindows(breakWindows), breakDuration(breakDuration), canMoveTrains(canMoveTrains) {}
-	/** Construct an Employee object from the given protobuf object */
+	/** Construct an Employee object from the given legacy (non-HIP) protobuf object */
 	Employee(const PBMemberOfStaff& pb_employee);
+	/** Construct an Employee object from the given HIP protobuf object */
+	Employee(const PB_HIP_MemberOfStaff& pb_employee);
 	/** Default copy constructor */
 	Employee(const Employee& employee) = default;
 	/** Employee destructor */

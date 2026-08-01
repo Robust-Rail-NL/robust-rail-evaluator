@@ -10,6 +10,28 @@ namespace fs = std::filesystem;
 using namespace std;
 
 /**
+ * Traffic on the shunting yard that isn't a shunting movement (e.g. a passing
+ * service train) but still reserves part of the infrastructure for a time window.
+ * Parsed and stored, but not currently consumed by any rule/engine logic.
+ */
+struct NonServiceTrafficEntry {
+	vector<int> members;	/**< The TrackPart ids reserved by this traffic */
+	int arrival;			/**< Arrival time, in seconds since the epoch */
+	int departure;			/**< Departure time, in seconds since the epoch */
+	string id;				/**< The unique id of this entry */
+};
+
+/**
+ * A TrackPart that is unavailable for use during a time window (e.g. for maintenance).
+ * Parsed and stored, but not currently consumed by any rule/engine logic.
+ */
+struct DisabledTrackPartEntry {
+	int trackPart;	/**< The TrackPart id that is unavailable */
+	int arrival;	/**< Start of the unavailability window, in seconds since the epoch */
+	int departure;	/**< End of the unavailability window, in seconds since the epoch */
+};
+
+/**
  * The Scenario class describes a session by its Incoming trains, Outgoing trains
  * Employee%s and Disturbance%s. An initial State is generated from a Scenario object.
  */
@@ -22,21 +44,35 @@ private:
 	vector<const Incoming*> incomingTrains;
 	vector<const Outgoing*> outgoingTrains;
 	vector<const Event*> disturbanceList;
+	vector<NonServiceTrafficEntry> nonServiceTraffic;
+	vector<DisabledTrackPartEntry> disabledTrackParts;
 
 	void ImportEmployees(const PBScenario& pb_scenario, const Location& location);
 	void ImportShuntingUnits(const PBScenario& pb_scenario, const Location& location);
 	void Init(const PBScenario& pb_scenario, const Location& location);
+
+	void ImportEmployees(const PB_HIP_Scenario& pb_scenario, const Location& location);
+	void ImportShuntingUnits(const PB_HIP_Scenario& pb_scenario, const Location& location);
+	void ImportAncillary(const PB_HIP_Scenario& pb_scenario);
+	void Init(const PB_HIP_Scenario& pb_scenario, const Location& location);
 public:
 	/** Generate an empty scenario */
 	Scenario();
-	/** Generate a Scenario according to the protobuf file on the given path for the provided Location */
+	/** Generate a Scenario according to the (HIP-shaped, unified) JSON file on the given path for the provided Location */
 	Scenario(string path, const Location& location);
-	/** Generate a Scenario according to the protobuf object for the provided Location */
+	/** Generate a Scenario according to the legacy (non-HIP) protobuf object for the provided Location.
+	 * Used only for TORS's internal Run round-trip format (see RunResult::CreateRunResult(const Location*, const PBRun&)) */
 	Scenario(const PBScenario& pb_scenario, const Location& location);
+	/** Generate a Scenario according to the HIP protobuf object for the provided Location */
+	Scenario(const PB_HIP_Scenario& pb_scenario, const Location& location);
 	/** Copy constructor */
 	Scenario(const Scenario& scenario);
 	/** Scenario destructor */
 	~Scenario();
+	/** Get the NonServiceTraffic entries in this Scenario (parsed but not currently acted on) */
+	inline const vector<NonServiceTrafficEntry>& GetNonServiceTraffic() const { return nonServiceTraffic; }
+	/** Get the DisabledTrackPart entries in this Scenario (parsed but not currently acted on) */
+	inline const vector<DisabledTrackPartEntry>& GetDisabledTrackParts() const { return disabledTrackParts; }
 
 	/** Print the Scenario Info */
 	void PrintScenarioInfo() const;	

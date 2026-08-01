@@ -19,6 +19,18 @@ unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrain
 	return map;
 }
 
+unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrainTasks(const ShuntingUnit* su, const PB_HIP_TrainGoal& pb_inc) {
+	unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> map;
+	for(auto& incomingTrainUnit: pb_inc.members()) {
+		auto& train = incomingTrainUnit.trainunit();
+		for(auto& t: incomingTrainUnit.tasks()) {
+			auto tu = GetTrainById(su->GetTrains(), train.id());
+			map[tu].push_back({t});
+		}
+	}
+	return map;
+}
+
 Incoming::Incoming(const PBTrainGoal& pb_inc, bool isInstanding) : Incoming(stoi(pb_inc.id()), new ShuntingUnit(pb_inc),
  	pb_inc.time(), isInstanding, pb_inc.standingindex()) {
 		 tasks = ConvertPBTrainTasks(shuntingUnit, pb_inc);
@@ -26,6 +38,14 @@ Incoming::Incoming(const PBTrainGoal& pb_inc, bool isInstanding) : Incoming(stoi
 
 Outgoing::Outgoing(const PBTrainGoal& pb_out, bool isInstanding) : Outgoing(stoi(pb_out.id()), new ShuntingUnit(pb_out),
  	pb_out.time(), isInstanding, pb_out.standingindex()) {}
+
+Incoming::Incoming(const PB_HIP_TrainGoal& pb_inc, bool isInstanding) : Incoming(stoi(pb_inc.id()), new ShuntingUnit(pb_inc),
+ 	pb_inc.arrival(), isInstanding, pb_inc.standingindex()) {
+		 tasks = ConvertPBTrainTasks(shuntingUnit, pb_inc);
+	 }
+
+Outgoing::Outgoing(const PB_HIP_TrainRequest& pb_out, bool isInstanding) : Outgoing(stoi(pb_out.displayname()), new ShuntingUnit(pb_out),
+ 	pb_out.departure(), isInstanding, pb_out.standingindex()) {}
 
 TrainGoal::TrainGoal(const TrainGoal& traingoal) :
 	id(traingoal.id), parkingTrack(traingoal.parkingTrack), sideTrack(traingoal.sideTrack),

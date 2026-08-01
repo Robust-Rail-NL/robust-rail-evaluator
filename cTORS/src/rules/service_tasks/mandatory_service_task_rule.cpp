@@ -12,7 +12,7 @@ pair<bool, string> mandatory_service_task_rule::IsValid(const State* state, cons
 		for (auto& tu : su->GetTrains()) {
 			auto& tasks = state->GetTasksForTrain(&tu);
 			for (auto& task : tasks) {
-				if (task.priority == 0)
+				if (!task.optional)
 					return make_pair(false, "Shunting unit " + su->toString() + " cannot leave, because train " +tu.toString() + "  still has the following unfinished task: " + task.toString() + ".");
 			}
 		}

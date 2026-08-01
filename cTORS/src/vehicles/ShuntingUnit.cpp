@@ -1,15 +1,9 @@
 #include "ShuntingUnit.h"
 
-const vector<Train> ConvertPBTrains(const PBList<PBTrainUnit>& trains) {
-
-	vector<Train> out;
-	for(auto& train: trains) {
-		out.push_back(Train(train));
-		
-	}
-	// Added by R.G.Kromes - 05/02/2025 : reverse the train unit orders, basically the order of front train 
-	// follows the logic - lastly added one is the front train e.g. in scenarion.json 
-	// [9404, 9404] -> front train is 9404
+// Added by R.G.Kromes - 05/02/2025 : reverse the train unit orders, basically the order of front train
+// follows the logic - lastly added one is the front train e.g. in scenarion.json
+// [9404, 9404] -> front train is 9404
+void ReverseTrainOrder(vector<Train>& out) {
 	if(out.size() > 1)
 	{
 		vector<Train> copy_out(out);
@@ -19,18 +13,43 @@ const vector<Train> ConvertPBTrains(const PBList<PBTrainUnit>& trains) {
 			index++;
 		}
 	}
+}
 
-	// cout << "Train->Check :" << endl;
-	// for(auto t: out)
-	// {	
-	// 	cout << t << endl;
-	// }
-
+const vector<Train> ConvertPBTrains(const PBList<PBTrainUnit>& trains) {
+	vector<Train> out;
+	for(auto& train: trains) {
+		out.push_back(Train(train));
+	}
+	ReverseTrainOrder(out);
 	return out;
 }
 
-ShuntingUnit::ShuntingUnit(const PBTrainGoal& pb_tg) 
+const vector<Train> ConvertPBTrains(const PBList<PB_HIP_TrainUnit>& trains) {
+	vector<Train> out;
+	for(auto& train: trains) {
+		out.push_back(Train(train));
+	}
+	ReverseTrainOrder(out);
+	return out;
+}
+
+const vector<Train> ConvertPBTrains(const PBList<PB_HIP_IncomingTrainUnit>& trains) {
+	vector<Train> out;
+	for(auto& incomingTrainUnit: trains) {
+		out.push_back(Train(incomingTrainUnit.trainunit()));
+	}
+	ReverseTrainOrder(out);
+	return out;
+}
+
+ShuntingUnit::ShuntingUnit(const PBTrainGoal& pb_tg)
 	: ShuntingUnit(stoi(pb_tg.id()), ConvertPBTrains(pb_tg.members())) {}
+
+ShuntingUnit::ShuntingUnit(const PB_HIP_TrainGoal& pb_tg)
+	: ShuntingUnit(stoi(pb_tg.id()), ConvertPBTrains(pb_tg.members())) {}
+
+ShuntingUnit::ShuntingUnit(const PB_HIP_TrainRequest& pb_tr)
+	: ShuntingUnit(stoi(pb_tr.displayname()), ConvertPBTrains(pb_tr.trainunits())) {}
 
 void ShuntingUnit::UpdateValues() {
 	length = 0;

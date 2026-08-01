@@ -25,8 +25,12 @@ public:
 	ShuntingUnit() = delete;
 	/** Construct a ShuntingUnit with the given id and the given Train%s */
 	ShuntingUnit(int id, const vector<Train>& trains) : id(id), trains(trains) { UpdateValues(); }
-	/** Construct a ShuntingUnit from the given protobuf object */
+	/** Construct a ShuntingUnit from the given legacy (non-HIP) protobuf object */
 	ShuntingUnit(const PBTrainGoal& pb_tg);
+	/** Construct a ShuntingUnit from the given HIP IncomingTrain protobuf object */
+	ShuntingUnit(const PB_HIP_TrainGoal& pb_tg);
+	/** Construct a ShuntingUnit from the given HIP TrainRequest protobuf object */
+	ShuntingUnit(const PB_HIP_TrainRequest& pb_tr);
 	/** The default copy constructor */
 	ShuntingUnit(const ShuntingUnit& su) = default;
 

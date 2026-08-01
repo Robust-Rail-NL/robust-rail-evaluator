@@ -2123,19 +2123,21 @@ static const char *__doc_Task_Task = R"doc()doc";
 
 static const char *__doc_Task_Task_2 = R"doc(Construct a Task object given the parameters */)doc";
 
-static const char *__doc_Task_Task_3 = R"doc(Construct a Task object given the protobuf object */)doc";
+static const char *__doc_Task_Task_3 = R"doc(Construct a Task object given the legacy (non-HIP) protobuf object */)doc";
+
+static const char *__doc_Task_Task_4 = R"doc(Construct a Task object given the HIP protobuf object */)doc";
 
 static const char *__doc_Task_duration = R"doc(< the duration of this Task in seconds */)doc";
 
 static const char *__doc_Task_operator_eq =
-R"doc(Two Task%s are equal if they have the same task type, priority and
-duration */)doc";
+R"doc(Two Task%s are equal if they have the same task type, optional flag
+and duration */)doc";
 
 static const char *__doc_Task_operator_ne =
-R"doc(Two Task%s are different if they ahve differnt task type, or priority
-or duration */)doc";
+R"doc(Two Task%s are different if they have a different task type,
+optional flag or duration */)doc";
 
-static const char *__doc_Task_priority = R"doc(< the priority of this Task (0 = mandatory, 1 = optional) */)doc";
+static const char *__doc_Task_optional = R"doc(< whether this Task is optional (false = mandatory: must be completed before the train may exit) */)doc";
 
 static const char *__doc_Task_skills = R"doc(< the skills required to execute this task (not yet implemented) */)doc";
 

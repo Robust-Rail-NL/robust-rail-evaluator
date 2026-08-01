@@ -21,14 +21,17 @@ void TrainUnitType::Serialize(PBTrainUnitType* pb_tt) const {
 void Task::Serialize(PBTask* pb_task) const {
 	auto pb_taskType = pb_task->mutable_type();
 	pb_taskType->set_other(taskType);
-	pb_task->set_priority(priority);
+	pb_task->set_priority(optional ? 1 : 0);
 	pb_task->set_duration(duration);
 	for(auto& s: skills) {
 		pb_task->add_requiredskills(s);
 	}
 }
 
-Train::Train(const PBTrainUnit& pb_train) 
+Train::Train(const PBTrainUnit& pb_train)
+	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
+
+Train::Train(const PB_HIP_TrainUnit& pb_train)
 	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
 
 bool Train::operator==(const Train& train) const {

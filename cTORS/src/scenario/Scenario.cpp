@@ -4,7 +4,7 @@ Scenario::Scenario() : startTime(0), endTime(0) {}
 
 Scenario::Scenario(string scenarioFileString, const Location &location)
 {
-	PBScenario pb_scenario;
+	PB_HIP_Scenario pb_scenario;
 	parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
 
 	if (!pb_scenario.IsInitialized() || pb_scenario.ByteSizeLong() == 0)
@@ -17,10 +17,15 @@ Scenario::Scenario(string scenarioFileString, const Location &location)
 	}
 	Init(pb_scenario, location);
 
-	
+
 }
 
 Scenario::Scenario(const PBScenario &pb_scenario, const Location &location)
+{
+	Init(pb_scenario, location);
+}
+
+Scenario::Scenario(const PB_HIP_Scenario &pb_scenario, const Location &location)
 {
 	Init(pb_scenario, location);
 }
@@ -31,6 +36,23 @@ void Scenario::Init(const PBScenario &pb_scenario, const Location &location)
 	{
 		ImportEmployees(pb_scenario, location);
 		ImportShuntingUnits(pb_scenario, location);
+		startTime = pb_scenario.starttime();
+		endTime = pb_scenario.endtime();
+	}
+	catch (exception &e)
+	{
+		cout << "Error in loading scenario: " << e.what() << "\n";
+		throw e;
+	}
+}
+
+void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	try
+	{
+		ImportEmployees(pb_scenario, location);
+		ImportShuntingUnits(pb_scenario, location);
+		ImportAncillary(pb_scenario);
 		startTime = pb_scenario.starttime();
 		endTime = pb_scenario.endtime();
 	}
@@ -140,6 +162,20 @@ void Scenario::ImportEmployees(const PBScenario &pb_scenario, const Location &lo
 	debug_out("finished loading employees from JSON");
 }
 
+void Scenario::ImportEmployees(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	for (auto &pb_e : pb_scenario.workers())
+	{
+		Employee *e = new Employee(pb_e);
+		string start = to_string(pb_e.startlocationid());
+		string end = to_string(pb_e.endlocationid());
+		e->AssignTracks(location.GetTrackByID(start), location.GetTrackByID(end));
+		employees.push_back(e);
+		debug_out("Imported Employee " << e->toString());
+	}
+	debug_out("finished loading employees from JSON");
+}
+
 template <class PBTrainGoal>
 TrainGoal *ImportTrainGoal(const Location &location, const PBTrainGoal &m, bool in, bool standing)
 {
@@ -147,6 +183,24 @@ TrainGoal *ImportTrainGoal(const Location &location, const PBTrainGoal &m, bool 
 	TrainGoal *g = in ? static_cast<TrainGoal *>(new Incoming(m, standing)) : new Outgoing(m, standing);
 	string park = to_string(m.parkingtrackpart());
 	string side = to_string(m.sidetrackpart());
+	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
+	return g;
+}
+
+Incoming *ImportIncomingTrainGoal(const Location &location, const PB_HIP_TrainGoal &m, bool standing)
+{
+	Incoming *g = new Incoming(m, standing);
+	string park = to_string(m.firstparkingtrackpart());
+	string side = to_string(m.entrytrackpart());
+	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
+	return g;
+}
+
+Outgoing *ImportOutgoingTrainGoal(const Location &location, const PB_HIP_TrainRequest &m, bool standing)
+{
+	Outgoing *g = new Outgoing(m, standing);
+	string park = to_string(m.lastparkingtrackpart());
+	string side = to_string(m.leavetrackpart());
 	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
 	return g;
 }
@@ -180,6 +234,57 @@ void Scenario::ImportShuntingUnits(const PBScenario &pb_scenario, const Location
 
 	for (auto out: outgoingTrains)
 		track_exiting_trains[out->GetID()] = false;
+}
+
+void Scenario::ImportShuntingUnits(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	for (auto &pb_train_type : pb_scenario.trainunittypes())
+	{
+		if (TrainUnitType::types.find(pb_train_type.displayname()) == TrainUnitType::types.end())
+		{
+			TrainUnitType *tt = new TrainUnitType(pb_train_type);
+			TrainUnitType::types[tt->displayName] = tt;
+		}
+	}
+
+	for (auto &pb_in : pb_scenario.in().trains())
+		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, false));
+
+	for (auto &pb_in : pb_scenario.instanding().trains())
+		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, true));
+
+	for (auto &pb_out : pb_scenario.out().trainrequests())
+		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, false));
+
+	for (auto &pb_out : pb_scenario.outstanding().trainrequests())
+		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, true));
+
+	debug_out("finished loading ShuntingUnits from JSON");
+
+	for (auto out: outgoingTrains)
+		track_exiting_trains[out->GetID()] = false;
+}
+
+void Scenario::ImportAncillary(const PB_HIP_Scenario &pb_scenario)
+{
+	for (auto &pb_nst : pb_scenario.nonservicetraffic())
+	{
+		NonServiceTrafficEntry entry;
+		entry.members = vector<int>(pb_nst.members().begin(), pb_nst.members().end());
+		entry.arrival = pb_nst.arrival();
+		entry.departure = pb_nst.departure();
+		entry.id = pb_nst.id();
+		nonServiceTraffic.push_back(entry);
+	}
+
+	for (auto &pb_dtp : pb_scenario.disabledtrackparts())
+	{
+		DisabledTrackPartEntry entry;
+		entry.trackPart = pb_dtp.trackpart();
+		entry.arrival = pb_dtp.arrival();
+		entry.departure = pb_dtp.departure();
+		disabledTrackParts.push_back(entry);
+	}
 }
 
 void Scenario::Serialize(PBScenario *pb_scenario) const

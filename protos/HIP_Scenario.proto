@@ -12,13 +12,13 @@ message Scenario {
     // field so readers can distinguish "absent" from "sent as 0".
     optional int32 schemaVersion = 11;
 
-    ScenarioIn in = 1;
-    ScenarioOut out = 2;
+    repeated IncomingTrain in = 1;
+    repeated TrainRequest out = 2;
 
     // Trains already on the shunting yard when the scenario starts.
-    ScenarioIn inStanding = 3;
+    repeated IncomingTrain inStanding = 3;
     // Trains that must remain on the shunting yard after the scenario ends.
-    ScenarioOut outStanding = 4;
+    repeated TrainRequest outStanding = 4;
 
     repeated NonServiceTraffic nonServiceTraffic = 5;
     repeated DisabledTrackPart disabledTrackParts = 6;
@@ -28,16 +28,6 @@ message Scenario {
     uint64 endTime = 9;
 
     repeated TrainUnitType trainUnitTypes = 10;
-}
-
-// Defines all trains arriving at the shunting area.
-message ScenarioIn {
-    repeated IncomingTrain trains = 1;
-}
-
-// Defines all requests for trains leaving the shunting area.
-message ScenarioOut {
-    repeated TrainRequest trainRequests = 1;
 }
 
 // An incoming train

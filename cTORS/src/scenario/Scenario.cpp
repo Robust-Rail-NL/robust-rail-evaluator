@@ -247,16 +247,16 @@ void Scenario::ImportShuntingUnits(const PB_HIP_Scenario &pb_scenario, const Loc
 		}
 	}
 
-	for (auto &pb_in : pb_scenario.in().trains())
+	for (auto &pb_in : pb_scenario.in())
 		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, false));
 
-	for (auto &pb_in : pb_scenario.instanding().trains())
+	for (auto &pb_in : pb_scenario.instanding())
 		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, true));
 
-	for (auto &pb_out : pb_scenario.out().trainrequests())
+	for (auto &pb_out : pb_scenario.out())
 		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, false));
 
-	for (auto &pb_out : pb_scenario.outstanding().trainrequests())
+	for (auto &pb_out : pb_scenario.outstanding())
 		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, true));
 
 	debug_out("finished loading ShuntingUnits from JSON");

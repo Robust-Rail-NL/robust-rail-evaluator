@@ -1,41 +1,37 @@
 {
   "schemaVersion": 1,
-  "in": {
-    "trains": [
-      {
-        "entryTrackPart": "2",
-        "firstParkingTrackPart": "1",
-        "arrival": "100",
-        "departure": "100",
-        "id": "10",
-        "members": [
-          {
-            "trainUnit": { "id": "101", "typeDisplayName": "TestType" },
-            "tasks": [
-              { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "inStanding": { "trains": [] },
-  "out": {
-    "trainRequests": [
-      {
-        "leaveTrackPart": "3",
-        "lastParkingTrackPart": "1",
-        "arrival": "500",
-        "departure": "600",
-        "displayName": "20",
-        "trainUnits": [
-          { "id": "101", "typeDisplayName": "TestType" }
-        ],
-        "standingIndex": 0
-      }
-    ]
-  },
-  "outStanding": { "trainRequests": [] },
+  "in": [
+    {
+      "entryTrackPart": "2",
+      "firstParkingTrackPart": "1",
+      "arrival": "100",
+      "departure": "100",
+      "id": "10",
+      "members": [
+        {
+          "trainUnit": { "id": "101", "typeDisplayName": "TestType" },
+          "tasks": [
+            { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
+          ]
+        }
+      ]
+    }
+  ],
+  "inStanding": [],
+  "out": [
+    {
+      "leaveTrackPart": "3",
+      "lastParkingTrackPart": "1",
+      "arrival": "500",
+      "departure": "600",
+      "displayName": "20",
+      "trainUnits": [
+        { "id": "101", "typeDisplayName": "TestType" }
+      ],
+      "standingIndex": 0
+    }
+  ],
+  "outStanding": [],
   "nonServiceTraffic": [],
   "disabledTrackParts": [],
   "workers": [],

@@ -12,6 +12,11 @@ LocationEngine::~LocationEngine()
 		delete type;
 	}
 	TrainUnitType::types.clear();
+	for (auto &[key, type] : TrainUnitType::typesByPrefixAndCarriages)
+	{
+		delete type;
+	}
+	TrainUnitType::typesByPrefixAndCarriages.clear();
 	vector<State *> states;
 	for (auto &[state, action_list] : stateActionMap)
 	{
@@ -570,6 +575,10 @@ void LocationEngine::EndSession(State *state)
 void LocationEngine::CalcShortestPaths()
 {
 	for (const auto &[trainTypeName, trainType] : TrainUnitType::types)
+	{
+		location.CalcShortestPaths(trainType);
+	}
+	for (const auto &[key, trainType] : TrainUnitType::typesByPrefixAndCarriages)
 	{
 		location.CalcShortestPaths(trainType);
 	}

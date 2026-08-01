@@ -240,10 +240,11 @@ void Scenario::ImportShuntingUnits(const PB_HIP_Scenario &pb_scenario, const Loc
 {
 	for (auto &pb_train_type : pb_scenario.trainunittypes())
 	{
-		if (TrainUnitType::types.find(pb_train_type.displayname()) == TrainUnitType::types.end())
+		auto key = make_pair(pb_train_type.typeprefix(), (int)pb_train_type.carriages());
+		if (TrainUnitType::typesByPrefixAndCarriages.find(key) == TrainUnitType::typesByPrefixAndCarriages.end())
 		{
 			TrainUnitType *tt = new TrainUnitType(pb_train_type);
-			TrainUnitType::types[tt->displayName] = tt;
+			TrainUnitType::typesByPrefixAndCarriages[key] = tt;
 		}
 	}
 

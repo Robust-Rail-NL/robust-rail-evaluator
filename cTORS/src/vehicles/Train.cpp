@@ -1,6 +1,7 @@
 #include "Train.h"
 
 map<string, TrainUnitType *> TrainUnitType::types;
+map<pair<string,int>, TrainUnitType *> TrainUnitType::typesByPrefixAndCarriages;
 
 void TrainUnitType::Serialize(PBTrainUnitType* pb_tt) const {
 	pb_tt->set_displayname(displayName);
@@ -32,7 +33,8 @@ Train::Train(const PBTrainUnit& pb_train)
 	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
 
 Train::Train(const PB_HIP_TrainUnit& pb_train)
-	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
+	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()),
+		TrainUnitType::typesByPrefixAndCarriages.at({pb_train.typeprefix(), (int)pb_train.carriages()})) {}
 
 bool Train::operator==(const Train& train) const {
 	return (id != -1 && id == train.id) || this == &train;

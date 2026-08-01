@@ -9,10 +9,14 @@
       "id": "10",
       "members": [
         {
-          "trainUnit": { "id": "101", "typeDisplayName": "TestType" },
+          "trainUnit": { "id": "101", "typePrefix": "TT", "carriages": 1 },
           "tasks": [
             { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
           ]
+        },
+        {
+          "trainUnit": { "id": "102", "typePrefix": "TT", "carriages": 2 },
+          "tasks": []
         }
       ]
     }
@@ -26,7 +30,8 @@
       "departure": "600",
       "displayName": "20",
       "trainUnits": [
-        { "id": "101", "typeDisplayName": "TestType" }
+        { "id": "101", "typePrefix": "TT", "carriages": 1 },
+        { "id": "102", "typePrefix": "TT", "carriages": 2 }
       ],
       "standingIndex": 0
     }
@@ -39,7 +44,7 @@
   "endTime": "1000",
   "trainUnitTypes": [
     {
-      "displayName": "TestType",
+      "typePrefix": "TT",
       "carriages": 1,
       "length": 100,
       "combineDuration": "100",
@@ -48,7 +53,21 @@
       "backAdditionTime": "100",
       "travelSpeed": "50",
       "startUpTime": "100",
+      "needsLoco": false,
+      "isLoco": false,
+      "needsElectricity": false,
+      "idPrefix": 0
+    },
+    {
       "typePrefix": "TT",
+      "carriages": 2,
+      "length": 150,
+      "combineDuration": "100",
+      "splitDuration": "100",
+      "backNormTime": "100",
+      "backAdditionTime": "100",
+      "travelSpeed": "50",
+      "startUpTime": "100",
       "needsLoco": false,
       "isLoco": false,
       "needsElectricity": false,

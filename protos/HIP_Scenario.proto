@@ -88,17 +88,18 @@ message TrainUnit {
 	// A unique identifier of the unit
 	string id = 1;
 
-    // The displayName of the TrainUnitType this unit belongs to.
-    // Consumers key on (typeDisplayName, carriages) to find the full type.
-    string typeDisplayName = 2;
+    // The typePrefix of the TrainUnitType this unit belongs to.
+    // Consumers key on (typePrefix, carriages) to find the full type -
+    // typePrefix alone is not unique, since one type family (e.g. "SLT")
+    // can have multiple carriage-count variants.
+    string typePrefix = 2;
+
+    // Number of carriages of this unit's type.
+    uint32 carriages = 3;
 }
 
 // TrainUnitType is a type of train unit
 message TrainUnitType {
-    // Name of the train unit type
-    // For example, "SGM" or "SLT".
-    string displayName = 1;
-
     // Number of carriages. This is the total number of carriages,
     // including the first and last carriage.
     uint32 carriages = 2;
@@ -123,8 +124,9 @@ message TrainUnitType {
     // Required for generator/evaluator, optional for solver.
     uint64 startUpTime = 10;
 
-    // The prefix for this type of train unit, for example "SLT" or "VIRM".
-    // Required for generator/evaluator, optional for solver.
+    // The type family name, for example "SLT" or "VIRM" (no carriage-count
+    // suffix). Together with carriages, this is the identity of the type -
+    // required for all consumers.
     string typePrefix = 11;
 
     // Whether this type of train unit needs a locomotive to move.

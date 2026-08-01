@@ -113,11 +113,22 @@ namespace cTORSTest
 		CHECK(incoming->GetSideTrack()->GetID() == "2"); // entryTrackPart
 
 		auto& incomingTrains = incoming->GetShuntingUnit()->GetTrains();
-		REQUIRE(incomingTrains.size() == 1);
-		CHECK(incomingTrains.front().GetID() == 101);
-		CHECK(incomingTrains.front().GetType()->displayName == "TestType");
+		REQUIRE(incomingTrains.size() == 2);
 
-		auto tasks = scenario.GetTasksForTrain(&incomingTrains.front());
+		// Regression test for the (typePrefix, carriages) disambiguation fix: two
+		// train units share typePrefix "TT" but have different carriage counts, and
+		// must resolve to two distinct TrainUnitType objects, not collapse into one.
+		auto train101 = incoming->GetShuntingUnit()->GetTrainByID(101);
+		auto train102 = incoming->GetShuntingUnit()->GetTrainByID(102);
+		REQUIRE(train101 != nullptr);
+		REQUIRE(train102 != nullptr);
+		CHECK(train101->GetType()->displayName == "TT");
+		CHECK(train101->GetType()->carriages == 1);
+		CHECK(train102->GetType()->displayName == "TT");
+		CHECK(train102->GetType()->carriages == 2);
+		CHECK(train101->GetType() != train102->GetType());
+
+		auto tasks = scenario.GetTasksForTrain(train101);
 		REQUIRE(tasks.size() == 1);
 		CHECK(tasks.front().optional == false); // "optional": false in the fixture
 		CHECK(tasks.front().duration == 50);
@@ -130,8 +141,9 @@ namespace cTORSTest
 		CHECK(outgoing->GetSideTrack()->GetID() == "3"); // leaveTrackPart
 
 		auto& outgoingTrains = outgoing->GetShuntingUnit()->GetTrains();
-		REQUIRE(outgoingTrains.size() == 1);
-		CHECK(outgoingTrains.front().GetType()->displayName == "TestType");
+		REQUIRE(outgoingTrains.size() == 2);
+		CHECK(outgoing->GetShuntingUnit()->GetTrainByID(101)->GetType()->carriages == 1);
+		CHECK(outgoing->GetShuntingUnit()->GetTrainByID(102)->GetType()->carriages == 2);
 
 		CHECK(scenario.GetStartTime() == 0);
 		CHECK(scenario.GetEndTime() == 1000);

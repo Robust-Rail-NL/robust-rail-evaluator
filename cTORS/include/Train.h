@@ -5,13 +5,15 @@
 #ifndef TRAIN_H
 #define TRAIN_H
 #include "Utils.h"
+#include <utility>
 using namespace std;
 
 /**
  * The TrainUnitType describes the type of the Train
  */
 struct TrainUnitType {
-	static map<string,TrainUnitType*> types; /**< a static map containing all the initialized types */
+	static map<string,TrainUnitType*> types; /**< a static map containing all the initialized types, keyed by the legacy (non-HIP) combined displayName string */
+	static map<pair<string,int>,TrainUnitType*> typesByPrefixAndCarriages; /**< a static map containing all the HIP-path-initialized types, keyed by (typePrefix, carriages) since typePrefix alone is not unique */
 	const string displayName;		/**< The name of the train unit type */
 	const int carriages;			/**< The number of carriages */
 	const double length;			/**< The length of this train unit, in meters */
@@ -42,7 +44,7 @@ struct TrainUnitType {
 		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Construct a TrainUnitType from the given HIP protobuf object */
-	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.displayname(), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
+	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.typeprefix(), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
 		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Get a string representation of this TrainUnitType */

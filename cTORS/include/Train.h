@@ -44,7 +44,7 @@ struct TrainUnitType {
 		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Construct a TrainUnitType from the given HIP protobuf object */
-	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.typeprefix(), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
+	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.typeprefix() + "-" + std::to_string(pb_tt.carriages()), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
 		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Get a string representation of this TrainUnitType */

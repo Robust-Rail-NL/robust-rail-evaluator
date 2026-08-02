@@ -42,7 +42,10 @@ void Scenario::Init(const PBScenario &pb_scenario, const Location &location)
 	catch (exception &e)
 	{
 		cout << "Error in loading scenario: " << e.what() << "\n";
-		throw e;
+		// Rethrow the original exception (preserving its dynamic type and message).
+		// `throw e;` here would slice it down to a plain std::exception, losing
+		// both the message and the type callers (e.g. main.cpp) catch on.
+		throw;
 	}
 }
 
@@ -59,7 +62,8 @@ void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location
 	catch (exception &e)
 	{
 		cout << "Error in loading scenario: " << e.what() << "\n";
-		throw e;
+		// See comment in the other Init() overload above: rethrow, don't slice.
+		throw;
 	}
 }
 

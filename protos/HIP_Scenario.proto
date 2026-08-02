@@ -58,7 +58,7 @@ message IncomingTrain {
 // nested under a "trainUnit" key.
 message IncomingTrainUnit {
 	// A unique identifier of the unit
-	string id = 1;
+	uint64 id = 1;
 
     // The typePrefix of the TrainUnitType this unit belongs to.
     // Consumers key on (typePrefix, carriages) to find the full type -
@@ -99,8 +99,10 @@ message TrainRequest {
 
 // TrainUnit represents a combination of carriages which can move independently.
 message TrainUnit {
-	// A unique identifier of the unit
-	string id = 1;
+	// A unique identifier of the unit. Absent means "any unit of the
+	// matching type is acceptable" (used for departing trains whose exact
+	// composition isn't tracked).
+	optional uint64 id = 1;
 
     // The typePrefix of the TrainUnitType this unit belongs to.
     // Consumers key on (typePrefix, carriages) to find the full type -
@@ -167,7 +169,7 @@ message ShuntingUnit {
 	string id = 1;
 
 	// The IDs of the TrainUnits contained in this ShuntingUnit
-	repeated string memberIDs = 2;
+	repeated uint64 memberIDs = 2;
 
     // The parents of a current ShuntingUnit,
     // that is, the shuntingunits which have been merged into this one,

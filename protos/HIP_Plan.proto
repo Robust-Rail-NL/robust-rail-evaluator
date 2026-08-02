@@ -41,5 +41,5 @@ message Action {
 
     // Train units involved in this Action
     // If not specified, all train units are involved.
-    repeated string trainUnitIds = 7;
+    repeated uint64 trainUnitIds = 7;
 }

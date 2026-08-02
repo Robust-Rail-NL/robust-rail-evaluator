@@ -8,6 +8,13 @@ const Train* GetTrainById(const vector<Train>& trains, const string& id) {
 	return nullptr;
 }
 
+const Train* GetTrainById(const vector<Train>& trains, int id) {
+	for(auto& train: trains) {
+		if(train.GetID() == id) return &train;
+	}
+	return nullptr;
+}
+
 unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrainTasks(const ShuntingUnit* su, const PBTrainGoal& pb_inc) {
 	unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> map;
 	for(auto& train: pb_inc.members()) {
@@ -23,7 +30,7 @@ unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrain
 	unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> map;
 	for(auto& incomingTrainUnit: pb_inc.members()) {
 		for(auto& t: incomingTrainUnit.tasks()) {
-			auto tu = GetTrainById(su->GetTrains(), incomingTrainUnit.id());
+			auto tu = GetTrainById(su->GetTrains(), (int)incomingTrainUnit.id());
 			map[tu].push_back({t});
 		}
 	}

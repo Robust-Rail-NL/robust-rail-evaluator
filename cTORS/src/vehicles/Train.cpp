@@ -33,11 +33,11 @@ Train::Train(const PBTrainUnit& pb_train)
 	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()), TrainUnitType::types.at(pb_train.typedisplayname())) {}
 
 Train::Train(const PB_HIP_TrainUnit& pb_train)
-	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()),
+	: Train(pb_train.has_id() ? (int)pb_train.id() : -1,
 		TrainUnitType::typesByPrefixAndCarriages.at({pb_train.typeprefix(), (int)pb_train.carriages()})) {}
 
 Train::Train(const PB_HIP_IncomingTrainUnit& pb_train)
-	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()),
+	: Train((int)pb_train.id(),
 		TrainUnitType::typesByPrefixAndCarriages.at({pb_train.typeprefix(), (int)pb_train.carriages()})) {}
 
 bool Train::operator==(const Train& train) const {

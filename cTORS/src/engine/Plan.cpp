@@ -13,10 +13,10 @@ const vector<int> GetTrainIDs(const PBList<string> &pb_train_ids)
 
 // Every ShuntingUnit must contain at least one train unit. An empty result here almost
 // always means the plan JSON used the old "members" (embedded TrainUnit) field instead
-// of "memberIDs" (string list) - that key is silently dropped by the lenient JSON parser
-// rather than rejected, so this check turns that into an early, actionable error instead
-// of a confusing crash much later when the (wrongly) empty ID list is used.
-const PBList<string> &GetShuntingUnitMemberIDs(const PB_HIP_ShuntingUnit &su)
+// of "memberIDs" (numeric ID list) - that key is silently dropped by the lenient JSON
+// parser rather than rejected, so this check turns that into an early, actionable error
+// instead of a confusing crash much later when the (wrongly) empty ID list is used.
+const google::protobuf::RepeatedField<google::protobuf::uint64> &GetShuntingUnitMemberIDs(const PB_HIP_ShuntingUnit &su)
 {
     if (su.memberids().empty())
         throw invalid_argument("ShuntingUnit '" + su.id() + "' has no memberIDs in the plan JSON. "
@@ -467,9 +467,9 @@ PBAction RunResult::CreateBeginMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (const string &trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
+    for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
-        PBaction.add_trainunitids(trainUnitId);
+        PBaction.add_trainunitids(to_string(trainUnitId));
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -490,9 +490,9 @@ PBAction RunResult::CreateEndMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (const string &trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
+    for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
-        PBaction.add_trainunitids(trainUnitId);
+        PBaction.add_trainunitids(to_string(trainUnitId));
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -581,9 +581,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
         PB_HIP_ShuntingUnit hip_shuntingUnit = hip_action.shuntingunit();
 
-        for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
+        for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
         {
-            action_.add_trainunitids(trainUnitId);
+            action_.add_trainunitids(to_string(trainUnitId));
         }
 
         // Check if the shunting unit is In/OutStanding train
@@ -651,7 +651,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 auto &trainUnitIds = GetShuntingUnitMemberIDs(hip_shuntingUnit);
 
-                task_action->add_trainunitids(trainUnitIds[0]);
+                task_action->add_trainunitids(to_string(trainUnitIds[0]));
 
                 pb_actions.push_back(action_);
 
@@ -664,9 +664,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Combine);
 
-                for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
+                for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
                 {
-                    task_action->add_trainunitids(trainUnitId);
+                    task_action->add_trainunitids(to_string(trainUnitId));
                 }
 
                 pb_combne_actions.push_back(action_);
@@ -722,9 +722,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
             task_action->set_location(hip_action.location());
 
-            for (const string &trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
+            for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
             {
-                task_action->add_trainunitids(trainUnitId);
+                task_action->add_trainunitids(to_string(trainUnitId));
             }
 
             for (PB_HIP_Recource resource : hip_action.resources())
@@ -802,14 +802,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     }
 
     pb_run.mutable_plan()->CopyFrom(pb_plan);
-
-    // Create Scenario protobuf
-
-    PBScenario pb_scenario;
-    parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
-
-    // Add scenario to the plan
-    pb_run.mutable_scenario()->CopyFrom(pb_scenario);
 
     // Add default location path to the plan
     pb_run.set_location(".");

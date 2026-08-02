@@ -122,9 +122,9 @@ namespace cTORSTest
 		auto train102 = incoming->GetShuntingUnit()->GetTrainByID(102);
 		REQUIRE(train101 != nullptr);
 		REQUIRE(train102 != nullptr);
-		CHECK(train101->GetType()->displayName == "TT");
+		CHECK(train101->GetType()->displayName == "TT-1");
 		CHECK(train101->GetType()->carriages == 1);
-		CHECK(train102->GetType()->displayName == "TT");
+		CHECK(train102->GetType()->displayName == "TT-2");
 		CHECK(train102->GetType()->carriages == 2);
 		CHECK(train101->GetType() != train102->GetType());
 

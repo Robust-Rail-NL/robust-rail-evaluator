@@ -618,7 +618,10 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 for (PB_HIP_Recource resource : hip_action.resources())
                 {
-                    move_action->add_path(resource.trackpartid());
+                    // The solver emits resources as { "kind": "trackPart"|"facility", "id": N },
+                    // not the trackPartId/facilityId oneof the proto's `resource` field expects,
+                    // so trackpartid()/facilityid() are never actually populated - use kind()/id().
+                    move_action->add_path(resource.id());
                 }
 
                 PBAction BeginMoveAction = RunResult::CreateBeginMoveAction(hip_action);
@@ -726,8 +729,10 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
             for (PB_HIP_Recource resource : hip_action.resources())
             {
+                // See the analogous comment in the Move case above: use kind()/id(),
+                // not the never-populated facilityid() oneof accessor.
                 PBFacilityInstance *facilites = task_action->add_facilities();
-                facilites->set_id(resource.facilityid());
+                facilites->set_id(resource.id());
             }
 
             pb_actions.push_back(action_);

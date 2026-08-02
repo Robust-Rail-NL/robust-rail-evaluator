@@ -17,7 +17,15 @@ message Resource {
 	// Name of this resource
 	string name = 1;
 
+	// The actual wire shape emitted by the solver's Plan JSON is a flat
+	// { "kind": "trackPart" | "facility", "id": <int> } object rather than
+	// the discriminated-by-field-presence oneof below - "kind" decides how
+	// to interpret "id". Consumers should use kind/id, not the oneof.
+	string kind = 2;
+	uint64 id = 5;
+
 	// A resource can be either a TrackPart or a Facility.
+	// Kept for compatibility with any producer that emits this legacy shape.
 	oneof resource {
 		// Set this field if this Resource is a TrackPart.
 		uint64 trackPartId = 3;

@@ -123,6 +123,8 @@ public:
 	Train(const PBTrainUnit& pb_train);
 	/** Construct a Train from a HIP protobuf object */
 	Train(const PB_HIP_TrainUnit& pb_train);
+	/** Construct a Train from a HIP protobuf IncomingTrainUnit (flat: id/typePrefix/carriages alongside tasks) */
+	Train(const PB_HIP_IncomingTrainUnit& pb_train);
 	/** The default copy constructor */
 	Train(const Train &train) = default;
 	/** The default desctructor */

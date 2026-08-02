@@ -9,13 +9,13 @@
       "id": "10",
       "members": [
         {
-          "trainUnit": { "id": "101", "typePrefix": "TT", "carriages": 1 },
+          "id": "101", "typePrefix": "TT", "carriages": 1,
           "tasks": [
             { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
           ]
         },
         {
-          "trainUnit": { "id": "102", "typePrefix": "TT", "carriages": 2 },
+          "id": "102", "typePrefix": "TT", "carriages": 2,
           "tasks": []
         }
       ]

@@ -22,9 +22,8 @@ unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrain
 unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrainTasks(const ShuntingUnit* su, const PB_HIP_TrainGoal& pb_inc) {
 	unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> map;
 	for(auto& incomingTrainUnit: pb_inc.members()) {
-		auto& train = incomingTrainUnit.trainunit();
 		for(auto& t: incomingTrainUnit.tasks()) {
-			auto tu = GetTrainById(su->GetTrains(), train.id());
+			auto tu = GetTrainById(su->GetTrains(), incomingTrainUnit.id());
 			map[tu].push_back({t});
 		}
 	}

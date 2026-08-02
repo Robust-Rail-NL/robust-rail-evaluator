@@ -52,8 +52,22 @@ message IncomingTrain {
     double standingIndex = 7;
 }
 
+// Flat, not a wrapper around TrainUnit: the unified schema (and the real
+// generator output) represents each incoming member as a single flat object
+// with its identity fields (id, typePrefix, carriages) alongside tasks, not
+// nested under a "trainUnit" key.
 message IncomingTrainUnit {
-    TrainUnit trainUnit = 1;
+	// A unique identifier of the unit
+	string id = 1;
+
+    // The typePrefix of the TrainUnitType this unit belongs to.
+    // Consumers key on (typePrefix, carriages) to find the full type -
+    // typePrefix alone is not unique, since one type family (e.g. "SLT")
+    // can have multiple carriage-count variants.
+    string typePrefix = 3;
+
+    // Number of carriages of this unit's type.
+    uint32 carriages = 4;
 
     // Tasks for this train unit
     repeated TaskSpec tasks = 2;

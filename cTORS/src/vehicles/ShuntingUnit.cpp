@@ -36,7 +36,7 @@ const vector<Train> ConvertPBTrains(const PBList<PB_HIP_TrainUnit>& trains) {
 const vector<Train> ConvertPBTrains(const PBList<PB_HIP_IncomingTrainUnit>& trains) {
 	vector<Train> out;
 	for(auto& incomingTrainUnit: trains) {
-		out.push_back(Train(incomingTrainUnit.trainunit()));
+		out.push_back(Train(incomingTrainUnit));
 	}
 	ReverseTrainOrder(out);
 	return out;

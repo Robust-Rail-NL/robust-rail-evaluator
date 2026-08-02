@@ -36,6 +36,10 @@ Train::Train(const PB_HIP_TrainUnit& pb_train)
 	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()),
 		TrainUnitType::typesByPrefixAndCarriages.at({pb_train.typeprefix(), (int)pb_train.carriages()})) {}
 
+Train::Train(const PB_HIP_IncomingTrainUnit& pb_train)
+	: Train((pb_train.id()=="****" || pb_train.id().empty()) ? -1 : stoi(pb_train.id()),
+		TrainUnitType::typesByPrefixAndCarriages.at({pb_train.typeprefix(), (int)pb_train.carriages()})) {}
+
 bool Train::operator==(const Train& train) const {
 	return (id != -1 && id == train.id) || this == &train;
 }

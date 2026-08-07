@@ -15,7 +15,12 @@ Config::Config(const string& folderName) {
 	}
 	catch (exception& e) {
 		cout << "Error in loading config: " << e.what() << "\n";
-		throw e;
+		// Rethrow the original exception, preserving its dynamic type and message.
+		// `throw e;` would slice it to a plain std::exception, so a missing or
+		// malformed config.json terminated with the useless "std::exception"
+		// instead of naming the file. Note main.cpp does not guard the
+		// LocationEngine constructor, so this still aborts — but with a message.
+		throw;
 	}
 }
 

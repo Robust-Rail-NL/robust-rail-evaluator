@@ -815,25 +815,29 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
     for (auto &[startTime, combine_actions] : startTimeToCombineActions)
     {
-
+        // HIP emits one Combine action per participating shunting unit, while a
+        // POS Combine carries both operands at once: the action's own
+        // trainUnitIds are the front unit, the task's trainUnitIds the rear one
+        // (see CombineActionGenerator::Generate, which resolves each separately
+        // and requires them to be two distinct shunting units).
+        //
+        // Both lists arrive holding combine_actions[0]'s units: every action has
+        // its members copied into trainUnitIds before the task-type switch, and
+        // the Combine case copies them into the task as well. So keep the first
+        // action as the front operand and rebuild the rear operand from the
+        // rest. Clearing only one of the two lists would leave the first unit
+        // present in both operands, which cannot resolve to a single unit.
         PBAction PBaction = combine_actions[0];
-        // Remove the first train unit id - the one which is the first unit
-        // to be combined with the rest
-        PBaction.mutable_trainunitids()->Clear();
 
         PBTaskAction *task_action = PBaction.mutable_task();
+        task_action->mutable_trainunitids()->Clear();
 
         for (size_t i = 1; i < combine_actions.size(); i++)
         {
-            // Add all the train units which must be combined
-            // a combine action might contains multiple units
-            PBAction PBaction_other = combine_actions[i];
-            auto &trainunits = PBaction_other.trainunitids();
-
-            for (auto &unit : trainunits)
+            // A combine action may itself cover multiple units.
+            for (auto &unit : combine_actions[i].trainunitids())
             {
                 task_action->add_trainunitids(unit);
-                PBaction.add_trainunitids(unit);
             }
         }
         pb_actions.push_back(PBaction);

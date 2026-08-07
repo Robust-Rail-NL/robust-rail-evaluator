@@ -23,9 +23,15 @@ using namespace std;
 #ifndef DEBUG
 #define DEBUG 1
 #endif // !DEBUG
+// Tracing is separate from assertions: an assertion-enabled build for integration
+// testing wants the checks without ~9000 lines of trace per run drowning the
+// result files. Defaults to DEBUG, so a plain debug build is unaffected.
+#ifndef DEBUG_OUTPUT
+#define DEBUG_OUTPUT DEBUG
+#endif // !DEBUG_OUTPUT
 #ifndef debug_out
 #define debug_out(s) \
-if(DEBUG) { std::cout << s << std::endl; }
+if(DEBUG_OUTPUT) { std::cout << s << std::endl; }
 #endif
 
 #ifndef DELETE_LIST

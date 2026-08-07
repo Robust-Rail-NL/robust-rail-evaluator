@@ -385,7 +385,9 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 	{
 		try
 		{
-			if (DEBUG)
+			// Tracing, not a check: keyed on DEBUG_OUTPUT so an assertion-enabled
+			// build can run the checks without dumping the whole state per action.
+			if (DEBUG_OUTPUT)
 			{
 				state->PrintStateInfo();
 			}

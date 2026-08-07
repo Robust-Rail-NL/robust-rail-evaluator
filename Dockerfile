@@ -20,9 +20,16 @@ WORKDIR /workspace
 
 COPY . .
 
+# Build ASSERTIONS=ON for an image intended for integration testing: same
+# optimisation and same output as the default build, but internal invariant
+# violations abort instead of yielding a verdict computed from corrupt state.
+# Publish those under a separate tag - never as the release tag, since an
+# assertion failure aborts the process.
+ARG ASSERTIONS=OFF
+
 RUN mkdir -p build \
     && cd build \
-    && cmake .. \
+    && cmake .. -DCTORS_ASSERTIONS=${ASSERTIONS} \
     && cmake --build .
 
 

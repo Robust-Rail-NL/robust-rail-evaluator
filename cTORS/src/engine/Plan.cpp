@@ -24,6 +24,27 @@ const google::protobuf::RepeatedField<google::protobuf::uint64> &GetShuntingUnit
     return su.memberids();
 }
 
+/**
+ * Whether the next action belonging to this shunting unit, after the one at
+ * `index`, is an Exit. False if the unit has no further action in the plan.
+ *
+ * Actions of all shunting units are interleaved in one time-ordered list, so
+ * "the next action" in list order usually belongs to a different unit.
+ */
+static bool NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, int index,
+                                    const PB_HIP_ShuntingUnit &unit)
+{
+    const auto &members = GetShuntingUnitMemberIDs(unit);
+    for (size_t i = static_cast<size_t>(index) + 1; i < actions.size(); i++)
+    {
+        const auto &candidate = actions[i].shuntingunit().memberids();
+        if (!std::equal(members.begin(), members.end(), candidate.begin(), candidate.end()))
+            continue;
+        return actions[i].tasktype().predefined() == PB_HIP_PredefinedTaskType::Exit;
+    }
+    return false;
+}
+
 POSAction &POSAction::operator=(const POSAction &pa)
 {
     if (this != &pa)
@@ -663,11 +684,15 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 pb_actions.push_back(action_);
 
-                // If next element is an Exit, the EndAction is not added
-
-                PB_HIP_Action next_action = pb_action[index + 1];
-
-                if (next_action.tasktype().predefined() != PB_HIP_PredefinedTaskType::Exit)
+                // A movement that leads straight into an Exit gets no EndMove: the
+                // unit is leaving the yard, not coming to rest. That has to be asked
+                // of this shunting unit's own next action, not of whichever action
+                // happens to come next in the plan — the actions of all units are
+                // interleaved by time, so another unit's action in between used to
+                // produce a spurious EndMove on the gateway, which the parking rules
+                // then rejected. Reaching the end of the plan is also a valid answer,
+                // and indexing one past the end was undefined behaviour.
+                if (!NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit))
                 {
                     PBAction EndMoveAction = RunResult::CreateEndMoveAction(hip_action);
 

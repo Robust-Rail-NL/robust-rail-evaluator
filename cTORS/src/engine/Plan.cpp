@@ -302,7 +302,9 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
     }
     else
     {
-        action = new Wait(trainIDs);
+        // Pass the plan's own duration through, so the wait does not stretch to the
+        // next queued event and eat the time reserved for what follows it.
+        action = new Wait(trainIDs, minDuration);
     }
     return POSAction(suggestedStartingTime, suggestedEndingTime, minDuration, action);
 }

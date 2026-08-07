@@ -17,8 +17,15 @@ const string WaitAction::toString() const {
 
 const Action* WaitActionGenerator::Generate(const State* state, const SimpleAction& action) const {
 	auto su = InitialCheck(state, action);
-	auto e = state->PeekEvent();
 	if (state->IsWaiting(su)) throw InvalidActionException("The ShuntingUnit is already waiting.");
+	// A wait replayed from a plan states its own duration. Honour it: stretching it
+	// to the next queued event instead would consume the time the plan reserved for
+	// the actions that follow, and there need not be an event to wait for at all -
+	// a unit that simply stays put until the scenario ends has none.
+	auto wait = dynamic_cast<const Wait*>(&action);
+	if (wait != nullptr && wait->HasDuration())
+		return new WaitAction(su, wait->GetDuration());
+	auto e = state->PeekEvent();
 	if(e == nullptr || e->GetTime() == state->GetTime()) throw InvalidActionException("There is nothing to wait for.");
 	int dif = e->GetTime() - state->GetTime();
 	//if (dif > 30) dif = 30;

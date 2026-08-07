@@ -114,9 +114,41 @@ SIMPLE_ACTION_DEFINE(BeginMove, "move_helper")
 SIMPLE_ACTION_DEFINE(EndMove, "move_helper")
 
 /**
- * The Wait action instructs this ShuntingUnit to wait until the next Event.
+ * The Wait action instructs this ShuntingUnit to wait.
+ *
+ * By default it waits until the next Event, which is the only sensible bound
+ * while searching: there is no plan to consult, and waiting past the next event
+ * is pointless because the search decides again at every event.
+ *
+ * When replaying a plan there is a better answer available — the plan says how
+ * long the wait should be — so a duration may be given. Without it, replay
+ * inherits the search behaviour and a wait silently stretches to the next
+ * queued event, which absorbs the time the plan had reserved for whatever comes
+ * after and pushes the rest of that shunting unit's schedule late.
  */
-SIMPLE_ACTION_DEFINE(Wait, "wait")
+class Wait : public SimpleAction {
+private:
+	int duration;
+
+public:
+	Wait() = delete;
+	/** Construct a Wait for the given ShuntingUnit, lasting until the next Event. */
+	Wait(const ShuntingUnit* su) : SimpleAction(su), duration(-1) {}
+	/**
+	 * Construct a Wait for a ShuntingUnit with the given train ids. A non-negative
+	 * duration is honoured as given; a negative one means "until the next Event".
+	 */
+	Wait(const vector<int>& trainIDs, int duration = -1) : SimpleAction(trainIDs), duration(duration) {}
+	/** Default copy constructor */
+	Wait(const Wait& action) = default;
+	/** The duration in seconds, or a negative value to wait until the next Event. */
+	inline int GetDuration() const { return duration; }
+	/** Whether this Wait carries a duration of its own. */
+	inline bool HasDuration() const { return duration >= 0; }
+	inline const string toString() const override { return "Wait: " + GetTrainsToString(); }
+	inline const string GetGeneratorName() const override { return "wait"; }
+	inline const Wait* Clone() const override { return new Wait(*this); }
+};
 
 /**
  * The Setback action changes the direction of the ShuntingUnit

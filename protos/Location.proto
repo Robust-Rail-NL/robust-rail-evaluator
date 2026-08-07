@@ -151,8 +151,16 @@ enum PredefinedTaskType {
     NonService = 8;
     
     BeginMove = 9;//TEMP
-    
+
     EndMove = 10;//TEMP
+
+    // Task represents an inStanding shunting unit, already parked on the facility
+    // when the scenario starts. Handled like Arrive, but the Incoming it resolves
+    // to is marked instanding, so no arrival track is reserved.
+    StandIn = 11;
+    // Task represents an outStanding shunting unit, remaining on the facility after
+    // the scenario ends. The mirror image of StandIn.
+    StandOut = 12;
 }
 
 message WalkingDistanceEntry {

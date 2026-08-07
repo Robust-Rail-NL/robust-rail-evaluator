@@ -108,8 +108,41 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
             switch (task)
             {
             case PBPredefinedTaskType::Arrive:
+            case PBPredefinedTaskType::StandIn:
+                // An inStanding train is already parked when the scenario starts, but
+                // TORS still needs an Arrive to put the shunting unit on the yard:
+                // ArriveAction::Start is the only thing that calls AddShuntingUnit.
+                // The instanding semantics (no arrival track reserved) come from
+                // Incoming::IsInstanding(), not from the task type, so the two cases
+                // are handled identically here.
                 action = new Arrive(scenario->GetIncomingByTrainIDs(trainIDs));
                 break;
+            case PBPredefinedTaskType::StandOut:
+            {
+                // Mirror of StandIn. An outStanding train's Outgoing has time 0 while
+                // the StandOut action sits at the end of the scenario, so the time
+                // window matching used by the Exit case below cannot be applied;
+                // match on train ids among the outStanding requests instead.
+                vector<const TrainUnitType *> types;
+                for (int id : trainIDs)
+                    types.push_back(scenario->GetTrainByID(id)->GetType());
+
+                auto &outgoingTrains = scenario->GetOutgoingTrains();
+                auto it = find_if(outgoingTrains.begin(), outgoingTrains.end(),
+                                  [&trainIDs, &types, scenario](const Outgoing *out) -> bool
+                                  {
+                                      return out->IsInstanding() &&
+                                             out->GetShuntingUnit()->MatchesTrainIDs(trainIDs, types) &&
+                                             scenario->track_exiting_trains.at(out->GetID()) == false;
+                                  });
+                if (it == outgoingTrains.end())
+                    throw invalid_argument("No outStanding train request matches trains " +
+                                           Join(trainIDs, "-"));
+
+                action = new Exit(trainIDs, (*it)->GetID(), true);
+                scenario->UpdateTrackExitingTrains((*it)->GetID(), true);
+                break;
+            }
             case PBPredefinedTaskType::Exit:
             {
                 // Delta time to allow delays of the departure time
@@ -702,6 +735,30 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
                 PBTaskType *taskType = task_action->mutable_type();
 
                 taskType->set_predefined(PBPredefinedTaskType::Exit);
+
+                pb_actions.push_back(action_);
+
+                break;
+            }
+            case PB_HIP_PredefinedTaskType::StandIn:
+            {
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::StandIn);
+
+                pb_actions.push_back(action_);
+
+                break;
+            }
+            case PB_HIP_PredefinedTaskType::StandOut:
+            {
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::StandOut);
 
                 pb_actions.push_back(action_);
 

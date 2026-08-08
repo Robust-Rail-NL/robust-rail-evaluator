@@ -45,12 +45,12 @@ Incoming::Incoming(const PBTrainGoal& pb_inc, bool isInstanding) : Incoming(stoi
 Outgoing::Outgoing(const PBTrainGoal& pb_out, bool isInstanding) : Outgoing(stoi(pb_out.id()), new ShuntingUnit(pb_out),
  	pb_out.time(), isInstanding, pb_out.standingindex()) {}
 
-Incoming::Incoming(const PB_HIP_TrainGoal& pb_inc, bool isInstanding) : Incoming(stoi(pb_inc.id()), new ShuntingUnit(pb_inc),
+Incoming::Incoming(const PB_HIP_TrainGoal& pb_inc, bool isInstanding) : Incoming(static_cast<int>(pb_inc.id()), new ShuntingUnit(pb_inc),
  	pb_inc.arrival(), isInstanding, pb_inc.standingindex()) {
 		 tasks = ConvertPBTrainTasks(shuntingUnit, pb_inc);
 	 }
 
-Outgoing::Outgoing(const PB_HIP_TrainRequest& pb_out, bool isInstanding) : Outgoing(stoi(pb_out.displayname()), new ShuntingUnit(pb_out),
+Outgoing::Outgoing(const PB_HIP_TrainRequest& pb_out, bool isInstanding) : Outgoing(static_cast<int>(pb_out.id()), new ShuntingUnit(pb_out),
  	pb_out.departure(), isInstanding, pb_out.standingindex()) {}
 
 TrainGoal::TrainGoal(const TrainGoal& traingoal) :

@@ -19,7 +19,7 @@ const vector<int> GetTrainIDs(const PBList<string> &pb_train_ids)
 const google::protobuf::RepeatedField<google::protobuf::uint64> &GetShuntingUnitMemberIDs(const PB_HIP_ShuntingUnit &su)
 {
     if (su.memberids().empty())
-        throw invalid_argument("ShuntingUnit '" + su.id() + "' has no memberIDs in the plan JSON. "
+        throw invalid_argument("ShuntingUnit '" + std::to_string(su.id()) + "' has no memberIDs in the plan JSON. "
             "Is this a legacy plan using the old 'members' (embedded TrainUnit) field instead of 'memberIDs' (ID list)?");
     return su.memberids();
 }

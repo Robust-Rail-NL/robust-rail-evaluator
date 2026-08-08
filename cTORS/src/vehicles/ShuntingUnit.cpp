@@ -46,10 +46,10 @@ ShuntingUnit::ShuntingUnit(const PBTrainGoal& pb_tg)
 	: ShuntingUnit(stoi(pb_tg.id()), ConvertPBTrains(pb_tg.members())) {}
 
 ShuntingUnit::ShuntingUnit(const PB_HIP_TrainGoal& pb_tg)
-	: ShuntingUnit(stoi(pb_tg.id()), ConvertPBTrains(pb_tg.members())) {}
+	: ShuntingUnit(static_cast<int>(pb_tg.id()), ConvertPBTrains(pb_tg.members())) {}
 
 ShuntingUnit::ShuntingUnit(const PB_HIP_TrainRequest& pb_tr)
-	: ShuntingUnit(stoi(pb_tr.displayname()), ConvertPBTrains(pb_tr.trainunits())) {}
+	: ShuntingUnit(static_cast<int>(pb_tr.id()), ConvertPBTrains(pb_tr.trainunits())) {}
 
 void ShuntingUnit::UpdateValues() {
 	length = 0;

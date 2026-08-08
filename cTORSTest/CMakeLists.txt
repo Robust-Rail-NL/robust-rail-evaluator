@@ -31,26 +31,30 @@ link_libraries(cTORS doctest::doctest)
 add_library(MainTest OBJECT MainTest.cpp)
 
 add_executable(TrackTest TrackTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME TrackTest COMMAND TrackTest)
+add_test(NAME TrackTest COMMAND TrackTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(VehicleTest VehicleTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME VehicleTest COMMAND VehicleTest)
+add_test(NAME VehicleTest COMMAND VehicleTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(RulesTest RulesTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME RulesTest COMMAND RulesTest)
+add_test(NAME RulesTest COMMAND RulesTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(PlanConversionTest PlanConversionTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME PlanConversionTest COMMAND PlanConversionTest)
+add_test(NAME PlanConversionTest COMMAND PlanConversionTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(EngineTest EngineTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME EngineTest COMMAND EngineTest)
+add_test(NAME EngineTest COMMAND EngineTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(CompatibilityTest CompatibilityTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME CompatibilityTest COMMAND CompatibilityTest)
+add_test(NAME CompatibilityTest COMMAND CompatibilityTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 add_executable(SchemaVersionTest SchemaVersionTest.cpp $<TARGET_OBJECTS:MainTest>)
-add_test(NAME SchemaVersionTest COMMAND SchemaVersionTest)
+add_test(NAME SchemaVersionTest COMMAND SchemaVersionTest WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 
-file(COPY "../data" DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+# No copy of data/ here on purpose. The tests resolve their fixtures relative
+# to the working directory, which is set above to the source root, so they read
+# data/ where it actually lives. Copying it with file(COPY) instead — as this
+# did — runs at configure time only, so editing a fixture and rebuilding
+# silently tested the previous copy, and it duplicated 12MB on every configure.
 

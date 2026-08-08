@@ -1,0 +1,50 @@
+name: CTest
+
+# noproto is the 2.0.0 migration branch; main and dev are the stable ones.
+on:
+  push:
+    branches: [ "main", "dev", "noproto" ]
+  pull_request:
+    branches: [ "main", "dev", "noproto" ]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    name: Build and test
+    timeout-minutes: 40
+    steps:
+    - uses: actions/checkout@v5
+
+    # build-essential, cmake, git and python3 are already on the runner. The
+    # rest is what .devcontainer/Dockerfile installs on top of ubuntu:24.04.
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y \
+          libprotobuf-dev \
+          libpython3-dev \
+          protobuf-compiler
+
+    # cTORS and cTORSTest pull nlohmann/json, doctest and pybind11 with
+    # FetchContent. Caching the fetched sources keeps a cold run from
+    # re-cloning three repositories every time.
+    - name: Cache fetched dependencies
+      uses: actions/cache@v4
+      with:
+        path: build/_deps
+        key: ${{ runner.os }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-deps-
+
+    - name: Configure
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build -j$(nproc)
+
+    # No LOCATION_PATH / SCENARIO_PATH / PLAN_PATH / RESULT_PATH here.
+    # EngineTest and CompatibilityTest were rebuilt to be self-contained
+    # against the committed fixtures under data/; nothing reads those
+    # variables any more, and exporting them would only mislead.
+    - name: Test
+      run: ctest --test-dir build --output-on-failure

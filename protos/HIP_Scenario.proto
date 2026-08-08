@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package HIP_protos;
 
-import "HIP_Location.proto";
+import "HIP_Common.proto";
 import "Utilities.proto";
 
 // A Scenario contains the part of the problem specification which varies daily,

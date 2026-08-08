@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package HIP_protos;
-import "HIP_Location.proto";
+import "HIP_Common.proto";
 import "HIP_Scenario.proto";
 
 // This message contains the result of a shunting algorithm.

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package HIP_protos;
+
+// Shared definitions for the HIP scenario and plan protos: the task
+// vocabulary and the resource reference. This was HIP_Location.proto, which
+// also declared Location, Facility, TrackPart and TrackPartType — none of them
+// ever reachable, because location.json is parsed into proto_tors::Location
+// from Location.proto, not into anything here. They were removed along with
+// the name, which had become an invitation to edit the wrong file.
+
+message Resource {
+	// Name of this resource
+	string name = 1;
+
+	// The actual wire shape emitted by the solver's Plan JSON is a flat
+	// { "kind": "trackPart" | "facility", "id": <int> } object rather than
+	// the discriminated-by-field-presence oneof below - "kind" decides how
+	// to interpret "id". Consumers should use kind/id, not the oneof.
+	string kind = 2;
+	uint64 id = 5;
+
+	// A resource can be either a TrackPart or a Facility.
+	// Kept for compatibility with any producer that emits this legacy shape.
+	oneof resource {
+		// Set this field if this Resource is a TrackPart.
+		uint64 trackPartId = 3;
+
+		// Set this field if this Resource is a Facility.
+		uint64 facilityId = 4;
+	}
+}
+
+message TaskType {
+	oneof taskType {
+		// If the task type maps to one of PredefinedTaskType, use this type here.
+		PredefinedTaskType predefined = 1;
+
+		// Otherwise, specify a custom name.
+		string other = 2;
+	}
+}
+
+enum PredefinedTaskType {
+	// Movement
+	Move = 0;
+	Split = 1;
+	Combine = 2;
+
+	// Special
+	Wait = 3;
+	Arrive = 4;
+	Exit = 5;
+
+	// Interchange concepts (Scenario TaskSpec / Plan Action task types)
+	Walking = 6;
+	Break = 7;
+	NonService = 8;
+	StandIn = 9;
+	StandOut = 10;
+}

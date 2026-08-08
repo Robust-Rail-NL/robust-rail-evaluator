@@ -228,7 +228,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
 	${PROTOS_DIR}/Run.proto
 	${PROTOS_DIR}/Plan.proto
 
-	${PROTOS_DIR}/HIP_Location.proto
+	${PROTOS_DIR}/HIP_Common.proto
 	${PROTOS_DIR}/HIP_Scenario.proto
 	${PROTOS_DIR}/HIP_Plan.proto
 )

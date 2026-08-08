@@ -156,6 +156,18 @@ public:
      */
     static PBAction MergeCombineActions(const std::vector<PBAction> &combineActions);
 
+    /**
+     * Whether the next action belonging to this shunting unit, after the one at
+     * `index`, is an Exit. False if the unit has no further action in the plan.
+     *
+     * A plan interleaves the actions of every shunting unit in time order, so the
+     * next entry in the list usually belongs to a different unit. Asking about the
+     * list rather than the unit is what produced a spurious EndMove before a
+     * departure.
+     */
+    static bool NextActionForUnitIsExit(const std::vector<PB_HIP_Action> &actions, int index,
+                                        const PB_HIP_ShuntingUnit &unit);
+
     static PBAction CreateBeginMoveAction(PB_HIP_Action &pb_hip_action);
 
     static PBAction CreateEndMoveAction(PB_HIP_Action &pb_hip_action);

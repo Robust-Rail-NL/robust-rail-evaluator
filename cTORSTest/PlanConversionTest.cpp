@@ -30,6 +30,85 @@ namespace cTORSTest
 		return vector<string>(action.task().trainunitids().begin(), action.task().trainunitids().end());
 	}
 
+	/** Build one HIP action for the given unit, as it appears in a plan. */
+	static PB_HIP_Action MakeHipAction(PB_HIP_PredefinedTaskType type, const vector<uint64_t> &memberIDs)
+	{
+		PB_HIP_Action action;
+		action.mutable_tasktype()->set_predefined(type);
+		PB_HIP_ShuntingUnit *su = action.mutable_shuntingunit();
+		su->set_id("su");
+		for (auto id : memberIDs)
+			su->add_memberids(id);
+		return action;
+	}
+
+	TEST_CASE("A movement is followed by an Exit only if that unit's own next action is one") {
+		// A plan interleaves every shunting unit's actions in time order, so the next
+		// entry in the list usually belongs to a different unit. Testing the list
+		// rather than the unit made a departure look like an ordinary movement, so an
+		// EndMove was emitted onto the gateway and the parking rules rejected it.
+		PB_HIP_ShuntingUnit departing;
+		departing.set_id("su");
+		departing.add_memberids(2601);
+
+		SUBCASE("its Exit comes immediately next") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2601}),
+			};
+			CHECK(RunResult::NextActionForUnitIsExit(actions, 0, departing));
+		}
+
+		SUBCASE("its Exit comes next for this unit, but not next in the list") {
+			// This is the case that regressed: another train acts in between.
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2801}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2601}),
+			};
+			CHECK(RunResult::NextActionForUnitIsExit(actions, 0, departing));
+		}
+
+		SUBCASE("another unit's Exit does not count") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2801}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsExit(actions, 0, departing));
+		}
+
+		SUBCASE("the unit goes on to do something else") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsExit(actions, 0, departing));
+		}
+
+		SUBCASE("the movement is the last action in the plan") {
+			// Reading one past the end here used to be undefined behaviour.
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsExit(actions, 0, departing));
+		}
+
+		SUBCASE("a multi-unit shunting unit is matched on its whole membership") {
+			PB_HIP_ShuntingUnit pair;
+			pair.set_id("su");
+			pair.add_memberids(2801);
+			pair.add_memberids(2802);
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2801, 2802}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2801}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Exit, {2801, 2802}),
+			};
+			CHECK(RunResult::NextActionForUnitIsExit(actions, 0, pair));
+		}
+	}
+
 	TEST_CASE("Merging a combine keeps its two operands apart") {
 		// A cTORS Combine names two shunting units: the front one in the action's
 		// own trainUnitIds and the rear one in the task's. HIP emits one action per

@@ -275,7 +275,7 @@ void Scenario::ImportAncillary(const PB_HIP_Scenario &pb_scenario)
 	for (auto &pb_nst : pb_scenario.nonservicetraffic())
 	{
 		NonServiceTrafficEntry entry;
-		entry.members = vector<int>(pb_nst.members().begin(), pb_nst.members().end());
+		entry.members = vector<int>(pb_nst.memberids().begin(), pb_nst.memberids().end());
 		entry.arrival = pb_nst.arrival();
 		entry.departure = pb_nst.departure();
 		entry.id = pb_nst.id();

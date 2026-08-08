@@ -181,9 +181,10 @@ message ShuntingUnit {
     // Alternatively, ShuntingUnit S has parent P iff P has child S.
     repeated uint64 childIDs = 4;
 
-    // If field is defined it states InStanding when the train unit was alredy on the yard even if the action says it is an arrival
-    // or it states OutStanding when the train unit will stay in the shunting yards after the scenario ends even if the action is an exite one
-    string standingType = 5;
+    // Field 5 was standingType. It was never written by the solver, never
+    // non-empty, and the value it was copied into was never read. The StandIn
+    // and StandOut task types carry this distinction now.
+    reserved 5;
 }
 
 // A task specification specifies a certain task.
@@ -212,7 +213,7 @@ message TaskSpec {
 // for a time window.
 message NonServiceTraffic {
     // The TrackParts reserved by this traffic.
-    repeated uint64 members = 1;
+    repeated uint64 memberIDs = 1;
 
     // Arrival on the track, and departure from the track.
     // Times are in seconds since the epoch.

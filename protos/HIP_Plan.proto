@@ -14,7 +14,10 @@ message Plan {
 
 	// A list of all TrackParts. From this a rail graph can be constructed.
 	// This field should be temporary and be replaced as soon as we send input to the algorithm.
-	repeated TrackPart trackParts = 2;
+	// Field 2 was trackParts, a copy of the location's track graph carried in
+	// the plan because the evaluator supposedly could not reach the original.
+	// It receives --path_location directly, and never read this.
+	reserved 2;
 }
 
 message Action {

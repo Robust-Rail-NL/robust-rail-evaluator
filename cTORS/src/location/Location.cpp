@@ -286,7 +286,7 @@ void Location::ImportTracks(const PBLocation& pb_location) {
 void Location::ImportFacilities(const PBLocation& pb_location) {
 	for (auto& pb_f : pb_location.facilities()) {
 		Facility* f = new Facility(pb_f);
-		auto sTracks = vector<UInt>(pb_f.relatedtrackparts().begin(), pb_f.relatedtrackparts().end());
+		auto sTracks = vector<UInt>(pb_f.relatedtrackpartids().begin(), pb_f.relatedtrackpartids().end());
 		vector<Track*> tracks;
 		for (auto s : sTracks) {
 			Track* t = trackIndex[to_string(s)];

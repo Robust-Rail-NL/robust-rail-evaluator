@@ -663,14 +663,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
             action_.add_trainunitids(to_string(trainUnitId));
         }
 
-        // Check if the shunting unit is In/OutStanding train
-        // If field is defined it states InStanding when the train unit was alredy on the yard even if the action says it is an arrival
-        // or it states OutStanding when the train unit will stay in the shunting yards after the scenario ends even if the action is an exite one
-        if (hip_shuntingUnit.standingtype() != "")
-        {
-            action_.set_standingtype(hip_shuntingUnit.standingtype());
-        }
-
         PB_HIP_TaskType taskType = hip_action.tasktype();
 
         // test if predefined or other field is defined

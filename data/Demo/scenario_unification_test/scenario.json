@@ -6,16 +6,16 @@
       "firstParkingTrackPart": "1",
       "arrival": "100",
       "departure": "100",
-      "id": "10",
+      "id": 10,
       "members": [
         {
-          "id": "101", "typePrefix": "TT", "carriages": 1,
+          "id": 101, "typePrefix": "TT", "carriages": 1,
           "tasks": [
             { "type": { "other": "Clean" }, "optional": false, "duration": "50" }
           ]
         },
         {
-          "id": "102", "typePrefix": "TT", "carriages": 2,
+          "id": 102, "typePrefix": "TT", "carriages": 2,
           "tasks": []
         }
       ]
@@ -28,10 +28,10 @@
       "lastParkingTrackPart": "1",
       "arrival": "500",
       "departure": "600",
-      "displayName": "20",
+      "id": 20,
       "trainUnits": [
-        { "id": "101", "typePrefix": "TT", "carriages": 1 },
-        { "id": "102", "typePrefix": "TT", "carriages": 2 }
+        { "id": 101, "typePrefix": "TT", "carriages": 1 },
+        { "id": 102, "typePrefix": "TT", "carriages": 2 }
       ],
       "standingIndex": 0
     }

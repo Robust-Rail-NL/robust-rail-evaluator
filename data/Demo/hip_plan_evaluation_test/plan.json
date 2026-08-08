@@ -9,7 +9,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "3",
+				"id": 3,
 				"memberIDs": [
 					2901
 				],
@@ -29,7 +29,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "3",
+				"id": 3,
 				"memberIDs": [
 					2901
 				],
@@ -49,7 +49,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -74,7 +74,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -111,7 +111,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -131,7 +131,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -156,7 +156,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -225,7 +225,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "2",
+				"id": 2,
 				"memberIDs": [
 					2801,
 					2802
@@ -251,7 +251,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "2",
+				"id": 2,
 				"memberIDs": [
 					2801,
 					2802
@@ -297,7 +297,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -317,7 +317,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -362,7 +362,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "2",
+				"id": 2,
 				"memberIDs": [
 					2801,
 					2802
@@ -383,7 +383,7 @@
 				"other": "Reinigingsperron"
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -408,7 +408,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -461,7 +461,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -578,7 +578,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -598,7 +598,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "3",
+				"id": 3,
 				"memberIDs": [
 					2901
 				],
@@ -618,7 +618,7 @@
 				"other": "Reinigingsperron"
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -643,7 +643,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "3",
+				"id": 3,
 				"memberIDs": [
 					2901
 				],
@@ -680,7 +680,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "3",
+				"id": 3,
 				"memberIDs": [
 					2901
 				],
@@ -705,7 +705,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -774,7 +774,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -794,7 +794,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "1",
+				"id": 1,
 				"memberIDs": [
 					2601
 				],
@@ -819,7 +819,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "2",
+				"id": 2,
 				"memberIDs": [
 					2801,
 					2802
@@ -865,7 +865,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "2",
+				"id": 2,
 				"memberIDs": [
 					2801,
 					2802
@@ -891,7 +891,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],
@@ -1008,7 +1008,7 @@
 				"other": null
 			},
 			"shuntingUnit": {
-				"id": "0",
+				"id": 0,
 				"memberIDs": [
 					2401
 				],

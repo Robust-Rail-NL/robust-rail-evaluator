@@ -36,7 +36,7 @@ namespace cTORSTest
 		PB_HIP_Action action;
 		action.mutable_tasktype()->set_predefined(type);
 		PB_HIP_ShuntingUnit *su = action.mutable_shuntingunit();
-		su->set_id("su");
+		su->set_id(1);
 		for (auto id : memberIDs)
 			su->add_memberids(id);
 		return action;
@@ -48,7 +48,7 @@ namespace cTORSTest
 		// rather than the unit made a departure look like an ordinary movement, so an
 		// EndMove was emitted onto the gateway and the parking rules rejected it.
 		PB_HIP_ShuntingUnit departing;
-		departing.set_id("su");
+		departing.set_id(1);
 		departing.add_memberids(2601);
 
 		SUBCASE("its Exit comes immediately next") {
@@ -97,7 +97,7 @@ namespace cTORSTest
 
 		SUBCASE("a multi-unit shunting unit is matched on its whole membership") {
 			PB_HIP_ShuntingUnit pair;
-			pair.set_id("su");
+			pair.set_id(1);
 			pair.add_memberids(2801);
 			pair.add_memberids(2802);
 			vector<PB_HIP_Action> actions = {

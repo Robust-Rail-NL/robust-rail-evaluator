@@ -39,6 +39,9 @@ add_test(NAME VehicleTest COMMAND VehicleTest)
 add_executable(RulesTest RulesTest.cpp $<TARGET_OBJECTS:MainTest>)
 add_test(NAME RulesTest COMMAND RulesTest)
 
+add_executable(PlanConversionTest PlanConversionTest.cpp $<TARGET_OBJECTS:MainTest>)
+add_test(NAME PlanConversionTest COMMAND PlanConversionTest)
+
 add_executable(EngineTest EngineTest.cpp $<TARGET_OBJECTS:MainTest>)
 add_test(NAME EngineTest COMMAND EngineTest)
 

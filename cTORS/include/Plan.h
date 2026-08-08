@@ -142,6 +142,20 @@ public:
      * Added on 27 of February 2025, by R.G. Kromes - extentions for HIP - cTORS compatibility*/
     static RunResult* CreateRunResult(const PB_HIP_Plan& pb_hip_plan, string scenarioFileString, const Location *location, const string& pathToStoreEval = "", int departureDelay = 0);
     
+    /**
+     * Merge the Combine actions of one combine into the single two-operand action
+     * that cTORS expects.
+     *
+     * HIP emits one Combine action per participating shunting unit, while a POS
+     * Combine carries both operands at once: the action's own trainUnitIds are the
+     * front unit and the task's trainUnitIds the rear one. Both lists arrive holding
+     * the first action's units, so the rear operand has to be rebuilt from the
+     * remaining actions rather than appended to what is already there.
+     *
+     * @param combineActions the Combine actions of a single combine, front unit first
+     */
+    static PBAction MergeCombineActions(const std::vector<PBAction> &combineActions);
+
     static PBAction CreateBeginMoveAction(PB_HIP_Action &pb_hip_action);
 
     static PBAction CreateEndMoveAction(PB_HIP_Action &pb_hip_action);

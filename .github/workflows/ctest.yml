@@ -1,11 +1,12 @@
 name: CTest
 
-# noproto is the 2.0.0 migration branch; main and dev are the stable ones.
+# release/2.0.0 is the shared integration branch for the 2.0.0 release;
+# main and dev are the stable ones.
 on:
   push:
-    branches: [ "main", "dev", "noproto" ]
+    branches: [ "main", "dev", "release/2.0.0" ]
   pull_request:
-    branches: [ "main", "dev", "noproto" ]
+    branches: [ "main", "dev", "release/2.0.0" ]
   workflow_dispatch:
 
 jobs:

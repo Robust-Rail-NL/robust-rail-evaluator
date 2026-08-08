@@ -39,7 +39,8 @@ message Action {
 	// a CleaningPlatform Facility Resource.
 	repeated Resource resources = 6;
 
-    // Train units involved in this Action
-    // If not specified, all train units are involved.
-    repeated uint64 trainUnitIds = 7;
+    // Field 7 was trainUnitIds, for naming a subset of the shunting unit's
+    // members. Nothing ever wrote it and nothing read it here, so it was
+    // removed; the members of the shunting unit are the units involved.
+    reserved 7;
 }

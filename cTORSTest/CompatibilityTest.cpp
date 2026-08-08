@@ -24,7 +24,7 @@ namespace cTORSTest
 	 * combine conversion is covered by PlanConversionTest instead, directly on
 	 * RunResult::MergeCombineActions.
 	 */
-	static const string HIP_FIXTURE = "data/Demo/hip_plan_evaluation_test";
+	static const string HIP_FIXTURE = TORS_DATA_DIR "/Demo/hip_plan_evaluation_test";
 
 	TEST_CASE("A valid HIP plan evaluates as valid")
 	{

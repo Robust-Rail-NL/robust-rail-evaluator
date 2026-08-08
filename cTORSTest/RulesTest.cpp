@@ -103,6 +103,71 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("A wait replayed from a plan lasts as long as the plan says") {
+		// Waiting until the next event is the only sensible bound while searching:
+		// there is no plan to consult, and the search decides again at every event.
+		// Replaying a plan is different — the plan states the duration — and taking
+		// the next event instead consumed the time the plan had reserved for what
+		// followed, pushing the rest of that unit's schedule late by exactly that
+		// much.
+		Scenario scenario;
+		scenario.SetEndTime(7200);
+
+		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, true, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train train(1, &testType);
+		ShuntingUnit su(1, {train});
+		state.AddShuntingUnit(&su, &r0, &b0);
+
+		json params = json::object();
+		WaitActionGenerator generator(params, nullptr);
+
+		SUBCASE("the plan's duration wins over the distance to the next event") {
+			// An outgoing event further away than the plan's wait: taking the event
+			// would overshoot, which is the bug.
+			Outgoing outgoing(1, new ShuntingUnit(1, {train}), &r0, &b0, 3600, false, 0);
+			state.AddEvent(&outgoing);
+
+			Wait planned({1}, 900);
+			const Action* action = generator.Generate(&state, planned);
+			CHECK(action->GetDuration() == 900);
+			delete action;
+		}
+
+		SUBCASE("a wait with no duration still runs to the next event") {
+			Outgoing outgoing(1, new ShuntingUnit(1, {train}), &r0, &b0, 3600, false, 0);
+			state.AddEvent(&outgoing);
+
+			Wait unplanned({1});
+			const Action* action = generator.Generate(&state, unplanned);
+			CHECK(action->GetDuration() == 3600);
+			delete action;
+		}
+
+		SUBCASE("a planned wait needs no event to wait for") {
+			// A unit that simply stays put until the scenario ends has no next event,
+			// which used to make the wait impossible to express at all.
+			Wait planned({1}, 600);
+			const Action* action = generator.Generate(&state, planned);
+			CHECK(action->GetDuration() == 600);
+			delete action;
+		}
+
+		SUBCASE("a wait with no duration and no event is still an error") {
+			Wait unplanned({1});
+			CHECK_THROWS_AS(generator.Generate(&state, unplanned), InvalidActionException);
+		}
+	}
+
 	TEST_CASE("Parking is about standing still, not about passing through") {
 		// A gateway forbids parking because it is the connection to the main line,
 		// but every departure has to move onto it before leaving. Rejecting a

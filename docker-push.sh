@@ -16,9 +16,15 @@
 # resolves to the -assert tag while keeping the generator and solver plain.
 # Both tags are pushed together deliberately: when only the plain one existed,
 # that selector referred to an image that had never been built, and the failure
-# surfaced as a docker pull error long after the fact. The -assert image is
-# amd64-only — it is a testing artifact, never deployed, and building it for
-# two architectures doubles the release build for no one's benefit.
+# surfaced as a docker pull error long after the fact.
+#
+# The -assert image is built for both architectures, like the plain one. It is
+# tempting to call it a testing artifact and save the arm64 build, but we ship
+# arm64, and the bugs an assertions build is best at catching — undefined
+# behaviour, overflow, anything where the compiler was free to choose — are
+# exactly the ones that can differ between architectures. Building assertions
+# for amd64 only would leave the arm64 image both shipped and never
+# assert-tested.
 #
 # Requires a buildx builder using the "docker-container" driver with
 # network=host. The default driver runs the BuildKit container in an
@@ -62,7 +68,7 @@ docker buildx build \
 # should never be a build that aborts on an internal invariant.
 docker buildx build \
     --builder "$BUILDER_NAME" \
-    --platform linux/amd64 \
+    --platform linux/amd64,linux/arm64 \
     --build-arg "VERSION=$VERSION" \
     --build-arg "ASSERTIONS=ON" \
     -t "$IMAGE:$VERSION-assert" \

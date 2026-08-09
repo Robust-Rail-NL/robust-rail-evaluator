@@ -11,8 +11,20 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
-    name: Build and test
+    # Both architectures we publish images for. Several developers work on
+    # arm64, and until this matrix existed nothing ever executed the arm64
+    # build — buildx cross-built and pushed it, but no test, no CI job and no
+    # x86 workstation ever ran it. cTORS is the C++ component, so it is where
+    # an architecture difference would plausibly show up.
+    #
+    # fail-fast is off: when one architecture breaks, the interesting question
+    # is immediately whether the other one did too.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    name: Build and test (${{ matrix.runner }})
     timeout-minutes: 40
     steps:
     - uses: actions/checkout@v5
@@ -34,8 +46,12 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build/_deps
-        key: ${{ runner.os }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
-        restore-keys: ${{ runner.os }}-deps-
+        # runner.arch is part of the key because runner.os is "Linux" on both
+        # x64 and ARM64. Without it the two jobs share one cache entry and each
+        # restores whatever the other left behind — FetchContent populates
+        # build/_deps with configured, not merely downloaded, dependencies.
+        key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-${{ runner.arch }}-deps-
 
     - name: Configure
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

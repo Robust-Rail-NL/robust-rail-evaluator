@@ -49,7 +49,7 @@ message IncomingTrain {
 
     // The index of the train unit when instanding, with lower indices
     // at the A-side of the track.
-    double standingIndex = 7;
+    int32 standingIndex = 7;
 }
 
 // Flat, not a wrapper around TrainUnit: the unified schema (and the real
@@ -94,7 +94,7 @@ message TrainRequest {
 
     // The index of the train unit when outstanding, with lower indices
     // at the A-side of the track.
-    double standingIndex = 7;
+    int32 standingIndex = 7;
 }
 
 // TrainUnit represents a combination of carriages which can move independently.

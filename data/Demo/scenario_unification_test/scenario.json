@@ -33,7 +33,7 @@
         { "id": 101, "typePrefix": "TT", "carriages": 1 },
         { "id": 102, "typePrefix": "TT", "carriages": 2 }
       ],
-      "standingIndex": 0
+      "standingIndex": null
     }
   ],
   "outStanding": [],

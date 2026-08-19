@@ -24,7 +24,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         },
         {
@@ -51,7 +51,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         },
         {
@@ -72,7 +72,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         }
     ],
@@ -90,7 +90,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         },
         {
@@ -106,7 +106,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         },
         {
@@ -127,7 +127,7 @@
                 }
             ],
             "canDepartFromAnyTrack": false,
-            "standingIndex": 0.0,
+            "standingIndex": null,
             "minimumDuration": ""
         }
     ],

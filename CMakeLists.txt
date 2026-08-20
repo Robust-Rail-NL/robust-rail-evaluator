@@ -5,7 +5,7 @@ project(TORS VERSION 2.0.0)
 # CMake's project(VERSION ...) is numeric-only and rejects prerelease suffixes
 # (e.g. "-alpha.1"); track any such suffix here instead. Empty for stable
 # releases. bump-version.sh keeps this and the project() version in sync.
-set(TORS_VERSION_SUFFIX "rc.1")
+set(TORS_VERSION_SUFFIX "rc.2")
 
 # Verbose.
 #set(CMAKE_VERBOSE_MAKEFILE on)

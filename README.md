@@ -107,9 +107,9 @@ Arguments:
 In the project directory run:
 ```bash
 ./build/TORS --mode "EVAL" \
-    --path_location "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst" \
-    --path_scenario "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json" \
-    --path_plan "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json" \
+    --path_location "./examples_kleine_binckhorst" \
+    --path_scenario "./examples_kleine_binckhorst/scenario.json" \
+    --path_plan "./examples_kleine_binckhorst/plan.json" \
     --departure_delay "0" \
     --plan_type "Solver"
 ```
@@ -122,10 +122,10 @@ Or run the bash file [run_eval_example.sh](./run_eval_example.sh):
 *Example for plan evaluation with storage -* In the project directory run:
 ```bash
 ./build/TORS --mode "EVAL_AND_STORE" \
-    --path_location "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst" \
-    --path_scenario "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json" \
-    --path_plan "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json" \
-    --path_eval_result "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/evaluation_results.txt" \
+    --path_location "./examples_kleine_binckhorst" \
+    --path_scenario "./examples_kleine_binckhorst/scenario.json" \
+    --path_plan "./examples_kleine_binckhorst/plan.json" \
+    --path_eval_result "./examples_kleine_binckhorst/evaluation_results.txt" \
     --departure_delay "0" \
     --plan_type "Solver"
 ```

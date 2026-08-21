@@ -895,19 +895,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
     bool feasible = pb_run.feasible();
 
-    pb_run.mutable_plan()->CopyFrom(pb_plan);
-    string jsonPlan;
-    google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(pb_run, &jsonPlan);
-    if (!status.ok())
-    {
-        std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
-    }
-
-    ofstream file;
-    file.open("/workspace/robust-rail-solver/ServiceSiteScheduling/database/TUSS-Instance-Generator/scenario_settings/setting_issue/plan_converted.json");
-    file << jsonPlan;
-    file.close();
-
     return new RunResult(location->GetLocationFilePath(), scenario, plan, feasible);
 }
 

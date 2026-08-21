@@ -46,10 +46,7 @@ message Train {
    // The train units in the train
    repeated TrainUnit members = 8;
 
-   // For outstanding trains: set to true to allow departures from any track, instead of just the parkingTrackPart
-   bool canDepartFromAnyTrack = 9;
-
-   // The index of the train unit when in- or outstanding, with lower indices 
+   // The index of the train unit when in- or outstanding, with lower indices
    // at the A-side of the track
    int32 standingIndex = 10;
 

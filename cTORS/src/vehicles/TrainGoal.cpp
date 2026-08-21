@@ -84,7 +84,6 @@ void TrainGoal::Serialize(PBTrainGoal* pb_tg) const {
 		t.Serialize(pb_t);
 		trainMap[&t] = pb_t;
 	}
-	pb_tg->set_candepartfromanytrack(false);
 	pb_tg->set_standingindex(standingIndex);
 	for(auto& [train, tasks]: this->tasks) {
 		for(auto& task: tasks) {

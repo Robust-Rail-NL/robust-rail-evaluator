@@ -50,7 +50,7 @@ WORKDIR /workspace
 
 COPY --from=builder /workspace/build/TORS build/TORS
 COPY --from=builder /workspace/build/cTORS/libcTORS.so /usr/local/lib/libcTORS.so
-COPY examples_kleine_binckhorst/ examples_kleine_binckhorst/
+COPY example_kleine_binckhorst/ example_kleine_binckhorst/
 
 RUN ldconfig \
     && chown -R ubuntu:ubuntu /workspace

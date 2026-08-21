@@ -25,7 +25,7 @@ namespace cTORSTest
 	 * RunResult::MergeCombineActions.
 	 *
 	 * This is the same Kleine Binckhorst data as the repo's top-level
-	 * examples_kleine_binckhorst/ (the README/CLI demo fixture) - reused
+	 * example_kleine_binckhorst/ (the README/CLI demo fixture) - reused
 	 * directly rather than duplicated under cTORSTest/fixtures/, so there is
 	 * exactly one copy of it.
 	 */

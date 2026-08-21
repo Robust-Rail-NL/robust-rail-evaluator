@@ -133,6 +133,15 @@ Both were deferred deliberately rather than blocking 2.0.0.
 - Exceptions raised while loading config/location/scenario files are no
   longer silently sliced to `std::exception`, so load failures report their
   actual cause.
+- The repo's one demo location (`examples_kleine_binckhorst/`, referenced by
+  the README, `run_eval_example.sh`/`run_eval_and_store_example.sh`, and the
+  Docker image) predated the schema unification and threw `map::at` at load
+  time under the now-HIP-only scenario parser. Replaced its data with the
+  already-migrated, already plan-valid Kleine Binckhorst fixture that
+  `CompatibilityTest` exercises, and pointed that test at
+  `examples_kleine_binckhorst/` directly instead of a duplicate copy under
+  `cTORSTest/fixtures/`, so the two consumers now share exactly one copy of
+  the data.
 
 ### Publishing
 

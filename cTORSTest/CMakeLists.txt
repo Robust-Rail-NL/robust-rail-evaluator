@@ -67,3 +67,9 @@ foreach(_test TrackTest VehicleTest RulesTest PlanConversionTest EngineTest
     target_compile_definitions(${_test} PRIVATE TORS_DATA_DIR="${TORS_TEST_DATA_DIR}")
 endforeach()
 
+# CompatibilityTest's HIP fixture is the same Kleine Binckhorst data as the
+# repo's top-level example (examples_kleine_binckhorst/) - reused directly
+# rather than duplicated under fixtures/, so there is exactly one copy.
+set(TORS_EXAMPLE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../examples_kleine_binckhorst")
+target_compile_definitions(CompatibilityTest PRIVATE TORS_EXAMPLE_DIR="${TORS_EXAMPLE_DIR}")
+

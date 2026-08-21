@@ -23,8 +23,13 @@ namespace cTORSTest
 	 * It contains no Combine — its two-unit train arrives already coupled — so the
 	 * combine conversion is covered by PlanConversionTest instead, directly on
 	 * RunResult::MergeCombineActions.
+	 *
+	 * This is the same Kleine Binckhorst data as the repo's top-level
+	 * examples_kleine_binckhorst/ (the README/CLI demo fixture) - reused
+	 * directly rather than duplicated under cTORSTest/fixtures/, so there is
+	 * exactly one copy of it.
 	 */
-	static const string HIP_FIXTURE = TORS_DATA_DIR "/hip_plan_evaluation_test";
+	static const string HIP_FIXTURE = TORS_EXAMPLE_DIR;
 
 	TEST_CASE("A valid HIP plan evaluates as valid")
 	{

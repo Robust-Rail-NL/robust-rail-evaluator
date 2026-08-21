@@ -96,6 +96,17 @@ anything in this release, but from open issues upstream:
 
 Both were deferred deliberately rather than blocking 2.0.0.
 
+### One more schema-adjacent change after the initial cut
+
+`canDepartFromAnyTrack` is dropped from the wire format entirely, landed
+after this file was first written. TORS's own serializer
+(`TrainGoal::Serialize`) hardcoded it to `false` on output regardless of
+input and never read it back for any decision; the generator only ever
+wrote it; the solver's only former consumer of it (`Converter.cs`) was
+already gone. Zero behavioral effect, no code here changes what it does —
+see generator's `SCHEMA_CHANGELOG.md` ("Unversioned — 2026-08-21") for the
+full trace.
+
 ### Other known issues, not blocking
 
 - [**evaluator#1**](https://github.com/Robust-Rail-NL/robust-rail-evaluator/issues/1)

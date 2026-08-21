@@ -51,6 +51,13 @@ pre-migration shape needs to account for:
   enforces.
 - **`Scenario`'s `in`/`out`/`inStanding`/`outStanding` are flat arrays**, not
   wrapped or nested under a `trainUnit` object.
+- **`canDepartFromAnyTrack` is dropped from the wire format entirely.**
+  TORS's own serializer (`TrainGoal::Serialize`) hardcoded it to `false` on
+  output regardless of input and never read it back for any decision; the
+  generator only ever wrote it; the solver's only former consumer of it
+  (`Converter.cs`) was already gone. Zero behavioral effect, no code here
+  changes what it does — see generator's `SCHEMA_CHANGELOG.md`
+  ("Unversioned — 2026-08-21") for the full trace.
 
 `schemaVersion` is parsed from `Location`, `Scenario` and `Plan` JSON; a
 mismatch is a logged warning, never a hard reject.
@@ -96,17 +103,6 @@ anything in this release, but from open issues upstream:
 
 Both were deferred deliberately rather than blocking 2.0.0.
 
-### One more schema-adjacent change after the initial cut
-
-`canDepartFromAnyTrack` is dropped from the wire format entirely, landed
-after this file was first written. TORS's own serializer
-(`TrainGoal::Serialize`) hardcoded it to `false` on output regardless of
-input and never read it back for any decision; the generator only ever
-wrote it; the solver's only former consumer of it (`Converter.cs`) was
-already gone. Zero behavioral effect, no code here changes what it does —
-see generator's `SCHEMA_CHANGELOG.md` ("Unversioned — 2026-08-21") for the
-full trace.
-
 ### Other known issues, not blocking
 
 - [**evaluator#1**](https://github.com/Robust-Rail-NL/robust-rail-evaluator/issues/1)
@@ -145,8 +141,7 @@ The TORS image is versioned from `CMakeLists.txt`'s `project(TORS VERSION
 via `./docker-push.sh` (multi-arch: `linux/amd64`, `linux/arm64`), alongside a
 `-assert` image built with `-DCTORS_ASSERTIONS=ON` for the pipeline's
 assertion-enabled evaluation pass. The `tors:2.0.0` tag points at the same
-image digest already verified as `2.0.0-rc.2`
-(`sha256:d560541a6e2f9d5e58ec0d8bbb0aad180109b804dd2b9bd6e235cdb59b97ee5b`) —
-re-tagged, not rebuilt, so the tag names exactly the bytes that were tested.
+image digest already verified as `2.0.0-rc.3` — re-tagged, not rebuilt, so
+the tag names exactly the bytes that were tested.
 `:latest` moves to `2.0.0` as the first stable tag of the release; it does not
 move for `-rc.*`/`-beta.*` builds.

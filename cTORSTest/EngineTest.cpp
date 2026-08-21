@@ -7,10 +7,10 @@ namespace cTORSTest
 {
 	TEST_CASE("Scenario unification: reads the unified (HIP-shaped) scenario JSON")
 	{
-		// Self-contained fixture under data/Demo/scenario_unification_test, copied into the
-		// test binary directory by cTORSTest/CMakeLists.txt. Does not require env vars.
-		Location location(TORS_DATA_DIR "/Demo/scenario_unification_test", true);
-		Scenario scenario(TORS_DATA_DIR "/Demo/scenario_unification_test/scenario.json", location);
+		// Self-contained fixture under cTORSTest/fixtures/scenario_unification_test.
+		// Does not require env vars.
+		Location location(TORS_DATA_DIR "/scenario_unification_test", true);
+		Scenario scenario(TORS_DATA_DIR "/scenario_unification_test/scenario.json", location);
 
 		REQUIRE(scenario.GetIncomingTrains().size() == 1);
 		auto incoming = scenario.GetIncomingTrains().front();

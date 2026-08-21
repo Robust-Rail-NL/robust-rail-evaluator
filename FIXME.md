@@ -55,7 +55,7 @@ won't work:
   `TrainUnit`).
 
 The only fixture currently matching the finalized unified schema is
-`data/Demo/scenario_unification_test/` (added for `EngineTest`'s
+`cTORSTest/fixtures/scenario_unification_test/` (added for `EngineTest`'s
 `"Scenario unification"` case), and it has no matching `Plan.json` - so even
 exporting env vars wouldn't get a fully green manual run today without also
 authoring a compatible Plan file.
@@ -85,7 +85,7 @@ Two different things could be meant by "fix," worth separating:
 ## Related
 
 - `cTORSTest/EngineTest.cpp`, `cTORSTest/CompatibilityTest.cpp`
-- `data/Demo/scenario_unification_test/` (the one fixture that does match the current
+- `cTORSTest/fixtures/scenario_unification_test/` (the one fixture that does match the current
   unified schema, but is Scenario+Location only, no Plan)
 - `cTORS/src/scenario/Scenario.cpp` (`Scenario(string, const Location&)` - the
   HIP-only string-path constructor)

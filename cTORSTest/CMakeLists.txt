@@ -61,7 +61,7 @@ add_test(NAME SchemaVersionTest COMMAND SchemaVersionTest)
 # is deliberate. Both fix the staleness, but the working-directory version also
 # sends anything a test writes to a relative path into the source tree. Tests
 # still run in the binary dir, so stray output lands in build/ where it belongs.
-set(TORS_TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../data")
+set(TORS_TEST_DATA_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
 foreach(_test TrackTest VehicleTest RulesTest PlanConversionTest EngineTest
               CompatibilityTest SchemaVersionTest)
     target_compile_definitions(${_test} PRIVATE TORS_DATA_DIR="${TORS_TEST_DATA_DIR}")

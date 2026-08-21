@@ -61,7 +61,7 @@ jobs:
 
     # No LOCATION_PATH / SCENARIO_PATH / PLAN_PATH / RESULT_PATH here.
     # EngineTest and CompatibilityTest were rebuilt to be self-contained
-    # against the committed fixtures under data/; nothing reads those
-    # variables any more, and exporting them would only mislead.
+    # against the committed fixtures under cTORSTest/fixtures/; nothing reads
+    # those variables any more, and exporting them would only mislead.
     - name: Test
       run: ctest --test-dir build --output-on-failure

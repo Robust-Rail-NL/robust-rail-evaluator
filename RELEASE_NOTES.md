@@ -126,8 +126,8 @@ Both were deferred deliberately rather than blocking 2.0.0.
   several developers work on arm64, and this is the C++ component where an
   architecture difference would plausibly show up. `EngineTest` and
   `CompatibilityTest` were made self-contained against committed fixtures
-  under `data/`, rather than reading paths from environment variables that
-  nothing in CI ever set.
+  under `cTORSTest/fixtures/`, rather than reading paths from environment
+  variables that nothing in CI ever set.
 - Added a CI workflow (`ctest.yml`) that builds and runs the full test suite
   on push/PR against `main`, `dev` and `release/2.0.0`.
 - Exceptions raised while loading config/location/scenario files are no

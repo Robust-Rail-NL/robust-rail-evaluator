@@ -19,5 +19,6 @@ TORS/ppo_tors.zip
 
 #visual studio code
 data/
+.vscode/launch.json
 TORS/runs
 cTORS/doc

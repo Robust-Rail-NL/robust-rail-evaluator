@@ -2,6 +2,34 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "TORS: Evaluate (kleine_binckhorst)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/TORS",
+            "args": [
+                "--mode", "EVAL",
+                "--path_location", "${workspaceFolder}/example_kleine_binckhorst",
+                "--path_scenario", "${workspaceFolder}/example_kleine_binckhorst/scenario.json",
+                "--path_plan", "${workspaceFolder}/example_kleine_binckhorst/plan.json",
+                "--departure_delay", "0",
+                "--plan_type", "Solver"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [{"name": "DEBUGINFOD_URLS", "value": ""}],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "${workspaceFolder}/.vscode/gdb-wrapper.sh",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "cmake build debug"
+        },
+        {
             "name": "TORS: Interactive (kleine_binckhorst)",
             "type": "cppdbg",
             "request": "launch",

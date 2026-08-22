@@ -52,6 +52,36 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
 
+# Debugging in Visual Studio Code
+
+The [.vscode](.vscode) folder ships build tasks, IntelliSense configuration, and a debug
+launch template, so opening this project in VS Code won't require redoing
+that setup by hand.
+
+Requirements: the
+[C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+(for `cppdbg`/gdb debugging) and `gdb` itself.
+
+1. Copy the launch template once, after cloning:
+   ```bash
+   cp .vscode/launch.json.example .vscode/launch.json
+   ```
+   `launch.json` itself is gitignored, so debug configurations for whatever you're
+   currently working on won't wind up in the repository.
+
+2. Open the project in VS Code and use the **Run and Debug** panel (`Ctrl+Shift+D`). Both
+   configurations build the project in debug mode (via the `cmake build debug` task) and
+   launch `build/TORS` under gdb against the
+   [example_kleine_binckhorst](example_kleine_binckhorst) demo data:
+   - `TORS: Evaluate (kleine_binckhorst)` (the default) evaluates the demo plan and exits.
+   - `TORS: Interactive (kleine_binckhorst)` steps through the scenario, asking you to pick
+     an action at each state.
+
+   This step internally uses `.vscode/gdb-wrapper.sh`, which clears
+   `DEBUGINFOD_URLS` before starting gdb – without it, gdb can hang or slow
+   to a crawl trying to resolve debug info for system libraries over the
+   network.
+
 # How To Use ?
 
 ### Input files

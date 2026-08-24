@@ -5,6 +5,7 @@ project(cTORS VERSION 0.1)
 
 #Options
 option(BUILD_DOC "Build documentation" ON)
+option(CTORS_ASSERTIONS "Enable internal assertions regardless of build type" OFF)
 
 # Verbose.
 #set(CMAKE_VERBOSE_MAKEFILE on)
@@ -24,11 +25,34 @@ if (NOT CMAKE_BUILD_TYPE)
 	message(STATUS "Build type not specified: Use Release by default")
 endif ()
 if (CMAKE_BUILD_TYPE STREQUAL Release)
-	message(STATUS "Compiling in release mode")	
+	message(STATUS "Compiling in release mode")
 	add_compile_definitions(DEBUG=0)
 else()
-	message(STATUS "Compiling in debug mode")	
+	message(STATUS "Compiling in debug mode")
 	add_compile_definitions(DEBUG=1)
+endif()
+
+# Assertions are normally tied to the build type, which forces a choice between
+# optimised-but-unchecked and checked-but-slow. Integration testing wants both:
+# cTORS is the oracle the pipeline trusts, so an internal invariant breaking must
+# fail loudly rather than yield a verdict computed from corrupt state.
+#
+# Enabling them takes two steps, because the guarded blocks and the assertions
+# inside them are controlled separately: DEBUG=1 compiles in the `#if (DEBUG)`
+# blocks, and NDEBUG must be stripped or the plain assert() calls within them
+# expand to nothing. Release and RelWithDebInfo both add -DNDEBUG.
+#
+# DEBUG also drives debug_out tracing, which would bury the evaluation results
+# under thousands of lines per run, so tracing is pinned off here; a plain debug
+# build (CMAKE_BUILD_TYPE=Debug without this option) still gets both.
+if (CTORS_ASSERTIONS)
+	message(STATUS "Internal assertions enabled (DEBUG=1, DEBUG_OUTPUT=0, NDEBUG stripped)")
+	remove_definitions(-DDEBUG=0)
+	add_compile_definitions(DEBUG=1 DEBUG_OUTPUT=0)
+	foreach(_cfg RELEASE RELWITHDEBINFO MINSIZEREL)
+		string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_${_cfg} "${CMAKE_CXX_FLAGS_${_cfg}}")
+		string(REPLACE "-DNDEBUG" "" CMAKE_C_FLAGS_${_cfg} "${CMAKE_C_FLAGS_${_cfg}}")
+	endforeach()
 endif()
 
 
@@ -69,9 +93,9 @@ message(STATUS "------- Second step -------")
 set(PROJECT_SOURCE_DIR "src")
 set(PROJECT_INCLUDE_DIR "include")
 
-# TORS_VERSION comes from the top-level project(TORS VERSION ...), inherited
-# from the parent scope. Generate a header so the running binary can report
-# its own version.
+# TORS_VERSION/TORS_VERSION_SUFFIX come from the top-level project(TORS
+# VERSION ...) / set(TORS_VERSION_SUFFIX ...), inherited from the parent
+# scope. Generate a header so the running binary can report its own version.
 set(TORS_FULL_VERSION "${TORS_VERSION}")
 if(TORS_VERSION_SUFFIX)
 	set(TORS_FULL_VERSION "${TORS_FULL_VERSION}-${TORS_VERSION_SUFFIX}")
@@ -204,7 +228,7 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
 	${PROTOS_DIR}/Run.proto
 	${PROTOS_DIR}/Plan.proto
 
-	${PROTOS_DIR}/HIP_Location.proto
+	${PROTOS_DIR}/HIP_Common.proto
 	${PROTOS_DIR}/HIP_Scenario.proto
 	${PROTOS_DIR}/HIP_Plan.proto
 )

@@ -88,8 +88,10 @@ public:
 	/** Construct an Incoming object from the given parameters */
 	Incoming(int id, const ShuntingUnit* su, int time, bool isInstanding, int standingIndex) :
 		Incoming(id, su, nullptr, nullptr, time, isInstanding, standingIndex, unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> {}) {}
-	/** Construct an Incoming object from the given protobuf object */
+	/** Construct an Incoming object from the given legacy (non-HIP) protobuf object */
 	Incoming(const PBTrainGoal& pb_inc, bool isInstanding);
+	/** Construct an Incoming object from the given HIP protobuf object */
+	Incoming(const PB_HIP_TrainGoal& pb_inc, bool isInstanding);
 	/** Copy constructor */
 	Incoming(const Incoming& incoming) : TrainGoal(incoming) {}
 	/** Default destructor */
@@ -112,8 +114,10 @@ public:
 	/** Construct an Outgoing object from the given parameters */
 	Outgoing(int id, const ShuntingUnit* su, int time, bool isInstanding, int standingIndex) :
 		Outgoing(id, su, nullptr, nullptr, time, isInstanding, standingIndex) {}
-	/** Construct an Outgoing object from the given protobuf object */
+	/** Construct an Outgoing object from the given legacy (non-HIP) protobuf object */
 	Outgoing(const PBTrainGoal& pb_out, bool isInstanding);
+	/** Construct an Outgoing object from the given HIP protobuf object */
+	Outgoing(const PB_HIP_TrainRequest& pb_out, bool isInstanding);
 	/** Copy constructor */
 	Outgoing(const Outgoing& outgoing) : TrainGoal(outgoing) {}
 	/** Default destructor */

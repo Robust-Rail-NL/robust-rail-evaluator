@@ -31,7 +31,12 @@ Location::Location(const string &folderName, bool byType) : byType(byType) {
 	}
 	catch (exception& e) {
 		cout << "Error in loading location: " << e.what() << "\n";
-		throw e;
+		// Rethrow the original exception, preserving its dynamic type and message.
+		// `throw e;` would slice it to a plain std::exception, so a missing or
+		// malformed location.json terminated with the useless "std::exception"
+		// instead of naming the problem. Note main.cpp does not guard the
+		// LocationEngine constructor, so this still aborts — but with a message.
+		throw;
 	}
 }
 
@@ -281,7 +286,7 @@ void Location::ImportTracks(const PBLocation& pb_location) {
 void Location::ImportFacilities(const PBLocation& pb_location) {
 	for (auto& pb_f : pb_location.facilities()) {
 		Facility* f = new Facility(pb_f);
-		auto sTracks = vector<UInt>(pb_f.relatedtrackparts().begin(), pb_f.relatedtrackparts().end());
+		auto sTracks = vector<UInt>(pb_f.relatedtrackpartids().begin(), pb_f.relatedtrackpartids().end());
 		vector<Track*> tracks;
 		for (auto s : sTracks) {
 			Track* t = trackIndex[to_string(s)];

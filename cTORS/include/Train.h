@@ -5,13 +5,15 @@
 #ifndef TRAIN_H
 #define TRAIN_H
 #include "Utils.h"
+#include <utility>
 using namespace std;
 
 /**
  * The TrainUnitType describes the type of the Train
  */
 struct TrainUnitType {
-	static map<string,TrainUnitType*> types; /**< a static map containing all the initialized types */
+	static map<string,TrainUnitType*> types; /**< a static map containing all the initialized types, keyed by the legacy (non-HIP) combined displayName string */
+	static map<pair<string,int>,TrainUnitType*> typesByPrefixAndCarriages; /**< a static map containing all the HIP-path-initialized types, keyed by (typePrefix, carriages) since typePrefix alone is not unique */
 	const string displayName;		/**< The name of the train unit type */
 	const int carriages;			/**< The number of carriages */
 	const double length;			/**< The length of this train unit, in meters */
@@ -37,15 +39,21 @@ struct TrainUnitType {
 		displayName(displayName), carriages(carriages), length(length), combineDuration(combineDuration), splitDuration(splitDuration),
 		backNormTime(backNormTime), backAdditionTime(backAdditionTime), setbackTime(carriages*backAdditionTime), travelSpeed(travelSpeed),
 		startUpTime(startUpTime), typePrefix(typePrefix), needsLoco(needsLoco), isLoco(isLoco), needsElectricity(needsElectricity) {}
-	/** Construct a TrainUnitType from the given protobuf object */
-	TrainUnitType(const PBTrainUnitType& pb_tt) : TrainUnitType(pb_tt.displayname(), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(), 
-		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(), 
+	/** Construct a TrainUnitType from the given legacy (non-HIP) protobuf object */
+	TrainUnitType(const PBTrainUnitType& pb_tt) : TrainUnitType(pb_tt.displayname(), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
+		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
+		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
+	/** Construct a TrainUnitType from the given HIP protobuf object */
+	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.typeprefix() + "-" + std::to_string(pb_tt.carriages()), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
+		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
 	/** Get a string representation of this TrainUnitType */
 	const string& toString() const { return displayName; }
-	/** Returns true iff the two TrainUnitType%s have the same name */
-	bool operator==(const TrainUnitType& t) const { return (displayName == t.displayName); }
-	/** Returns true iff the two TrainUnitType%s do not have the same name */
+	/** Returns true iff the two TrainUnitType%s have the same name and carriage count.
+	 * Name alone is not unique: two variants of the same family (e.g. "SLT") can
+	 * differ only in carriages. */
+	bool operator==(const TrainUnitType& t) const { return (displayName == t.displayName && carriages == t.carriages); }
+	/** Returns true iff the two TrainUnitType%s do not have the same name and carriage count */
 	bool operator!=(const TrainUnitType& t) const { return !(*this == t); }
 	/** Serialize this TrainUnitType to a protobuf object */
 	void Serialize(PBTrainUnitType* pb_tt) const;
@@ -53,6 +61,10 @@ struct TrainUnitType {
 
 //!\cond NO_DOC
 inline string ConvertPBTaskType(const PBTaskType& pb_task_type) {
+	return pb_task_type.other();
+}
+
+inline string ConvertPBTaskType(const PB_HIP_TaskType& pb_task_type) {
 	return pb_task_type.other();
 }
 
@@ -69,24 +81,27 @@ inline vector<string> ConvertPBTaskTypes(const PBList<PBTaskType>& pb_task_types
  */
 struct Task {
 	string taskType;		/**< the type of this Task */
-	int priority;			/**< the priority of this Task (0 = mandatory, 1 = optional) */
+	bool optional;			/**< whether this Task is optional (false = mandatory: must be completed before the train may exit) */
 	int duration;			/**< the duration of this Task in seconds */
 	list<string> skills;	/**< the skills required to execute this task (not yet implemented) */
-		
+
 	Task() = delete;
 	/** Construct a Task object given the parameters */
-	Task(const string& taskType, int priority, int duration, list<string> skills) :
-		taskType(taskType), priority(priority), duration(duration), skills(skills) {}
-	/** Construct a Task object given the protobuf object */
+	Task(const string& taskType, bool optional, int duration, list<string> skills) :
+		taskType(taskType), optional(optional), duration(duration), skills(skills) {}
+	/** Construct a Task object given the legacy (non-HIP) protobuf object */
 	Task(const PBTask& pb_task) :
-		Task(ConvertPBTaskType(pb_task.type()), pb_task.priority(), pb_task.duration(), PBToStringList(pb_task.requiredskills())) {}
-	/** Two Task%s are equal if they have the same task type, priority and duration */
-	bool operator==(const Task& t) const { return (taskType == t.taskType && priority == t.priority && duration == t.duration); }
-	/** Two Task%s are different if they ahve differnt task type, or priority or duration */
+		Task(ConvertPBTaskType(pb_task.type()), pb_task.priority() != 0, pb_task.duration(), PBToStringList(pb_task.requiredskills())) {}
+	/** Construct a Task object given the HIP protobuf object */
+	Task(const PB_HIP_Task& pb_task) :
+		Task(ConvertPBTaskType(pb_task.type()), pb_task.optional(), pb_task.duration(), PBToStringList(pb_task.requiredskills())) {}
+	/** Two Task%s are equal if they have the same task type, optional flag and duration */
+	bool operator==(const Task& t) const { return (taskType == t.taskType && optional == t.optional && duration == t.duration); }
+	/** Two Task%s are different if they have a different task type, optional flag or duration */
 	bool operator!=(const Task& t) const { return !(*this == t); }
 	/** Get a string representation of the Task */
 	const string &toString() const { return taskType; }
-	/** Serialize this Task to a protobuf object */
+	/** Serialize this Task to a legacy (non-HIP) protobuf object */
 	void Serialize(PBTask* pb_task) const;
 };
 
@@ -104,8 +119,12 @@ public:
 	Train() = delete;
 	/** Construct a Train from the given parameters */
 	Train(int id, TrainUnitType *type) : id(id), type(type) {}
-	/** Construct a Train from a protobuf object */
+	/** Construct a Train from a legacy (non-HIP) protobuf object */
 	Train(const PBTrainUnit& pb_train);
+	/** Construct a Train from a HIP protobuf object */
+	Train(const PB_HIP_TrainUnit& pb_train);
+	/** Construct a Train from a HIP protobuf IncomingTrainUnit (flat: id/typePrefix/carriages alongside tasks) */
+	Train(const PB_HIP_IncomingTrainUnit& pb_train);
 	/** The default copy constructor */
 	Train(const Train &train) = default;
 	/** The default desctructor */

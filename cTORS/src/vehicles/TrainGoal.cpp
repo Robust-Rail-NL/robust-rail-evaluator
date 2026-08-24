@@ -1,9 +1,16 @@
 #include "TrainGoals.h"
 
 const Train* GetTrainById(const vector<Train>& trains, const string& id) {
-	int iid = id == "****" ? -1 : stoi(id);
+	int iid = (id == "****" || id.empty()) ? -1 : stoi(id);
 	for(auto& train: trains) {
 		if(train.GetID() == iid) return &train;
+	}
+	return nullptr;
+}
+
+const Train* GetTrainById(const vector<Train>& trains, int id) {
+	for(auto& train: trains) {
+		if(train.GetID() == id) return &train;
 	}
 	return nullptr;
 }
@@ -19,6 +26,17 @@ unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrain
 	return map;
 }
 
+unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> ConvertPBTrainTasks(const ShuntingUnit* su, const PB_HIP_TrainGoal& pb_inc) {
+	unordered_map<const Train*, vector<Task>, TrainHash, TrainEquals> map;
+	for(auto& incomingTrainUnit: pb_inc.members()) {
+		for(auto& t: incomingTrainUnit.tasks()) {
+			auto tu = GetTrainById(su->GetTrains(), (int)incomingTrainUnit.id());
+			map[tu].push_back({t});
+		}
+	}
+	return map;
+}
+
 Incoming::Incoming(const PBTrainGoal& pb_inc, bool isInstanding) : Incoming(stoi(pb_inc.id()), new ShuntingUnit(pb_inc),
  	pb_inc.time(), isInstanding, pb_inc.standingindex()) {
 		 tasks = ConvertPBTrainTasks(shuntingUnit, pb_inc);
@@ -26,6 +44,14 @@ Incoming::Incoming(const PBTrainGoal& pb_inc, bool isInstanding) : Incoming(stoi
 
 Outgoing::Outgoing(const PBTrainGoal& pb_out, bool isInstanding) : Outgoing(stoi(pb_out.id()), new ShuntingUnit(pb_out),
  	pb_out.time(), isInstanding, pb_out.standingindex()) {}
+
+Incoming::Incoming(const PB_HIP_TrainGoal& pb_inc, bool isInstanding) : Incoming(static_cast<int>(pb_inc.id()), new ShuntingUnit(pb_inc),
+ 	pb_inc.arrival(), isInstanding, pb_inc.standingindex()) {
+		 tasks = ConvertPBTrainTasks(shuntingUnit, pb_inc);
+	 }
+
+Outgoing::Outgoing(const PB_HIP_TrainRequest& pb_out, bool isInstanding) : Outgoing(static_cast<int>(pb_out.id()), new ShuntingUnit(pb_out),
+ 	pb_out.departure(), isInstanding, pb_out.standingindex()) {}
 
 TrainGoal::TrainGoal(const TrainGoal& traingoal) :
 	id(traingoal.id), parkingTrack(traingoal.parkingTrack), sideTrack(traingoal.sideTrack),
@@ -58,7 +84,6 @@ void TrainGoal::Serialize(PBTrainGoal* pb_tg) const {
 		t.Serialize(pb_t);
 		trainMap[&t] = pb_t;
 	}
-	pb_tg->set_candepartfromanytrack(false);
 	pb_tg->set_standingindex(standingIndex);
 	for(auto& [train, tasks]: this->tasks) {
 		for(auto& task: tasks) {

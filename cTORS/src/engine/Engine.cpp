@@ -12,6 +12,11 @@ LocationEngine::~LocationEngine()
 		delete type;
 	}
 	TrainUnitType::types.clear();
+	for (auto &[key, type] : TrainUnitType::typesByPrefixAndCarriages)
+	{
+		delete type;
+	}
+	TrainUnitType::typesByPrefixAndCarriages.clear();
 	vector<State *> states;
 	for (auto &[state, action_list] : stateActionMap)
 	{
@@ -51,6 +56,13 @@ inline void CheckScenarioEnded(const State *state)
 		}
 	}
 }
+
+/** Safety valve for LocationEngine::EvaluatePlan: if this many consecutive
+ * iterations of the outer loop pass with no change in state->GetTime() and
+ * no advance of the plan action iterator, the loop is stuck and cannot make
+ * progress (see doc/known-issue-plan-evaluation-hang.md) - abort instead of
+ * spinning forever. */
+static const int MAX_STALLED_EVALUATE_PLAN_ITERATIONS = 100;
 
 void LocationEngine::Step(State *state)
 {
@@ -367,28 +379,33 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 	auto state = StartSession(scenario);
 	Step(state);
 	auto it = plan.GetActions().begin();
+	int stalledIterations = 0;
+	int lastTime = state->GetTime();
 	while (it != plan.GetActions().end())
 	{
 		try
 		{
-			if (DEBUG)
+			// Tracing, not a check: keyed on DEBUG_OUTPUT so an assertion-enabled
+			// build can run the checks without dumping the whole state per action.
+			if (DEBUG_OUTPUT)
 			{
 				state->PrintStateInfo();
 			}
 
+			auto itBefore = it;
 			if (state->GetTime() >= it->GetSuggestedStart())
 			{
 
-			
+
 				cout << "**********************************************************ACTION**********************************************************" << endl;
-				
+
 				cout << "Applying action  " << (it->GetAction())->toString() << " at T" << state->GetTime() << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]" << endl;
-			
+
 				cout << "**************************************************************************************************************************" << endl;
 
 				debug_out("Applying action " << (it->GetAction())->toString() << " at T" << state->GetTime()
 											 << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]");
-				
+
 				ApplyActionAndStep(state, *(it->GetAction()));
 				it++;
 			}
@@ -396,11 +413,26 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 			{
 				ApplyWaitAllUntil(state, it->GetSuggestedStart());
 			}
+
+			if (it == itBefore && state->GetTime() == lastTime)
+			{
+				if (++stalledIterations >= MAX_STALLED_EVALUATE_PLAN_ITERATIONS)
+				{
+					throw ScenarioFailedException("EvaluatePlan made no progress (state time stuck at T" + to_string(state->GetTime()) +
+												   ", plan action iterator not advancing) for " + to_string(MAX_STALLED_EVALUATE_PLAN_ITERATIONS) +
+												   " consecutive iterations; aborting instead of spinning forever.");
+				}
+			}
+			else
+			{
+				stalledIterations = 0;
+				lastTime = state->GetTime();
+			}
 		}
 		catch (ScenarioFailedException &e)
 		{
 			cout << "------------------------------------RESULT------------------------------------" << endl;
-			cout << "Scenario failed." << endl;
+			cout << e.what() << endl;
 			cout << "------------------------------------------------------------------------------" << endl;
 			return false;
 			break;
@@ -442,6 +474,8 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 
 	Step(state);
 	auto it = plan.GetActions().begin();
+	int stalledIterations = 0;
+	int lastTime = state->GetTime();
 	while (it != plan.GetActions().end())
 	{
 		try
@@ -449,9 +483,10 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 
 			state->SaveState();
 
+			auto itBefore = it;
 			if (state->GetTime() >= it->GetSuggestedStart())
 			{
-				state->file << "**********************************************************ACTION**********************************************************" << endl;				
+				state->file << "**********************************************************ACTION**********************************************************" << endl;
 				state->file << "Applying action " << (it->GetAction())->toString() << " at T" << state->GetTime() << " [" << it->GetSuggestedStart() << "-" << it->GetSuggestedEnd() << "]" << endl;
 				state->file << "**************************************************************************************************************************" << endl;
 
@@ -464,11 +499,26 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 			{
 				ApplyWaitAllUntil(state, it->GetSuggestedStart());
 			}
+
+			if (it == itBefore && state->GetTime() == lastTime)
+			{
+				if (++stalledIterations >= MAX_STALLED_EVALUATE_PLAN_ITERATIONS)
+				{
+					throw ScenarioFailedException("EvaluatePlan made no progress (state time stuck at T" + to_string(state->GetTime()) +
+												   ", plan action iterator not advancing) for " + to_string(MAX_STALLED_EVALUATE_PLAN_ITERATIONS) +
+												   " consecutive iterations; aborting instead of spinning forever.");
+				}
+			}
+			else
+			{
+				stalledIterations = 0;
+				lastTime = state->GetTime();
+			}
 		}
 		catch (ScenarioFailedException &e)
 		{
 			state->file << "------------------------------------RESULT------------------------------------" << endl;
-			state->file << "Scenario failed." << endl;
+			state->file << e.what() << endl;
 			state->file << "------------------------------------------------------------------------------" << endl;
 			return false;
 			break;
@@ -527,6 +577,10 @@ void LocationEngine::EndSession(State *state)
 void LocationEngine::CalcShortestPaths()
 {
 	for (const auto &[trainTypeName, trainType] : TrainUnitType::types)
+	{
+		location.CalcShortestPaths(trainType);
+	}
+	for (const auto &[key, trainType] : TrainUnitType::typesByPrefixAndCarriages)
 	{
 		location.CalcShortestPaths(trainType);
 	}

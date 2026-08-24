@@ -9,6 +9,10 @@ import "Utilities.proto";
 // A Scenario contains the part of the problem specification which varies daily,
 // that is the trains which come in and go out of the shunting area.
 message Scenario {
+// The shared interchange schema version. Present as an explicit-presence
+// field so readers can distinguish "absent" from "sent as 0".
+optional int32 schemaVersion = 13;
+
 repeated Train in = 6;
    repeated Train inStanding = 10;
    repeated Train out = 7;
@@ -42,12 +46,9 @@ message Train {
    // The train units in the train
    repeated TrainUnit members = 8;
 
-   // For outstanding trains: set to true to allow departures from any track, instead of just the parkingTrackPart
-   bool canDepartFromAnyTrack = 9;
-
-   // The index of the train unit when in- or outstanding, with lower indices 
+   // The index of the train unit when in- or outstanding, with lower indices
    // at the A-side of the track
-   double standingIndex = 10;
+   int32 standingIndex = 10;
 
    string minimumDuration = 11;
 }

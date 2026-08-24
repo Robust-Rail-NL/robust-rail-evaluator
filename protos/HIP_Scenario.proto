@@ -2,23 +2,32 @@ syntax = "proto3";
 
 package HIP_protos;
 
-import "HIP_Location.proto";
+import "HIP_Common.proto";
+import "Utilities.proto";
 
 // A Scenario contains the part of the problem specification which varies daily,
 // that is the trains which come in and go out of the shunting area.
 message Scenario {
-    ScenarioIn in = 1;
-    ScenarioOut out = 2;
-}
+    // The shared interchange schema version. Present as an explicit-presence
+    // field so readers can distinguish "absent" from "sent as 0".
+    optional int32 schemaVersion = 11;
 
-// Defines all trains arriving at the shunting area.
-message ScenarioIn {
-    repeated IncomingTrain trains = 1;
-}
+    repeated IncomingTrain in = 1;
+    repeated TrainRequest out = 2;
 
-// Defines all requests for trains leaving the shunting area.
-message ScenarioOut {
-    repeated TrainRequest trainRequests = 1;
+    // Trains already on the shunting yard when the scenario starts.
+    repeated IncomingTrain inStanding = 3;
+    // Trains that must remain on the shunting yard after the scenario ends.
+    repeated TrainRequest outStanding = 4;
+
+    repeated NonServiceTraffic nonServiceTraffic = 5;
+    repeated DisabledTrackPart disabledTrackParts = 6;
+    repeated MemberOfStaff workers = 7;
+
+    uint64 startTime = 8;
+    uint64 endTime = 9;
+
+    repeated TrainUnitType trainUnitTypes = 10;
 }
 
 // An incoming train
@@ -34,13 +43,31 @@ message IncomingTrain {
     uint64 arrival = 2;
     uint64 departure = 3;
 
-    string id = 4;
+    uint64 id = 4;
 
     repeated IncomingTrainUnit members = 5;
+
+    // The index of the train unit when instanding, with lower indices
+    // at the A-side of the track.
+    int32 standingIndex = 7;
 }
 
+// Flat, not a wrapper around TrainUnit: the unified schema (and the real
+// generator output) represents each incoming member as a single flat object
+// with its identity fields (id, typePrefix, carriages) alongside tasks, not
+// nested under a "trainUnit" key.
 message IncomingTrainUnit {
-    TrainUnit trainUnit = 1;
+	// A unique identifier of the unit
+	uint64 id = 1;
+
+    // The typePrefix of the TrainUnitType this unit belongs to.
+    // Consumers key on (typePrefix, carriages) to find the full type -
+    // typePrefix alone is not unique, since one type family (e.g. "SLT")
+    // can have multiple carriage-count variants.
+    string typePrefix = 3;
+
+    // Number of carriages of this unit's type.
+    uint32 carriages = 4;
 
     // Tasks for this train unit
     repeated TaskSpec tasks = 2;
@@ -59,36 +86,42 @@ message TrainRequest {
     uint64 arrival = 2;
     uint64 departure = 3;
 
-    // Name of this train
-    string displayName = 4;
+    // Unique ID of this train request
+    uint64 id = 4;
 
     // Outgoing train units; if in a TrainUnit the id field is not specified, then any train unit will do, provided that the other fields (train type, number of carriages) are still adhered to.
     repeated TrainUnit trainUnits = 5;
+
+    // The index of the train unit when outstanding, with lower indices
+    // at the A-side of the track.
+    int32 standingIndex = 7;
 }
 
 // TrainUnit represents a combination of carriages which can move independently.
 message TrainUnit {
-	// A unique identifier of the unit
-	string id = 1;
+	// A unique identifier of the unit. Absent means "any unit of the
+	// matching type is acceptable" (used for departing trains whose exact
+	// composition isn't tracked).
+	optional uint64 id = 1;
 
-    TrainUnitType type = 2;
+    // The typePrefix of the TrainUnitType this unit belongs to.
+    // Consumers key on (typePrefix, carriages) to find the full type -
+    // typePrefix alone is not unique, since one type family (e.g. "SLT")
+    // can have multiple carriage-count variants.
+    string typePrefix = 2;
+
+    // Number of carriages of this unit's type.
+    uint32 carriages = 3;
 }
 
 // TrainUnitType is a type of train unit
 message TrainUnitType {
-    // Name of the train unit type
-    // For example, "SGM" or "SLT".
-    string displayName = 1;
-
     // Number of carriages. This is the total number of carriages,
     // including the first and last carriage.
     uint32 carriages = 2;
 
     // Length of this train unit, in meters
     double length = 4;
-
-    // The time it takes to reverse ("kopmaken"), in seconds
-    uint64 reversalDuration = 3;
 
     // Time it takes to perform a combine in seconds
     uint64 combineDuration = 5;
@@ -99,30 +132,59 @@ message TrainUnitType {
     // kopmaaktijd = backNormTime + #carriage * backAdditionTime
     uint64 backNormTime = 7;
     uint64 backAdditionTime = 8;
+
+    // The travel speed of the train. Required for generator/evaluator, optional for solver.
+    uint64 travelSpeed = 9;
+
+    // Time it takes for this type of train unit to start up / shut down.
+    // Required for generator/evaluator, optional for solver.
+    uint64 startUpTime = 10;
+
+    // The type family name, for example "SLT" or "VIRM" (no carriage-count
+    // suffix). Together with carriages, this is the identity of the type -
+    // required for all consumers.
+    string typePrefix = 11;
+
+    // Whether this type of train unit needs a locomotive to move.
+    // Required for generator/evaluator, optional for solver.
+    bool needsLoco = 12;
+
+    // Whether this type of train unit is a locomotive.
+    // Required for generator/evaluator, optional for solver.
+    bool isLoco = 13;
+
+    // Whether this type of train unit can only drive over electrified tracks.
+    // Required for generator/evaluator, optional for solver.
+    bool needsElectricity = 14;
+
+    // Prefix of train IDs of this type (i.e., the last two digits are removed).
+    // Required for generator/evaluator, optional for solver.
+    int32 idPrefix = 15;
 }
 
 // A ShuntingUnit is a combination of TrainUnits,
 // and moves as a unit at some point in time.
 message ShuntingUnit {
 	// Unique ID of this ShuntingUnit
-	string id = 1;
+	uint64 id = 1;
 
-	// The TrainUnits contained in this ShuntingUnit
-	repeated TrainUnit members = 2;
+	// The IDs of the TrainUnits contained in this ShuntingUnit
+	repeated uint64 memberIDs = 2;
 
-    // The parents of a current ShuntingUnit, 
+    // The parents of a current ShuntingUnit,
     // that is, the shuntingunits which have been merged into this one,
     // or the shuntingunit that has been split into (among others) this one.
-    repeated string parentIDs = 3;
+    repeated uint64 parentIDs = 3;
 
     // The children of the current ShuntingUnit,
     // that is, the shuntingunits which contain parts of this shuntingunit.
     // Alternatively, ShuntingUnit S has parent P iff P has child S.
-    repeated string childIDs = 4;
+    repeated uint64 childIDs = 4;
 
-    // If field is defined it states InStanding when the train unit was alredy on the yard even if the action says it is an arrival
-    // or it states OutStanding when the train unit will stay in the shunting yards after the scenario ends even if the action is an exite one
-    string standingType = 5;
+    // Field 5 was standingType. It was never written by the solver, never
+    // non-empty, and the value it was copied into was never read. The StandIn
+    // and StandOut task types carry this distinction now.
+    reserved 5;
 }
 
 // A task specification specifies a certain task.
@@ -130,9 +192,80 @@ message TaskSpec {
     // The type of the task
     TaskType type = 1;
 
-    // The priority; higher values indicate that this task is more important.
-    uint32 priority = 2 [deprecated = true];
+    // Whether this task is optional. If false, the task must be completed
+    // before the train unit's shunting unit may exit the yard.
+    bool optional = 2;
 
     // Time this task takes, in seconds
     uint64 duration = 3;
+
+    // The skills required to perform the task. Each entry in the list indicates that a member of staff
+    // with the given skill is required.
+    // Examples:
+    // [] => no personnel required
+    // ["B-controle"] => one member of staff with skill "B-controle" required
+    // ["B-controle", "B-controle"] => two members of staff with skill "B-controle" required
+    repeated string requiredSkills = 4;
+}
+
+// Traffic on the shunting yard that isn't a shunting movement (e.g. a
+// passing service train) but still reserves part of the infrastructure
+// for a time window.
+message NonServiceTraffic {
+    // The TrackParts reserved by this traffic.
+    repeated uint64 memberIDs = 1;
+
+    // Arrival on the track, and departure from the track.
+    // Times are in seconds since the epoch.
+    uint64 arrival = 2;
+    uint64 departure = 3;
+    uint64 id = 4;
+}
+
+// A TrackPart that is unavailable for use during a time window
+// (e.g. for maintenance).
+message DisabledTrackPart {
+    // The TrackPart ID that is unavailable.
+    uint64 trackPart = 1;
+
+    // Start and end of the time window during which the TrackPart is unavailable.
+    // Times are in seconds since the epoch.
+    uint64 arrival = 2;
+    uint64 departure = 3;
+}
+
+// A member of staff is a human that is able to perform various tasks at the facility.
+message MemberOfStaff {
+    // A unique ID which is referenced by other messages
+    uint64 id = 1;
+
+    // The type of staff, e.g. engineer, cleaning team, etc.
+    string type = 2;
+
+    // The skills the member of staff possesses.
+    repeated string skills = 3;
+
+    // The time intervals during which the member of staff is present
+    repeated proto_tors.TimeInterval shifts = 4;
+
+    // The time intervals in which breaks must take place.
+    repeated proto_tors.TimeInterval breakWindows = 5;
+
+    // The duration of the break in seconds.
+    double breakDuration = 6;
+
+    // The location (trackpart) of the member of staff at the start of the shift
+    uint64 startLocationId = 7;
+
+    // The location (trackpart) of the member of staff at the end of the shift
+    uint64 endLocationId = 8;
+
+    // Indicates whether the member of staff can move trains
+    bool canMoveTrains = 9;
+
+    // The name of the staff member
+    string name = 10;
+
+    // The location (trackpart) of the member of staff during breaks
+    uint64 breakLocationId = 11;
 }

@@ -1,4 +1,6 @@
-# Build stage: compiles the C++ project
+# Build stage: compiles the C++ project. Also published on its own as the
+# ":devel" tag (see docker-push.sh) so .devcontainer/devcontainer.json can
+# pull a ready-made toolchain image instead of rebuilding it from scratch.
 FROM ubuntu:24.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,6 +11,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    gdb \
     git \
     libprotobuf-dev \
     libpython3-dev \
@@ -20,9 +23,16 @@ WORKDIR /workspace
 
 COPY . .
 
+# Build ASSERTIONS=ON for an image intended for integration testing: same
+# optimisation and same output as the default build, but internal invariant
+# violations abort instead of yielding a verdict computed from corrupt state.
+# Publish those under a separate tag - never as the release tag, since an
+# assertion failure aborts the process.
+ARG ASSERTIONS=OFF
+
 RUN mkdir -p build \
     && cd build \
-    && cmake .. \
+    && cmake .. -DCTORS_ASSERTIONS=${ASSERTIONS} \
     && cmake --build .
 
 
@@ -43,7 +53,7 @@ WORKDIR /workspace
 
 COPY --from=builder /workspace/build/TORS build/TORS
 COPY --from=builder /workspace/build/cTORS/libcTORS.so /usr/local/lib/libcTORS.so
-COPY data/ data/
+COPY example_kleine_binckhorst/ example_kleine_binckhorst/
 
 RUN ldconfig \
     && chown -R ubuntu:ubuntu /workspace

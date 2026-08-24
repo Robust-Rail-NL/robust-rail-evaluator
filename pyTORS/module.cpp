@@ -96,9 +96,9 @@ PYBIND11_MODULE(pyTORS, m) {
 	//// Task                       ////
 	////////////////////////////////////
 	py::class_<Task>(m, "Task", DOC(Task))
-		.def(py::init<const string&, int, int, list<string>>(), DOC(Task, Task, 2))
+		.def(py::init<const string&, bool, int, list<string>>(), DOC(Task, Task, 2))
 		.def_readonly("task_type", &Task::taskType, DOC(Task, taskType))
-		.def_readonly("priority", &Task::priority, DOC(Task, priority))
+		.def_readonly("optional", &Task::optional, DOC(Task, optional))
 		.def_readonly("duration", &Task::duration, DOC(Task, duration))
 		.def_readonly("skills", &Task::skills, DOC(Task, skills), py::return_value_policy::copy)
 		.def("__str__", &Task::toString, DOC(Task, toString))

@@ -56,7 +56,17 @@ int main(int argc, char *argv[])
 	cout << "								SCENARIO TEST 										 " << endl;
 	cout << "-------------------------------------------------------------------------------------------------" << endl;
 
-	auto &scenario = engine.GetScenario(path_scenario);
+	const Scenario *scenario_ptr;
+	try
+	{
+		scenario_ptr = &engine.GetScenario(path_scenario);
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << "Issue detected with the Scenario: " << e.what() << std::endl;
+		return 1;
+	}
+	auto &scenario = *scenario_ptr;
 
 	try
 	{

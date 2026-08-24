@@ -17,15 +17,7 @@ The basic project set up uses the structure provided by cmake. The subfolders ar
 * Windows [NO] - via Dev-Container / Docker [YES]
 
 
-# First steps
-### Build with setuptools
-You can build the evaluator and the python library with the following command.
-```sh
-mkdir build
-python setup.py build
-python setup.py install
-```
-
+# Building
 ### Build the evaluator from C++ source
 In the source directory execute the following commands:
 ```bash
@@ -51,6 +43,36 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
+
+# Debugging in Visual Studio Code
+
+The [.vscode](.vscode) folder ships build tasks, IntelliSense configuration, and a debug
+launch template, so opening this project in VS Code won't require redoing
+that setup by hand.
+
+Requirements: the
+[C/C++ extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools)
+(for `cppdbg`/gdb debugging) and `gdb` itself.
+
+1. Copy the launch template once, after cloning:
+   ```bash
+   cp .vscode/launch.json.example .vscode/launch.json
+   ```
+   `launch.json` itself is gitignored, so debug configurations for whatever you're
+   currently working on won't wind up in the repository.
+
+2. Open the project in VS Code and use the **Run and Debug** panel (`Ctrl+Shift+D`). Both
+   configurations build the project in debug mode (via the `cmake build debug` task) and
+   launch `build/TORS` under gdb against the
+   [example_kleine_binckhorst](example_kleine_binckhorst) demo data:
+   - `TORS: Evaluate (kleine_binckhorst)` (the default) evaluates the demo plan and exits.
+   - `TORS: Interactive (kleine_binckhorst)` steps through the scenario, asking you to pick
+     an action at each state.
+
+   This step internally uses `.vscode/gdb-wrapper.sh`, which clears
+   `DEBUGINFOD_URLS` before starting gdb – without it, gdb can hang or slow
+   to a crawl trying to resolve debug info for system libraries over the
+   network.
 
 # How To Use ?
 
@@ -107,9 +129,9 @@ Arguments:
 In the project directory run:
 ```bash
 ./build/TORS --mode "EVAL" \
-    --path_location "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst" \
-    --path_scenario "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json" \
-    --path_plan "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json" \
+    --path_location "./example_kleine_binckhorst" \
+    --path_scenario "./example_kleine_binckhorst/scenario.json" \
+    --path_plan "./example_kleine_binckhorst/plan.json" \
     --departure_delay "0" \
     --plan_type "Solver"
 ```
@@ -122,10 +144,10 @@ Or run the bash file [run_eval_example.sh](./run_eval_example.sh):
 *Example for plan evaluation with storage -* In the project directory run:
 ```bash
 ./build/TORS --mode "EVAL_AND_STORE" \
-    --path_location "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst" \
-    --path_scenario "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json" \
-    --path_plan "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json" \
-    --path_eval_result "./data/Demo/TUSS-Instance-Generator/kleine_binckhorst/evaluation_results.txt" \
+    --path_location "./example_kleine_binckhorst" \
+    --path_scenario "./example_kleine_binckhorst/scenario.json" \
+    --path_plan "./example_kleine_binckhorst/plan.json" \
+    --path_eval_result "./example_kleine_binckhorst/evaluation_results.txt" \
     --departure_delay "0" \
     --plan_type "Solver"
 ```
@@ -238,14 +260,6 @@ The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/
 * 5th - Build process of the tool is below: 
 Note: all the dependencies are already contained by the Docker instance.
 
-### Build with setuptools
-You can build evaluator and the pyTORS library with the following command.
-```sh
-mkdir build
-python setup.py build
-python setup.py install
-```
-
 ### Compile the evaluator from C++ source
 In the source directory execute the following commands:
 ```bash
@@ -276,16 +290,19 @@ This produces as output the `cTORS/doc` folder and the `pyTORS/docstrings.h` sou
 
 # Publishing the TORS image
 
-The version is tracked in a single place: `CMakeLists.txt`'s `project(TORS VERSION X.Y.Z)`. The
+The version is tracked in a single place: `CMakeLists.txt`'s `project(TORS VERSION X.Y.Z)`, plus a
+`TORS_VERSION_SUFFIX` variable right below it for prerelease suffixes (e.g. `alpha.1`) — CMake's
+`project(VERSION ...)` is numeric-only and rejects suffixes, so it can't hold them directly. The
 Dockerfile's `org.opencontainers.image.version` label and the image tags pushed to `ghcr.io` are both
-derived from it, so nothing else needs editing by hand.
+derived from these two fields, so nothing else needs editing by hand.
 
 ### Bump the version
 ```sh
-./bump-version.sh <major|minor|patch|X.Y.Z>
+./bump-version.sh <major|minor|patch|prerelease|X.Y.Z[-suffix]>
 ```
-This edits `CMakeLists.txt`, commits the change, and creates a local, annotated git tag (`vX.Y.Z`).
-Nothing is pushed automatically — push the commit and tag yourself once you're happy with them:
+This edits `CMakeLists.txt`, commits the change, and creates a local, annotated git tag
+(`vX.Y.Z[-suffix]`). Nothing is pushed automatically — push the commit and tag yourself once you're
+happy with them:
 ```sh
 git push --follow-tags
 ```
@@ -300,6 +317,11 @@ builder using the `docker-container` driver with `network=host` (needed because 
 isolated network namespace can fail to resolve private/LAN DNS); the script creates one named
 `robust-rail-builder` if it doesn't already exist. This builder name is shared with sibling
 Robust-Rail-NL projects (e.g. `robust-rail-solver`) that need the same setup.
+
+It also pushes the Dockerfile's `builder` stage on its own as a floating `ghcr.io/robust-rail-nl/tors:devel`
+image, so `.devcontainer/devcontainer.json` can pull the toolchain directly instead of installing it from
+scratch on every container create. Unlike the release tags, `:devel` isn't tied to a version — it's
+overwritten on every push.
 
 ## Contributors
 * Koos van der Linden: Software, Writing - Original draft

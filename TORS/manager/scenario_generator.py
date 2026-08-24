@@ -208,7 +208,7 @@ class RandomScenarioGenerator(ScenarioGenerator):
     
     def _get_task(self):
         options = [
-            Task("Binnenkant reiniging", 1, 50, ["Binnenkant reiniging"])
+            Task("Binnenkant reiniging", True, 50, ["Binnenkant reiniging"])
         ]
         return random.choice(options)
     

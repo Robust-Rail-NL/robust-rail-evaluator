@@ -7,6 +7,10 @@ import "Utilities.proto";
 // meaning that everything in the following message does not change on a regular basis.
 // Practically speaking, Location contains a definition for the track and facilities.
 message Location {
+    // The shared interchange schema version. Present as an explicit-presence
+    // field so readers can distinguish "absent" from "sent as 0".
+    optional int32 schemaVersion = 8;
+
     repeated TrackPart trackParts = 1;
     repeated Facility facilities = 2;
 
@@ -52,7 +56,7 @@ message Facility {
     string type = 2;
 
     // The TrackPart IDs this Facility can be reached from / operates on / etc.
-    repeated uint64 relatedTrackParts = 3;
+    repeated uint64 relatedTrackPartIDs = 3;
 
     // Possible tasks at this facility
     repeated TaskType taskTypes = 4;
@@ -147,8 +151,16 @@ enum PredefinedTaskType {
     NonService = 8;
     
     BeginMove = 9;//TEMP
-    
+
     EndMove = 10;//TEMP
+
+    // Task represents an inStanding shunting unit, already parked on the facility
+    // when the scenario starts. Handled like Arrive, but the Incoming it resolves
+    // to is marked instanding, so no arrival track is reserved.
+    StandIn = 11;
+    // Task represents an outStanding shunting unit, remaining on the facility after
+    // the scenario ends. The mirror image of StandIn.
+    StandOut = 12;
 }
 
 message WalkingDistanceEntry {

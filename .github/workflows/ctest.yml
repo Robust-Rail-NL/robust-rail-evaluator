@@ -1,0 +1,67 @@
+name: CTest
+
+# release/2.0.0 is the shared integration branch for the 2.0.0 release;
+# main and dev are the stable ones.
+on:
+  push:
+    branches: [ "main", "dev", "release/2.0.0" ]
+  pull_request:
+    branches: [ "main", "dev", "release/2.0.0" ]
+  workflow_dispatch:
+
+jobs:
+  build_and_test:
+    # Both architectures we publish images for. Several developers work on
+    # arm64, and until this matrix existed nothing ever executed the arm64
+    # build — buildx cross-built and pushed it, but no test, no CI job and no
+    # x86 workstation ever ran it. cTORS is the C++ component, so it is where
+    # an architecture difference would plausibly show up.
+    #
+    # fail-fast is off: when one architecture breaks, the interesting question
+    # is immediately whether the other one did too.
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    name: Build and test (${{ matrix.runner }})
+    timeout-minutes: 40
+    steps:
+    - uses: actions/checkout@v5
+
+    # build-essential, cmake, git and python3 are already on the runner. The
+    # rest is what .devcontainer/Dockerfile installs on top of ubuntu:24.04.
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install --no-install-recommends -y \
+          libprotobuf-dev \
+          libpython3-dev \
+          protobuf-compiler
+
+    # cTORS and cTORSTest pull nlohmann/json, doctest and pybind11 with
+    # FetchContent. Caching the fetched sources keeps a cold run from
+    # re-cloning three repositories every time.
+    - name: Cache fetched dependencies
+      uses: actions/cache@v4
+      with:
+        path: build/_deps
+        # runner.arch is part of the key because runner.os is "Linux" on both
+        # x64 and ARM64. Without it the two jobs share one cache entry and each
+        # restores whatever the other left behind — FetchContent populates
+        # build/_deps with configured, not merely downloaded, dependencies.
+        key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
+        restore-keys: ${{ runner.os }}-${{ runner.arch }}-deps-
+
+    - name: Configure
+      run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build -j$(nproc)
+
+    # No LOCATION_PATH / SCENARIO_PATH / PLAN_PATH / RESULT_PATH here.
+    # EngineTest and CompatibilityTest were rebuilt to be self-contained
+    # against the committed fixtures under cTORSTest/fixtures/; nothing reads
+    # those variables any more, and exporting them would only mislead.
+    - name: Test
+      run: ctest --test-dir build --output-on-failure

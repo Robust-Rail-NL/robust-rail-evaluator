@@ -2,15 +2,15 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "TORS: Eval (kleine_binckhorst)",
+            "name": "TORS: Evaluate (kleine_binckhorst)",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/TORS",
             "args": [
                 "--mode", "EVAL",
-                "--path_location", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst",
-                "--path_scenario", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json",
-                "--path_plan", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json",
+                "--path_location", "${workspaceFolder}/example_kleine_binckhorst",
+                "--path_scenario", "${workspaceFolder}/example_kleine_binckhorst/scenario.json",
+                "--path_plan", "${workspaceFolder}/example_kleine_binckhorst/plan.json",
                 "--departure_delay", "0",
                 "--plan_type", "Solver"
             ],
@@ -36,9 +36,9 @@
             "program": "${workspaceFolder}/build/TORS",
             "args": [
                 "--mode", "INTER",
-                "--path_location", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst",
-                "--path_scenario", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/scenario.json",
-                "--path_plan", "${workspaceFolder}/data/Demo/TUSS-Instance-Generator/kleine_binckhorst/plan.json",
+                "--path_location", "${workspaceFolder}/example_kleine_binckhorst",
+                "--path_scenario", "${workspaceFolder}/example_kleine_binckhorst/scenario.json",
+                "--path_plan", "${workspaceFolder}/example_kleine_binckhorst/plan.json",
                 "--departure_delay", "0",
                 "--plan_type", "Solver"
             ],

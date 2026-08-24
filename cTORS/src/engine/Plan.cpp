@@ -11,6 +11,33 @@ const vector<int> GetTrainIDs(const PBList<string> &pb_train_ids)
     return trains;
 }
 
+// Every ShuntingUnit must contain at least one train unit. An empty result here almost
+// always means the plan JSON used the old "members" (embedded TrainUnit) field instead
+// of "memberIDs" (numeric ID list) - that key is silently dropped by the lenient JSON
+// parser rather than rejected, so this check turns that into an early, actionable error
+// instead of a confusing crash much later when the (wrongly) empty ID list is used.
+const google::protobuf::RepeatedField<google::protobuf::uint64> &GetShuntingUnitMemberIDs(const PB_HIP_ShuntingUnit &su)
+{
+    if (su.memberids().empty())
+        throw invalid_argument("ShuntingUnit '" + std::to_string(su.id()) + "' has no memberIDs in the plan JSON. "
+            "Is this a legacy plan using the old 'members' (embedded TrainUnit) field instead of 'memberIDs' (ID list)?");
+    return su.memberids();
+}
+
+bool RunResult::NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, int index,
+                                       const PB_HIP_ShuntingUnit &unit)
+{
+    const auto &members = GetShuntingUnitMemberIDs(unit);
+    for (size_t i = static_cast<size_t>(index) + 1; i < actions.size(); i++)
+    {
+        const auto &candidate = actions[i].shuntingunit().memberids();
+        if (!std::equal(members.begin(), members.end(), candidate.begin(), candidate.end()))
+            continue;
+        return actions[i].tasktype().predefined() == PB_HIP_PredefinedTaskType::Exit;
+    }
+    return false;
+}
+
 POSAction &POSAction::operator=(const POSAction &pa)
 {
     if (this != &pa)
@@ -56,7 +83,7 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
 {
 
     string jsonResult;
-    google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(pb_action, &jsonResult);
+    auto status = google::protobuf::util::MessageToJsonString(pb_action, &jsonResult);
     if (!status.ok())
     {
         std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -95,8 +122,41 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
             switch (task)
             {
             case PBPredefinedTaskType::Arrive:
+            case PBPredefinedTaskType::StandIn:
+                // An inStanding train is already parked when the scenario starts, but
+                // TORS still needs an Arrive to put the shunting unit on the yard:
+                // ArriveAction::Start is the only thing that calls AddShuntingUnit.
+                // The instanding semantics (no arrival track reserved) come from
+                // Incoming::IsInstanding(), not from the task type, so the two cases
+                // are handled identically here.
                 action = new Arrive(scenario->GetIncomingByTrainIDs(trainIDs));
                 break;
+            case PBPredefinedTaskType::StandOut:
+            {
+                // Mirror of StandIn. An outStanding train's Outgoing has time 0 while
+                // the StandOut action sits at the end of the scenario, so the time
+                // window matching used by the Exit case below cannot be applied;
+                // match on train ids among the outStanding requests instead.
+                vector<const TrainUnitType *> types;
+                for (int id : trainIDs)
+                    types.push_back(scenario->GetTrainByID(id)->GetType());
+
+                auto &outgoingTrains = scenario->GetOutgoingTrains();
+                auto it = find_if(outgoingTrains.begin(), outgoingTrains.end(),
+                                  [&trainIDs, &types, scenario](const Outgoing *out) -> bool
+                                  {
+                                      return out->IsInstanding() &&
+                                             out->GetShuntingUnit()->MatchesTrainIDs(trainIDs, types) &&
+                                             scenario->track_exiting_trains.at(out->GetID()) == false;
+                                  });
+                if (it == outgoingTrains.end())
+                    throw invalid_argument("No outStanding train request matches trains " +
+                                           Join(trainIDs, "-"));
+
+                action = new Exit(trainIDs, (*it)->GetID(), true);
+                scenario->UpdateTrackExitingTrains((*it)->GetID(), true);
+                break;
+            }
             case PBPredefinedTaskType::Exit:
             {
                 // Delta time to allow delays of the departure time
@@ -235,7 +295,9 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
     }
     else
     {
-        action = new Wait(trainIDs);
+        // Pass the plan's own duration through, so the wait does not stretch to the
+        // next queued event and eat the time reserved for what follows it.
+        action = new Wait(trainIDs, minDuration);
     }
     return POSAction(suggestedStartingTime, suggestedEndingTime, minDuration, action);
 }
@@ -343,7 +405,7 @@ POSPlan POSPlan::CreatePOSPlan(const Location *location, const Scenario *scenari
     for (PBAction _action : pb_actions)
     {
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(_action, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(_action, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -445,6 +507,34 @@ RunResult *RunResult::CreateRunResult(const Location *location, const PBRun &pb_
     return new RunResult(location->GetLocationFilePath(), scenario, plan, feasible);
 }
 
+PBAction RunResult::MergeCombineActions(const vector<PBAction> &combineActions)
+{
+    // The action's own trainUnitIds are the front operand and the task's are the
+    // rear one; CombineActionGenerator resolves each separately and requires them
+    // to be two distinct shunting units.
+    //
+    // Both lists arrive holding combineActions[0]'s units, because every action
+    // has its members copied into trainUnitIds before the task-type switch and the
+    // Combine case copies them into the task as well. So keep the first action as
+    // the front operand and rebuild the rear operand from the rest. Clearing only
+    // one of the two lists would leave the first unit present in both operands,
+    // which cannot resolve to a single unit.
+    PBAction merged = combineActions.at(0);
+
+    PBTaskAction *task_action = merged.mutable_task();
+    task_action->mutable_trainunitids()->Clear();
+
+    for (size_t i = 1; i < combineActions.size(); i++)
+    {
+        // A combine action may itself cover multiple units.
+        for (auto &unit : combineActions[i].trainunitids())
+        {
+            task_action->add_trainunitids(unit);
+        }
+    }
+    return merged;
+}
+
 PBAction RunResult::CreateBeginMoveAction(PB_HIP_Action &pb_hip_action)
 {
     PBAction PBaction;
@@ -454,9 +544,9 @@ PBAction RunResult::CreateBeginMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (auto &trainUnit : pb_shuntingUnit.members())
+    for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
-        PBaction.add_trainunitids(trainUnit.id());
+        PBaction.add_trainunitids(to_string(trainUnitId));
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -477,9 +567,9 @@ PBAction RunResult::CreateEndMoveAction(PB_HIP_Action &pb_hip_action)
 
     PB_HIP_ShuntingUnit pb_shuntingUnit = pb_hip_action.shuntingunit();
 
-    for (auto &trainUnit : pb_shuntingUnit.members())
+    for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(pb_shuntingUnit))
     {
-        PBaction.add_trainunitids(trainUnit.id());
+        PBaction.add_trainunitids(to_string(trainUnitId));
     }
 
     PBTaskAction *task_action = PBaction.mutable_task();
@@ -568,17 +658,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
         PB_HIP_ShuntingUnit hip_shuntingUnit = hip_action.shuntingunit();
 
-        for (auto &trainUnit : hip_shuntingUnit.members())
+        for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
         {
-            action_.add_trainunitids(trainUnit.id());
-        }
-
-        // Check if the shunting unit is In/OutStanding train
-        // If field is defined it states InStanding when the train unit was alredy on the yard even if the action says it is an arrival
-        // or it states OutStanding when the train unit will stay in the shunting yards after the scenario ends even if the action is an exite one
-        if (hip_shuntingUnit.standingtype() != "")
-        {
-            action_.set_standingtype(hip_shuntingUnit.standingtype());
+            action_.add_trainunitids(to_string(trainUnitId));
         }
 
         PB_HIP_TaskType taskType = hip_action.tasktype();
@@ -605,7 +687,10 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 for (PB_HIP_Recource resource : hip_action.resources())
                 {
-                    move_action->add_path(resource.trackpartid());
+                    // The solver emits resources as { "kind": "trackPart"|"facility", "id": N },
+                    // not the trackPartId/facilityId oneof the proto's `resource` field expects,
+                    // so trackpartid()/facilityid() are never actually populated - use kind()/id().
+                    move_action->add_path(resource.id());
                 }
 
                 PBAction BeginMoveAction = RunResult::CreateBeginMoveAction(hip_action);
@@ -614,11 +699,15 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 pb_actions.push_back(action_);
 
-                // If next element is an Exit, the EndAction is not added
-
-                PB_HIP_Action next_action = pb_action[index + 1];
-
-                if (next_action.tasktype().predefined() != PB_HIP_PredefinedTaskType::Exit)
+                // A movement that leads straight into an Exit gets no EndMove: the
+                // unit is leaving the yard, not coming to rest. That has to be asked
+                // of this shunting unit's own next action, not of whichever action
+                // happens to come next in the plan — the actions of all units are
+                // interleaved by time, so another unit's action in between used to
+                // produce a spurious EndMove on the gateway, which the parking rules
+                // then rejected. Reaching the end of the plan is also a valid answer,
+                // and indexing one past the end was undefined behaviour.
+                if (!RunResult::NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit))
                 {
                     PBAction EndMoveAction = RunResult::CreateEndMoveAction(hip_action);
 
@@ -633,9 +722,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Split);
 
-                auto &trainUnits = hip_shuntingUnit.members();
+                auto &trainUnitIds = GetShuntingUnitMemberIDs(hip_shuntingUnit);
 
-                task_action->add_trainunitids(trainUnits[0].id());
+                task_action->add_trainunitids(to_string(trainUnitIds[0]));
 
                 pb_actions.push_back(action_);
 
@@ -648,9 +737,9 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 taskType->set_predefined(PBPredefinedTaskType::Combine);
 
-                for (auto &trainUnit : hip_shuntingUnit.members())
+                for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
                 {
-                    task_action->add_trainunitids(trainUnit.id());
+                    task_action->add_trainunitids(to_string(trainUnitId));
                 }
 
                 pb_combne_actions.push_back(action_);
@@ -691,6 +780,30 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 break;
             }
+            case PB_HIP_PredefinedTaskType::StandIn:
+            {
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::StandIn);
+
+                pb_actions.push_back(action_);
+
+                break;
+            }
+            case PB_HIP_PredefinedTaskType::StandOut:
+            {
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::StandOut);
+
+                pb_actions.push_back(action_);
+
+                break;
+            }
 
             default:
                 break;
@@ -706,22 +819,24 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
             task_action->set_location(hip_action.location());
 
-            for (auto &trainUnit : hip_shuntingUnit.members())
+            for (google::protobuf::uint64 trainUnitId : GetShuntingUnitMemberIDs(hip_shuntingUnit))
             {
-                task_action->add_trainunitids(trainUnit.id());
+                task_action->add_trainunitids(to_string(trainUnitId));
             }
 
             for (PB_HIP_Recource resource : hip_action.resources())
             {
+                // See the analogous comment in the Move case above: use kind()/id(),
+                // not the never-populated facilityid() oneof accessor.
                 PBFacilityInstance *facilites = task_action->add_facilities();
-                facilites->set_id(resource.facilityid());
+                facilites->set_id(resource.id());
             }
 
             pb_actions.push_back(action_);
         }
 
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(action_, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(action_, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -740,28 +855,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
     for (auto &[startTime, combine_actions] : startTimeToCombineActions)
     {
-
-        PBAction PBaction = combine_actions[0];
-        // Remove the first train unit id - the one which is the first unit
-        // to be combined with the rest
-        PBaction.mutable_trainunitids()->Clear();
-
-        PBTaskAction *task_action = PBaction.mutable_task();
-
-        for (size_t i = 1; i < combine_actions.size(); i++)
-        {
-            // Add all the train units which must be combined
-            // a combine action might contains multiple units
-            PBAction PBaction_other = combine_actions[i];
-            auto &trainunits = PBaction_other.trainunitids();
-
-            for (auto &unit : trainunits)
-            {
-                task_action->add_trainunitids(unit);
-                PBaction.add_trainunitids(unit);
-            }
-        }
-        pb_actions.push_back(PBaction);
+        pb_actions.push_back(RunResult::MergeCombineActions(combine_actions));
     }
 
     // Sort actions by start time and duration
@@ -771,7 +865,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     for (auto &action : pb_actions)
     {
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(action, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(action, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -784,14 +878,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     }
 
     pb_run.mutable_plan()->CopyFrom(pb_plan);
-
-    // Create Scenario protobuf
-
-    PBScenario pb_scenario;
-    parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
-
-    // Add scenario to the plan
-    pb_run.mutable_scenario()->CopyFrom(pb_scenario);
 
     // Add default location path to the plan
     pb_run.set_location(".");
@@ -808,19 +894,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     POSPlan plan = POSPlan::CreatePOSPlan(location, &scenario, pb_plan);
 
     bool feasible = pb_run.feasible();
-
-    pb_run.mutable_plan()->CopyFrom(pb_plan);
-    string jsonPlan;
-    google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(pb_run, &jsonPlan);
-    if (!status.ok())
-    {
-        std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
-    }
-
-    ofstream file;
-    file.open("/workspace/robust-rail-solver/ServiceSiteScheduling/database/TUSS-Instance-Generator/scenario_settings/setting_issue/plan_converted.json");
-    file << jsonPlan;
-    file.close();
 
     return new RunResult(location->GetLocationFilePath(), scenario, plan, feasible);
 }

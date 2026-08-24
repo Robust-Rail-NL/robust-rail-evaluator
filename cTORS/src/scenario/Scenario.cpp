@@ -4,7 +4,7 @@ Scenario::Scenario() : startTime(0), endTime(0) {}
 
 Scenario::Scenario(string scenarioFileString, const Location &location)
 {
-	PBScenario pb_scenario;
+	PB_HIP_Scenario pb_scenario;
 	parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
 
 	if (!pb_scenario.IsInitialized() || pb_scenario.ByteSizeLong() == 0)
@@ -17,10 +17,15 @@ Scenario::Scenario(string scenarioFileString, const Location &location)
 	}
 	Init(pb_scenario, location);
 
-	
+
 }
 
 Scenario::Scenario(const PBScenario &pb_scenario, const Location &location)
+{
+	Init(pb_scenario, location);
+}
+
+Scenario::Scenario(const PB_HIP_Scenario &pb_scenario, const Location &location)
 {
 	Init(pb_scenario, location);
 }
@@ -37,7 +42,28 @@ void Scenario::Init(const PBScenario &pb_scenario, const Location &location)
 	catch (exception &e)
 	{
 		cout << "Error in loading scenario: " << e.what() << "\n";
-		throw e;
+		// Rethrow the original exception (preserving its dynamic type and message).
+		// `throw e;` here would slice it down to a plain std::exception, losing
+		// both the message and the type callers (e.g. main.cpp) catch on.
+		throw;
+	}
+}
+
+void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	try
+	{
+		ImportEmployees(pb_scenario, location);
+		ImportShuntingUnits(pb_scenario, location);
+		ImportAncillary(pb_scenario);
+		startTime = pb_scenario.starttime();
+		endTime = pb_scenario.endtime();
+	}
+	catch (exception &e)
+	{
+		cout << "Error in loading scenario: " << e.what() << "\n";
+		// See comment in the other Init() overload above: rethrow, don't slice.
+		throw;
 	}
 }
 
@@ -140,6 +166,20 @@ void Scenario::ImportEmployees(const PBScenario &pb_scenario, const Location &lo
 	debug_out("finished loading employees from JSON");
 }
 
+void Scenario::ImportEmployees(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	for (auto &pb_e : pb_scenario.workers())
+	{
+		Employee *e = new Employee(pb_e);
+		string start = to_string(pb_e.startlocationid());
+		string end = to_string(pb_e.endlocationid());
+		e->AssignTracks(location.GetTrackByID(start), location.GetTrackByID(end));
+		employees.push_back(e);
+		debug_out("Imported Employee " << e->toString());
+	}
+	debug_out("finished loading employees from JSON");
+}
+
 template <class PBTrainGoal>
 TrainGoal *ImportTrainGoal(const Location &location, const PBTrainGoal &m, bool in, bool standing)
 {
@@ -147,6 +187,24 @@ TrainGoal *ImportTrainGoal(const Location &location, const PBTrainGoal &m, bool 
 	TrainGoal *g = in ? static_cast<TrainGoal *>(new Incoming(m, standing)) : new Outgoing(m, standing);
 	string park = to_string(m.parkingtrackpart());
 	string side = to_string(m.sidetrackpart());
+	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
+	return g;
+}
+
+Incoming *ImportIncomingTrainGoal(const Location &location, const PB_HIP_TrainGoal &m, bool standing)
+{
+	Incoming *g = new Incoming(m, standing);
+	string park = to_string(m.firstparkingtrackpart());
+	string side = to_string(m.entrytrackpart());
+	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
+	return g;
+}
+
+Outgoing *ImportOutgoingTrainGoal(const Location &location, const PB_HIP_TrainRequest &m, bool standing)
+{
+	Outgoing *g = new Outgoing(m, standing);
+	string park = to_string(m.lastparkingtrackpart());
+	string side = to_string(m.leavetrackpart());
 	g->assignTracks(location.GetTrackByID(park), location.GetTrackByID(side));
 	return g;
 }
@@ -180,6 +238,58 @@ void Scenario::ImportShuntingUnits(const PBScenario &pb_scenario, const Location
 
 	for (auto out: outgoingTrains)
 		track_exiting_trains[out->GetID()] = false;
+}
+
+void Scenario::ImportShuntingUnits(const PB_HIP_Scenario &pb_scenario, const Location &location)
+{
+	for (auto &pb_train_type : pb_scenario.trainunittypes())
+	{
+		auto key = make_pair(pb_train_type.typeprefix(), (int)pb_train_type.carriages());
+		if (TrainUnitType::typesByPrefixAndCarriages.find(key) == TrainUnitType::typesByPrefixAndCarriages.end())
+		{
+			TrainUnitType *tt = new TrainUnitType(pb_train_type);
+			TrainUnitType::typesByPrefixAndCarriages[key] = tt;
+		}
+	}
+
+	for (auto &pb_in : pb_scenario.in())
+		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, false));
+
+	for (auto &pb_in : pb_scenario.instanding())
+		incomingTrains.push_back(ImportIncomingTrainGoal(location, pb_in, true));
+
+	for (auto &pb_out : pb_scenario.out())
+		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, false));
+
+	for (auto &pb_out : pb_scenario.outstanding())
+		outgoingTrains.push_back(ImportOutgoingTrainGoal(location, pb_out, true));
+
+	debug_out("finished loading ShuntingUnits from JSON");
+
+	for (auto out: outgoingTrains)
+		track_exiting_trains[out->GetID()] = false;
+}
+
+void Scenario::ImportAncillary(const PB_HIP_Scenario &pb_scenario)
+{
+	for (auto &pb_nst : pb_scenario.nonservicetraffic())
+	{
+		NonServiceTrafficEntry entry;
+		entry.members = vector<int>(pb_nst.memberids().begin(), pb_nst.memberids().end());
+		entry.arrival = pb_nst.arrival();
+		entry.departure = pb_nst.departure();
+		entry.id = pb_nst.id();
+		nonServiceTraffic.push_back(entry);
+	}
+
+	for (auto &pb_dtp : pb_scenario.disabledtrackparts())
+	{
+		DisabledTrackPartEntry entry;
+		entry.trackPart = pb_dtp.trackpart();
+		entry.arrival = pb_dtp.arrival();
+		entry.departure = pb_dtp.departure();
+		disabledTrackParts.push_back(entry);
+	}
 }
 
 void Scenario::Serialize(PBScenario *pb_scenario) const
@@ -248,15 +358,17 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 {
 	vector<Track *> locationTracks = location.GetTracks();
 
-	// Contains the number of (incoming) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> incomingTrainTypes;
-	// Contains the number of (outgoing) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> outgoingTrainTypes;
+	// Train types are keyed by (displayName, carriages) - displayName alone is not
+	// unique, since two carriage variants of one family (e.g. "SLT") can coexist.
+	// Contains the number of (incoming) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> incomingTrainTypes;
+	// Contains the number of (outgoing) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> outgoingTrainTypes;
 
-	// Contains the number of (inStanding) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> inStandingTrainTypes;
-	// Contains the number of (outStanding) trains per train types e.g., SLT-4 : 7; SLT-6 : 9
-	map<string, int> outStandingTrainTypes;
+	// Contains the number of (inStanding) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> inStandingTrainTypes;
+	// Contains the number of (outStanding) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
+	map<pair<string,int>, int> outStandingTrainTypes;
 
 	int totalTaskTime = 0;
 	for (const Incoming *train : incomingTrains)
@@ -288,7 +400,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			// Calculates the number of arrival train types, this will be compared with the number of departing train types
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
-				string trainType = trainUnit.GetType()->displayName;
+				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
 				if (incomingTrainTypes.find(trainType) != incomingTrainTypes.end())
 					incomingTrainTypes[trainType] = 0;
 				incomingTrainTypes[trainType] += 1;
@@ -299,7 +411,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			// Calculates the train types which were already on the shunting yard, this will be compared with the number of departing train types
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
-				string trainType = trainUnit.GetType()->displayName;
+				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
 				if (inStandingTrainTypes.find(trainType) != inStandingTrainTypes.end())
 					inStandingTrainTypes[trainType] = 0;
 
@@ -358,10 +470,11 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
 				string trainType = trainUnit.GetType()->displayName;
-				if (outgoingTrainTypes.find(trainType) != outgoingTrainTypes.end())
-					outgoingTrainTypes[trainType] = 0;
+				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
+				if (outgoingTrainTypes.find(typeKey) != outgoingTrainTypes.end())
+					outgoingTrainTypes[typeKey] = 0;
 
-				outgoingTrainTypes[trainType] += 1;
+				outgoingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
 			}
@@ -374,10 +487,11 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			{
 
 				string trainType = trainUnit.GetType()->displayName;
-				if (outStandingTrainTypes.find(trainType) != outStandingTrainTypes.end())
-					outStandingTrainTypes[trainType] = 0;
+				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
+				if (outStandingTrainTypes.find(typeKey) != outStandingTrainTypes.end())
+					outStandingTrainTypes[typeKey] = 0;
 
-				outStandingTrainTypes[trainType] += 1;
+				outStandingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
 
@@ -399,8 +513,8 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			size_t position = typeCurrentTrainUnitLong.find("-"); // removes "-X" part
 			string typeCurrentTrainUnit = typeCurrentTrainUnitLong.substr(0, position);
 
-			// If one of the train unit type is different from another, then the rain combination cannot be done
-			if (typeCurrentTrainUnit.find(typeFirstTrainUnit) != std::string::npos)
+			// If one of the train unit type is different from another, then the train combination cannot be done
+			if (typeCurrentTrainUnit != typeFirstTrainUnit)
 			{
 				throw invalid_argument("Train units with different types cannot be combined: Train unit [" + typeFirstTrainUnit + "] is not copatible with Train unit [" + typeCurrentTrainUnit + "]");
 			}
@@ -412,9 +526,10 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 	for (const auto &[trainType, count] : incomingTrainTypes)
 	{
+		string trainTypeLabel = trainType.first + "-" + to_string(trainType.second);
 		if (outgoingTrainTypes[trainType] > count + inStandingTrainTypes[trainType] - outStandingTrainTypes[trainType])
 		{
-			throw invalid_argument("The number of departure trains of type: [" + trainType + "] : " + to_string(outgoingTrainTypes[trainType]) + "does not match the number of arrived trains of type[" + trainType + "] : " + to_string(count) + "plus the number of instanding trains of type [" + trainType + "] : " + to_string(inStandingTrainTypes[trainType]) + "or the required number of outstanding trains of type [" + trainType + "] : " + to_string(outStandingTrainTypes[trainType]) + "is too high compared to the instanding, incoming and outgoing trains");
+			throw invalid_argument("The number of departure trains of type: [" + trainTypeLabel + "] : " + to_string(outgoingTrainTypes[trainType]) + "does not match the number of arrived trains of type[" + trainTypeLabel + "] : " + to_string(count) + "plus the number of instanding trains of type [" + trainTypeLabel + "] : " + to_string(inStandingTrainTypes[trainType]) + "or the required number of outstanding trains of type [" + trainTypeLabel + "] : " + to_string(outStandingTrainTypes[trainType]) + "is too high compared to the instanding, incoming and outgoing trains");
 		}
 	}
 

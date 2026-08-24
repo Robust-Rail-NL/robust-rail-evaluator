@@ -18,8 +18,7 @@ TORS/log_tensorboard
 TORS/ppo_tors.zip
 
 #visual studio code
-!data
-data/*
-!data/Demo
+data/
+.vscode/launch.json
 TORS/runs
 cTORS/doc

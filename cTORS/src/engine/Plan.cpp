@@ -405,7 +405,7 @@ POSPlan POSPlan::CreatePOSPlan(const Location *location, const Scenario *scenari
     for (PBAction _action : pb_actions)
     {
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(_action, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(_action, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -836,7 +836,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
         }
 
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(action_, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(action_, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;
@@ -865,7 +865,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     for (auto &action : pb_actions)
     {
         string jsonResult;
-        google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(action, &jsonResult);
+        auto status = google::protobuf::util::MessageToJsonString(action, &jsonResult);
         if (!status.ok())
         {
             std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;

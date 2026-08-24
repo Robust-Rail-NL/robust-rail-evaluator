@@ -17,15 +17,7 @@ The basic project set up uses the structure provided by cmake. The subfolders ar
 * Windows [NO] - via Dev-Container / Docker [YES]
 
 
-# First steps
-### Build with setuptools
-You can build the evaluator and the python library with the following command.
-```sh
-mkdir build
-python setup.py build
-python setup.py install
-```
-
+# Building
 ### Build the evaluator from C++ source
 In the source directory execute the following commands:
 ```bash

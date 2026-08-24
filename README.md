@@ -260,14 +260,6 @@ The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/
 * 5th - Build process of the tool is below: 
 Note: all the dependencies are already contained by the Docker instance.
 
-### Build with setuptools
-You can build evaluator and the pyTORS library with the following command.
-```sh
-mkdir build
-python setup.py build
-python setup.py install
-```
-
 ### Compile the evaluator from C++ source
 In the source directory execute the following commands:
 ```bash

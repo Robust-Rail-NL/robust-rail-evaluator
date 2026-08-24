@@ -83,7 +83,7 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
 {
 
     string jsonResult;
-    google::protobuf::util::Status status = google::protobuf::util::MessageToJsonString(pb_action, &jsonResult);
+    auto status = google::protobuf::util::MessageToJsonString(pb_action, &jsonResult);
     if (!status.ok())
     {
         std::cerr << "Failed to convert protobuf to JSON: " << status.ToString() << std::endl;

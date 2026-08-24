@@ -18,6 +18,9 @@
 # that selector referred to an image that had never been built, and the failure
 # surfaced as a docker pull error long after the fact.
 #
+# A third, floating :devel image (the builder stage on its own, untagged by
+# version) is also pushed — see the comment above that build for why.
+#
 # The -assert image is built for both architectures, like the plain one. It is
 # tempting to call it a testing artifact and save the arm64 build, but we ship
 # arm64, and the bugs an assertions build is best at catching — undefined
@@ -72,5 +75,20 @@ docker buildx build \
     --build-arg "VERSION=$VERSION" \
     --build-arg "ASSERTIONS=ON" \
     -t "$IMAGE:$VERSION-assert" \
+    --push \
+    .
+
+# The builder stage on its own, published as a floating :devel tag that
+# .devcontainer/devcontainer.json pulls instead of building the toolchain
+# image from scratch. Floating (not $VERSION-devel) and always overwritten:
+# it's a dev-tooling image, not a reproducible release artifact, so tracking
+# the release version would only leave devcontainer.json stale after every
+# bump. Multi-arch for the same reason as the images above — several
+# developers work on arm64.
+docker buildx build \
+    --builder "$BUILDER_NAME" \
+    --platform linux/amd64,linux/arm64 \
+    --target builder \
+    -t "$IMAGE:devel" \
     --push \
     .

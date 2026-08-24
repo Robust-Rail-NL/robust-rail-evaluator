@@ -334,6 +334,11 @@ isolated network namespace can fail to resolve private/LAN DNS); the script crea
 `robust-rail-builder` if it doesn't already exist. This builder name is shared with sibling
 Robust-Rail-NL projects (e.g. `robust-rail-solver`) that need the same setup.
 
+It also pushes the Dockerfile's `builder` stage on its own as a floating `ghcr.io/robust-rail-nl/tors:devel`
+image, so `.devcontainer/devcontainer.json` can pull the toolchain directly instead of installing it from
+scratch on every container create. Unlike the release tags, `:devel` isn't tied to a version — it's
+overwritten on every push.
+
 ## Contributors
 * Koos van der Linden: Software, Writing - Original draft
 * Roland Kromes: Software - Extensions

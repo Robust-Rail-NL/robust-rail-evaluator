@@ -1,4 +1,6 @@
-# Build stage: compiles the C++ project
+# Build stage: compiles the C++ project. Also published on its own as the
+# ":devel" tag (see docker-push.sh) so .devcontainer/devcontainer.json can
+# pull a ready-made toolchain image instead of rebuilding it from scratch.
 FROM ubuntu:24.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -9,6 +11,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
+    gdb \
     git \
     libprotobuf-dev \
     libpython3-dev \

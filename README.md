@@ -4,7 +4,7 @@ This evaluator is the extension of the outcome of the research outcome called: [
 
 The resulting Train Unit Shunting and Servicing problem motivates advanced research in planning and scheduling in general since it integrates several known individually hard problems while incorporating many real-life details. The developed an event-based simulator called TORS (Dutch acronym for Train Shunting and Servicing Simulator), that provides the user with a state and all feasible actions. After an action is picked, the evaluator calculates the result and the process repeats. This simulator facilitates research into a realistic application of multi-agent pathfinding and path evaluation.
 
-This implementation consists of a backend written in C++, and a front-end written in python. **It is highly advised to use only the backend (C++)**.
+This implementation is a C++ evaluator (`cTORS`); `pyTORS` provides Python bindings to it via pybind11, though no Python application is maintained in this repository — see [AlgTUDelft/cTORS](https://github.com/AlgTUDelft/cTORS) for the actively maintained Python front-end built on the same engine.
 
 ## Project set up
 The basic project set up uses the structure provided by cmake. The subfolders are subprojects:

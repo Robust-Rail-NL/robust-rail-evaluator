@@ -11,7 +11,7 @@
 # under their own tag only, so they never shadow the current stable image.
 #
 # Two images are pushed per version: $VERSION, and $VERSION-assert built with
-# -DCTORS_ASSERTIONS=ON. The pipeline in scenario-planning-inputs evaluates
+# -DCTORS_ASSERTIONS=ON. The pipeline in robust-rail-general evaluates
 # every plan twice, once under each, and its --version 2.0.0-assert selector
 # resolves to the -assert tag while keeping the generator and solver plain.
 # Both tags are pushed together deliberately: when only the plain one existed,

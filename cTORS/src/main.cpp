@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include "Engine.h"
 #include "Version.h"
 
@@ -36,7 +37,17 @@ int main(int argc, char *argv[])
 	cout << "--------------------------------------------------------------------------" << endl;
 
 	// TODO: check whether both the "location.json" and the "config.json" exist in the folder specified by the path_location to give proper error message
-	LocationEngine engine(path_location);
+	std::unique_ptr<LocationEngine> engine_ptr;
+	try
+	{
+		engine_ptr = std::make_unique<LocationEngine>(path_location);
+	}
+	catch (const std::exception &e)
+	{
+		std::cerr << "Issue detected with the Location: " << e.what() << std::endl;
+		return 1;
+	}
+	LocationEngine &engine = *engine_ptr;
 	const Location &location = engine.GetLocation();
 	const vector<Track *> &tracks = location.GetTracks();
 
@@ -113,7 +124,7 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::invalid_argument &e)
+			catch (const std::exception &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
@@ -125,27 +136,34 @@ int main(int argc, char *argv[])
 		{
 			PBRun pb_run_external;
 
-			// Parses the Evaluator fromated plan
-			GetRunResultProto(path_plan, pb_run_external);
-
-			auto runResult_external = RunResult::CreateRunResult(&location, pb_run_external);
-
-			if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
+			try
 			{
+				GetRunResultProto(path_plan, pb_run_external);
 
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-				cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
+				auto runResult_external = RunResult::CreateRunResult(&location, pb_run_external);
 
-				cout << "The plan is valid" << endl;
+				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
+				{
+
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+
+					cout << "The plan is valid" << endl;
+				}
+				else
+				{
+
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+
+					cout << "The plan is not valid" << endl;
+				}
 			}
-			else
+			catch (const std::exception &e)
 			{
-
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-				cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
 			}
 
@@ -240,7 +258,7 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::invalid_argument &e)
+			catch (const std::exception &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
@@ -252,27 +270,35 @@ int main(int argc, char *argv[])
 		{
 			PBRun pb_run_external;
 
-			// Parses the Evaluator fromated plan
-			GetRunResultProto(path_plan, pb_run_external);
-
-			auto runResult_external = RunResult::CreateRunResult(&location, pb_run_external);
-
-			if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
+			try
 			{
+				// Parses the Evaluator fromated plan
+				GetRunResultProto(path_plan, pb_run_external);
 
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-				cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
+				auto runResult_external = RunResult::CreateRunResult(&location, pb_run_external);
 
-				cout << "The plan is valid" << endl;
+				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
+				{
+
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+
+					cout << "The plan is valid" << endl;
+				}
+				else
+				{
+
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
+					cout << "-------------------------------------------------------------------------------------------------" << endl;
+
+					cout << "The plan is not valid" << endl;
+				}
 			}
-			else
+			catch (const std::exception &e)
 			{
-
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-				cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-				cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
 			}
 

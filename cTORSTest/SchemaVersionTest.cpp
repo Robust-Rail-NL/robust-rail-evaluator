@@ -108,4 +108,42 @@ namespace cTORSTest
 		CHECK_THROWS_AS(parse_json_to_pb(tmp, &scenario), std::runtime_error);
 		fs::remove(tmp);
 	}
+
+	// A message can be non-empty overall (parse_json_to_pb's check above is satisfied) while
+	// still missing the one field that actually makes it usable - require_essential_content
+	// exists for exactly that: a caller checking the specific content it knows it needs.
+	TEST_CASE("require_essential_content: throws when a Location has no trackParts")
+	{
+		fs::path tmp = fs::temp_directory_path() / "require_essential_content_test_location.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"movementConstant": 5})";
+		}
+		PBLocation location;
+		parse_json_to_pb(tmp, &location);
+		fs::remove(tmp);
+		CHECK_THROWS_AS(require_essential_content(tmp, location.trackparts_size() > 0, "trackParts"), std::invalid_argument);
+	}
+
+	TEST_CASE("require_essential_content: throws when a Scenario has no trains")
+	{
+		fs::path tmp = fs::temp_directory_path() / "require_essential_content_test_scenario.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"startTime": 100})";
+		}
+		PB_HIP_Scenario scenario;
+		parse_json_to_pb(tmp, &scenario);
+		fs::remove(tmp);
+		bool hasTrains = scenario.in_size() > 0 || scenario.out_size() > 0 ||
+			scenario.instanding_size() > 0 || scenario.outstanding_size() > 0;
+		CHECK_THROWS_AS(require_essential_content(tmp, hasTrains, "arriving, departing, or standing trains"), std::invalid_argument);
+	}
+
+	TEST_CASE("require_essential_content: does not throw when the essential content is present")
+	{
+		PBLocation location;
+		location.add_trackparts();
+		CHECK_NOTHROW(require_essential_content("test.json", location.trackparts_size() > 0, "trackParts"));
+	}
 }

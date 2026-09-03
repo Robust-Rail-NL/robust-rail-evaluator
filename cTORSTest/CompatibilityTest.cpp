@@ -95,4 +95,18 @@ namespace cTORSTest
 		fs::remove(tmp);
 	}
 
+	TEST_CASE("ParseHIP_PlanFromJson throws on a HIP plan with no actions")
+	{
+		// Non-empty overall (schemaVersion is set), but has nothing to evaluate - should be
+		// rejected up front rather than silently evaluated as a plan that does nothing.
+		fs::path tmp = fs::temp_directory_path() / "compatibility_test_actionless_plan.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"schemaVersion": 1})";
+		}
+		PB_HIP_Plan pb_hip_plan;
+		CHECK_THROWS_AS(ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan), std::invalid_argument);
+		fs::remove(tmp);
+	}
+
 }

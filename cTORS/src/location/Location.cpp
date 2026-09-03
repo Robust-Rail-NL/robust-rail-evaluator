@@ -13,7 +13,9 @@ Location::Location(const string &folderName, bool byType) : byType(byType) {
 	path = folderName;
 	try {
 		PBLocation pb_location;
-		parse_json_to_pb(fs::path(folderName) / fs::path(locationFileString), &pb_location);
+		fs::path locationFilePath = fs::path(folderName) / fs::path(locationFileString);
+		parse_json_to_pb(locationFilePath, &pb_location);
+		require_essential_content(locationFilePath, pb_location.trackparts_size() > 0, "trackParts");
 		ImportTracks(pb_location);
 		ImportFacilities(pb_location);
 		ImportDistanceMatrix(pb_location);

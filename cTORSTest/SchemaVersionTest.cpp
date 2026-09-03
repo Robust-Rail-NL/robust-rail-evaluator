@@ -82,11 +82,30 @@ namespace cTORSTest
 		fs::path tmp = fs::temp_directory_path() / "schema_version_test_location_missing.json";
 		{
 			std::ofstream out(tmp);
-			out << R"({"trackParts": []})";
+			// movementConstant gives the message real content unrelated to schemaVersion,
+			// so this test only exercises the "field absent" path, not the empty-message check.
+			out << R"({"movementConstant": 5, "trackParts": []})";
 		}
 		PBLocation location;
 		CHECK_NOTHROW(parse_json_to_pb(tmp, &location));
 		fs::remove(tmp);
 		CHECK_FALSE(location.has_schemaversion());
+	}
+
+	// JSON that's valid but doesn't correspond to the target message (wrong shape, or a
+	// differently-shaped document with no overlapping field names) still parses with an ok
+	// status thanks to ignore_unknown_fields, but leaves the message empty. Every message
+	// this utility parses represents a real input, so parse_json_to_pb treats that as a
+	// failure rather than handing back a silently-empty result.
+	TEST_CASE("parse_json_to_pb throws when the parsed message is empty")
+	{
+		fs::path tmp = fs::temp_directory_path() / "schema_version_test_empty_message.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"someFieldThatDoesNotExistOnScenario": 1})";
+		}
+		PBScenario scenario;
+		CHECK_THROWS_AS(parse_json_to_pb(tmp, &scenario), std::runtime_error);
+		fs::remove(tmp);
 	}
 }

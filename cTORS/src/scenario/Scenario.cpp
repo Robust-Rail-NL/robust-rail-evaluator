@@ -6,15 +6,6 @@ Scenario::Scenario(string scenarioFileString, const Location &location)
 {
 	PB_HIP_Scenario pb_scenario;
 	parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
-
-	if (!pb_scenario.IsInitialized() || pb_scenario.ByteSizeLong() == 0)
-	{
-		std::cerr << "Protobuf is empty or not initialized." << std::endl;
-	}
-	else
-	{
-		std::cout << "Protobuf has been initialized and may contain data." << std::endl;
-	}
 	Init(pb_scenario, location);
 
 

@@ -601,6 +601,7 @@ RunResult *LocationEngine::ImportResult(const string &path)
 {
 	PBRun run;
 	parse_json_to_pb(path, &run);
+	require_essential_content(path, run.plan().actions_size() > 0, "actions in its plan");
 	return RunResult::CreateRunResult(&location, run);
 }
 
@@ -650,5 +651,6 @@ RunResult *Engine::ImportResult(const string &path)
 {
 	PBRun run;
 	parse_json_to_pb(path, &run);
+	require_essential_content(path, run.plan().actions_size() > 0, "actions in its plan");
 	return RunResult::CreateRunResult(*this, run);
 }

@@ -900,31 +900,14 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
 void GetRunResultProto(string planFileString, PBRun &pb_runResult)
 {
-    // PBRun pb_runResult2;
-
-    parse_json_to_pb(fs::path(planFileString), &pb_runResult);
-
-    if (!pb_runResult.IsInitialized() || pb_runResult.ByteSizeLong() == 0)
-    {
-        std::cerr << "RunResult Protobuf is empty or not initialized." << std::endl;
-    }
-    else
-    {
-        std::cout << "RunResult Protobuf has been initialized and may contain data." << std::endl;
-    }
+    fs::path planFilePath(planFileString);
+    parse_json_to_pb(planFilePath, &pb_runResult);
+    require_essential_content(planFilePath, pb_runResult.plan().actions_size() > 0, "actions in its plan");
 }
 
 void ParseHIP_PlanFromJson(string planFileString, PB_HIP_Plan &pb_hip_plan)
 {
-
-    parse_json_to_pb(fs::path(planFileString), &pb_hip_plan);
-
-    if (!pb_hip_plan.IsInitialized() || pb_hip_plan.ByteSizeLong() == 0)
-    {
-        std::cerr << "HIP plan Protobuf is empty or not initialized." << std::endl;
-    }
-    else
-    {
-        std::cout << "HIP plan Protobuf has been initialized and may contain data." << std::endl;
-    }
+    fs::path planFilePath(planFileString);
+    parse_json_to_pb(planFilePath, &pb_hip_plan);
+    require_essential_content(planFilePath, pb_hip_plan.actions_size() > 0, "actions");
 }

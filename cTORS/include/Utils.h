@@ -132,6 +132,15 @@ inline void parse_json_to_pb(const fs::path& file_path, google::protobuf::Messag
     fileInput.close();
     if (!status.ok())
         throw runtime_error("Failed to parse " + file_path.string() + ": " + status.ToString());
+    // A syntactically valid JSON document that doesn't correspond to this message (wrong
+    // shape, or a differently-shaped document with no overlapping field names) still parses
+    // with an ok status above thanks to ignore_unknown_fields, but leaves the message empty.
+    // Every message this utility parses represents a real, non-trivial input (a location,
+    // scenario, plan or run), so an all-default result always means the JSON didn't actually
+    // match - never a legitimate "empty on purpose" case.
+    if (!message->IsInitialized() || message->ByteSizeLong() == 0)
+        throw runtime_error("Parsed " + file_path.string() + " into an empty " +
+            message->GetDescriptor()->name() + " message; the JSON is likely missing or does not match the expected schema.");
     warn_on_schema_version_mismatch(file_path, *message);
 }
 

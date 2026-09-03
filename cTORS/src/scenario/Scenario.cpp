@@ -5,7 +5,12 @@ Scenario::Scenario() : startTime(0), endTime(0) {}
 Scenario::Scenario(string scenarioFileString, const Location &location)
 {
 	PB_HIP_Scenario pb_scenario;
-	parse_json_to_pb(fs::path(scenarioFileString), &pb_scenario);
+	fs::path scenarioFilePath(scenarioFileString);
+	parse_json_to_pb(scenarioFilePath, &pb_scenario);
+	require_essential_content(scenarioFilePath,
+		pb_scenario.in_size() > 0 || pb_scenario.out_size() > 0 ||
+		pb_scenario.instanding_size() > 0 || pb_scenario.outstanding_size() > 0,
+		"arriving, departing, or standing trains");
 	Init(pb_scenario, location);
 
 

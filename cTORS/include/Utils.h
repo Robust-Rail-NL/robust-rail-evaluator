@@ -144,6 +144,17 @@ inline void parse_json_to_pb(const fs::path& file_path, google::protobuf::Messag
     warn_on_schema_version_mismatch(file_path, *message);
 }
 
+// Being non-empty (see parse_json_to_pb above) doesn't mean a message is structurally
+// usable - a JSON document with a single unrelated field set still parses "successfully"
+// into a message that's otherwise hollow (e.g. a Location with no trackParts). Callers
+// that know what content their message actually needs should call this right after
+// parse_json_to_pb with that specific condition, so the failure is reported here instead
+// of as a confusing crash wherever the missing data first gets used.
+inline void require_essential_content(const fs::path& file_path, bool has_content, const string& what) {
+    if (!has_content)
+        throw invalid_argument("Parsed " + file_path.string() + " but found no " + what + "; the JSON is likely missing required data.");
+}
+
 inline void parse_json_to_pb(const string& filename, google::protobuf::Message* message) {
     parse_json_to_pb(fs::path(filename), message);
 }

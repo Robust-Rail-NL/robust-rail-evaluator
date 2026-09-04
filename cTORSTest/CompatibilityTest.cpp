@@ -79,4 +79,54 @@ namespace cTORSTest
 		CHECK(hasCustomTask);
 	}
 
+	TEST_CASE("A train that cannot move off the gateway right away still evaluates (solver#13)")
+	{
+		// solver#13: a train that arrives but whose route into the yard is not free yet
+		// used to be serialised as an instantaneous Arrive followed by a Wait on
+		// the arrival track - and the arrival track here (as on the real
+		// KleineBinckhorst scenarios the issue was filed against) is the gateway,
+		// which forbids parking, so legal_on_parking_track_rule rejected the Wait
+		// and the plan failed. The fix is for the plan to give the Arrive itself
+		// that duration instead (robust-rail-solver's side) and for the Arrive to
+		// actually honour it (this repo's side, exercised here).
+		//
+		// Widen shunting unit 0's Arrive (originally instantaneous at T300) by
+		// 50s, and push the Move that follows it back by the same 50s, as if
+		// the gateway route had only become free at T350 instead of T300 - the
+		// shape a fixed solver will produce, with no trailing Wait.
+		LocationEngine engine(HIP_FIXTURE);
+		const Location &location = engine.GetLocation();
+
+		PB_HIP_Plan pb_hip_plan;
+		ParseHIP_PlanFromJson(HIP_FIXTURE + "/plan.json", pb_hip_plan);
+
+		PB_HIP_Action *arrive = nullptr, *move = nullptr;
+		for (auto &action : *pb_hip_plan.mutable_actions())
+		{
+			if (action.shuntingunit().id() != 0)
+				continue;
+			if (arrive == nullptr && action.tasktype().predefined() == PB_HIP_PredefinedTaskType::Arrive)
+				arrive = &action;
+			else if (arrive != nullptr && move == nullptr && action.tasktype().predefined() == PB_HIP_PredefinedTaskType::Move)
+				move = &action;
+		}
+		REQUIRE(arrive != nullptr);
+		REQUIRE(move != nullptr);
+		// Guard the fixture assumption that `move` is the task immediately
+		// following `arrive` in shunting unit 0's chain, not some later,
+		// unrelated Move for the same unit.
+		REQUIRE(move->starttime() == arrive->endtime());
+
+		const uint64_t gap = 50;
+		arrive->set_endtime(arrive->starttime() + gap);
+		move->set_starttime(move->starttime() + gap);
+		move->set_endtime(move->endtime() + gap);
+
+		auto runResult = RunResult::CreateRunResult(pb_hip_plan, HIP_FIXTURE + "/scenario.json", &location);
+		REQUIRE(runResult != nullptr);
+		CHECK(engine.EvaluatePlan(runResult->GetScenario(), runResult->GetPlan()));
+
+		delete runResult;
+	}
+
 }

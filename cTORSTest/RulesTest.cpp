@@ -168,6 +168,49 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("An arrive replayed from a plan spans the gap the plan gives it (solver#13)") {
+		// A train that reaches its arrival track before its route into the yard is
+		// free needs to occupy that track for a while. Giving the Arrive itself
+		// that duration - instead of following it with a Wait - keeps a train that
+		// arrives on a non-parking track (e.g. a gateway) off
+		// legal_on_parking_track_rule, which Arrive is exempt from but Wait isn't.
+		Location location(TORS_DATA_DIR "/scenario_unification_test", true);
+		Scenario scenario(TORS_DATA_DIR "/scenario_unification_test/scenario.json", location);
+		State state(scenario, location.GetTracks());
+
+		REQUIRE(scenario.GetIncomingTrains().size() == 1);
+		auto incoming = scenario.GetIncomingTrains().front();
+
+		json params = json::object();
+		ArriveActionGenerator generator(params, &location);
+
+		SUBCASE("a planned arrive occupies the track for the plan's duration") {
+			Arrive planned(incoming, 50);
+			const Action* action = generator.Generate(&state, planned);
+			CHECK(action->GetDuration() == 50);
+			delete action;
+		}
+
+		SUBCASE("an unplanned arrive is instantaneous") {
+			Arrive unplanned(incoming);
+			const Action* action = generator.Generate(&state, unplanned);
+			CHECK(action->GetDuration() == 0);
+			delete action;
+		}
+
+		SUBCASE("a nonzero-duration arrive keeps the active-action flag set, which is what stops ApplyWaitAllUntil from synthesizing a Wait for it") {
+			Arrive planned(incoming, 50);
+			const Action* action = generator.Generate(&state, planned);
+			auto su = action->GetShuntingUnit();
+
+			state.StartAction(action);
+			CHECK(state.HasActiveAction(su));
+
+			state.FinishAction(action);
+			CHECK(!state.HasActiveAction(su));
+		}
+	}
+
 	TEST_CASE("Parking is about standing still, not about passing through") {
 		// A gateway forbids parking because it is the connection to the main line,
 		// but every departure has to move onto it before leaving. Rejecting a

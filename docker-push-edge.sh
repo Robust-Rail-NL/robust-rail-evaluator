@@ -8,8 +8,10 @@
 # always reflect whatever is currently on that branch — not whatever branch
 # happened to be checked out locally.
 #
-# The image version embedded in the build (the OCI label — see the
-# Dockerfile's VERSION ARG) is derived, not read from CMakeLists.txt as-is:
+# The image version embedded in the build (both the OCI label and the
+# compiled binary's own startup "TORS <version>" line — see the Dockerfile's
+# VERSION ARG and cTORS/CMakeLists.txt's TORS_VERSION_OVERRIDE) is derived,
+# not read from CMakeLists.txt as-is:
 # <release>-edge+<date>.<short-sha>, e.g. 2.0.0-edge+20260904.a1b2c3d. The
 # release portion is whatever's currently committed in CMakeLists.txt's
 # project(TORS VERSION ...), with any TORS_VERSION_SUFFIX ignored, since edge

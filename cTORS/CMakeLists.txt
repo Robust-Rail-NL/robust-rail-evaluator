@@ -6,6 +6,14 @@ project(cTORS VERSION 0.1)
 #Options
 option(BUILD_DOC "Build documentation" ON)
 option(CTORS_ASSERTIONS "Enable internal assertions regardless of build type" OFF)
+# Overrides the full version string embedded in the built binary (see
+# TORS_FULL_VERSION below), instead of deriving it from project(TORS VERSION
+# ...) + TORS_VERSION_SUFFIX. Empty by default, so a bare "cmake .." still
+# gets a sensible version: whatever's checked into the top-level
+# CMakeLists.txt. The Dockerfile passes this through from a VERSION build-arg,
+# so edge builds (see docker-push-edge.sh) can embed their own
+# <release>-edge+<date>.<sha> string without touching the committed version.
+set(TORS_VERSION_OVERRIDE "" CACHE STRING "Full version string override for the built binary")
 
 # Verbose.
 #set(CMAKE_VERBOSE_MAKEFILE on)
@@ -96,9 +104,13 @@ set(PROJECT_INCLUDE_DIR "include")
 # TORS_VERSION/TORS_VERSION_SUFFIX come from the top-level project(TORS
 # VERSION ...) / set(TORS_VERSION_SUFFIX ...), inherited from the parent
 # scope. Generate a header so the running binary can report its own version.
-set(TORS_FULL_VERSION "${TORS_VERSION}")
-if(TORS_VERSION_SUFFIX)
-	set(TORS_FULL_VERSION "${TORS_FULL_VERSION}-${TORS_VERSION_SUFFIX}")
+if(TORS_VERSION_OVERRIDE)
+	set(TORS_FULL_VERSION "${TORS_VERSION_OVERRIDE}")
+else()
+	set(TORS_FULL_VERSION "${TORS_VERSION}")
+	if(TORS_VERSION_SUFFIX)
+		set(TORS_FULL_VERSION "${TORS_FULL_VERSION}-${TORS_VERSION_SUFFIX}")
+	endif()
 endif()
 configure_file(${PROJECT_INCLUDE_DIR}/Version.h.in ${CMAKE_CURRENT_BINARY_DIR}/Version.h @ONLY)
 

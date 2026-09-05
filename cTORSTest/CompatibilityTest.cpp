@@ -3,6 +3,7 @@
 
 
 #include <cstdlib>
+#include <fstream>
 #include <google/protobuf/util/json_util.h>
 
 namespace cTORSTest
@@ -77,6 +78,35 @@ namespace cTORSTest
 			if (action.tasktype().has_other())
 				hasCustomTask = true;
 		CHECK(hasCustomTask);
+	}
+
+	TEST_CASE("ParseHIP_PlanFromJson throws on JSON that doesn't correspond to a HIP plan")
+	{
+		// Valid JSON, parses with an ok status (ignore_unknown_fields drops the unrecognized
+		// field), but leaves the PB_HIP_Plan empty - should be a loud failure, not a silently
+		// empty plan handed on to evaluation.
+		fs::path tmp = fs::temp_directory_path() / "compatibility_test_mismatched_plan.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"thisFieldDoesNotExistOnAHipPlan": true})";
+		}
+		PB_HIP_Plan pb_hip_plan;
+		CHECK_THROWS_AS(ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan), std::runtime_error);
+		fs::remove(tmp);
+	}
+
+	TEST_CASE("ParseHIP_PlanFromJson throws on a HIP plan with no actions")
+	{
+		// Non-empty overall (schemaVersion is set), but has nothing to evaluate - should be
+		// rejected up front rather than silently evaluated as a plan that does nothing.
+		fs::path tmp = fs::temp_directory_path() / "compatibility_test_actionless_plan.json";
+		{
+			std::ofstream out(tmp);
+			out << R"({"schemaVersion": 1})";
+		}
+		PB_HIP_Plan pb_hip_plan;
+		CHECK_THROWS_AS(ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan), std::invalid_argument);
+		fs::remove(tmp);
 	}
 
 }

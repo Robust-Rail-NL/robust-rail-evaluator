@@ -14,7 +14,7 @@
 #
 # Two images are pushed per version: $VERSION, and $VERSION-assert built with
 # -DCTORS_ASSERTIONS=ON. The pipeline in robust-rail-general evaluates
-# every plan twice, once under each, and its --version 2.0.0-assert selector
+# every plan twice, once under each, and its --version stable-assert selector
 # resolves to the -assert tag while keeping the generator and solver plain.
 # Both tags are pushed together deliberately: when only the plain one existed,
 # that selector referred to an image that had never been built, and the failure
@@ -68,6 +68,9 @@ docker buildx build \
     --push \
     .
 
+TAGS=(-t "$IMAGE:$VERSION-assert")
+[[ -z "$SUFFIX" ]] && TAGS+=(-t "$IMAGE:assert")
+
 # Never tagged :latest, whatever the version shape — :latest is what someone
 # gets when they ask for the evaluator without thinking about it, and that
 # should never be a build that aborts on an internal invariant.
@@ -76,7 +79,7 @@ docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --build-arg "VERSION=$VERSION" \
     --build-arg "ASSERTIONS=ON" \
-    -t "$IMAGE:$VERSION-assert" \
+    "${TAGS[@]}" \
     --push \
     .
 

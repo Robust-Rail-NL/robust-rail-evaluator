@@ -431,7 +431,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 		if (totalTaskTime > GetEndTime())
 		{
-			throw invalid_argument("The total time to finish all the tasks is [" + to_string(totalTaskTime) + "] > than the end time of the scenario [" + to_string(GetEndTime()) + "]");
+			throw invalid_argument("The total time to finish all the tasks of ShuntingUnit-" + to_string(shuntingUnit->GetID()) + " is [" + to_string(totalTaskTime) + "] > than the end time of the scenario [" + to_string(GetEndTime()) + "]");
 		}
 	}
 

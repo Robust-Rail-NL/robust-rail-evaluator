@@ -11,6 +11,13 @@
 //      --path_scenario: specifies the path to the scenario file e.g., my_scenario.json
 //      --path_plan: specifies the path to the plan file e.g., my_plan.json
 //      --plan_type: specifies the type of the plan, when follows robust-rail-evaluator format use --plan_type Evaluator, when plan is issued by robust-rail-solver use --plan_type Solver
+//          WARNING: Evaluator and Solver expect different JSON shapes (Evaluator: a PBRun
+//          object with location/scenario/plan/feasible fields; Solver: {"schemaVersion":..,
+//          "actions":[...]}, the shape robust-rail-solver produces and most example plan
+//          files use). Passing a plan in the wrong shape does NOT error - permissive JSON
+//          parsing silently yields zero actions, and evaluation trivially reports "valid".
+//          If a plan you expect to fail reports valid, first sanity-check that you have the
+//          right --plan_type before trusting the result.
 
 int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay);
 
@@ -151,6 +158,11 @@ int main(int argc, char *argv[])
 
 			return 0;
 		}
+		else
+		{
+			std::cerr << "Unknown --plan_type '" << plan_type << "'. It should be Solver or Evaluator." << std::endl;
+			return 1;
+		}
 	}
 	else if (mode == "INTER")
 	{
@@ -278,6 +290,11 @@ int main(int argc, char *argv[])
 
 			return 0;
 		}
+		else
+		{
+			std::cerr << "Unknown --plan_type '" << plan_type << "'. It should be Solver or Evaluator." << std::endl;
+			return 1;
+		}
 	}
 	else
 	{
@@ -373,8 +390,9 @@ int parse(int argc, char *argv[], std::string &mode, std::string &path_location,
 	}
 	else
 	{
-		std::cout << "Missing plan_type " << std::endl;
-		return 1;
+		// Every real caller (the automated pipeline, every external bug report,
+		// every example in this repo) uses Solver; see doc/known-issue-plan-type.md.
+		plan_type = "Solver";
 	}
 	if (args.find("--departure_delay") != args.end())
 	{

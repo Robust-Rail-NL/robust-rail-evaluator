@@ -366,7 +366,6 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 	// Contains the number of (outStanding) trains per train type e.g., (SLT,4) : 7; (SLT,6) : 9
 	map<pair<string,int>, int> outStandingTrainTypes;
 
-	int totalTaskTime = 0;
 	for (const Incoming *train : incomingTrains)
 	{
 		// Test if arrival train length does not exceed the length of the track (RailRoad) it arrives
@@ -418,6 +417,10 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 		// Get the tasks per train, a train here reflects to a train unit within the shunting unit
 		const unordered_map<const Train *, vector<Task>, TrainHash, TrainEquals> trainTasks = train->GetTasks();
 
+		// Sum task time per shunting unit, not across the whole scenario: different
+		// shunting units can be serviced in parallel on different facilities, so only
+		// a single shunting unit's own tasks are bound by the scenario's end time.
+		int totalTaskTime = 0;
 		for (const auto &[trainPtr, tasks] : trainTasks)
 		{
 			for (Task task : tasks)
@@ -425,14 +428,13 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 				totalTaskTime = totalTaskTime + task.duration;
 			}
 		}
+
+		if (totalTaskTime > GetEndTime())
+		{
+			throw invalid_argument("The total time to finish all the tasks is [" + to_string(totalTaskTime) + "] > than the end time of the scenario [" + to_string(GetEndTime()) + "]");
+		}
 	}
 
-	if (totalTaskTime > GetEndTime())
-	{
-		throw invalid_argument("The total time to finish all the tasks is [" + to_string(totalTaskTime) + "] > than the end time of the scenario [" + to_string(GetEndTime()) + "]");
-
-		// cout << "Total Task time : " << totalTaskTime << endl;
-	}
 	cout << "Arrival trains fit to the arrival tracks" << endl;
 
 	for (const Outgoing *train : outgoingTrains)

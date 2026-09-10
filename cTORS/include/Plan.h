@@ -80,6 +80,13 @@ private:
     vector<POSMatch> matching;
     vector<POSPrecedenceConstraint> graph;
     bool feasible;
+    // The interchange schemaVersion this plan declared, or 1 if it declared
+    // none (see PB_HIP_Plan.schemaVersion). Distinct from Location/Scenario's
+    // own schemaVersion fields. Defaults to 1 - the pre-Setback-requirement,
+    // fully tolerant version - so a plan built without ever calling
+    // SetSchemaVersion() (e.g. the internal Run round-trip format, which has
+    // no schemaVersion field at all) keeps today's behavior.
+    int schemaVersion = 1;
 public:
     /** Construct an empty POSPlan */
     POSPlan() = default;
@@ -89,6 +96,10 @@ public:
     inline const vector<POSAction>& GetActions() const { return actions; }
     /** Add a POSAction to the list of POSAction%s */
     inline void AddAction(const POSAction& action) { actions.push_back(action); }
+    /** Get the interchange schemaVersion this plan declared (1 if none) */
+    inline int GetSchemaVersion() const { return schemaVersion; }
+    /** Set the interchange schemaVersion this plan declared */
+    inline void SetSchemaVersion(int version) { schemaVersion = version; }
     /** Serialize this plan to a protobuf object */
     void Serialize(LocationEngine& engine, const Scenario& scenario, PBPOSPlan* pb_plan) const;
     /** Serialize this plan to a protobuf file */

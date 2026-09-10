@@ -916,6 +916,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
         scenario.SetEvaluatiorStoragePath(pathToStoreEval);
 
     POSPlan plan = POSPlan::CreatePOSPlan(location, &scenario, pb_plan);
+    plan.SetSchemaVersion(pb_hip_plan.has_schemaversion() ? pb_hip_plan.schemaversion() : 1);
 
     bool feasible = pb_run.feasible();
 

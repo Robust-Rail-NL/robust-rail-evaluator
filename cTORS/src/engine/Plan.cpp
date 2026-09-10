@@ -267,7 +267,7 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
 
                 break;
             }
-            case PBPredefinedTaskType::Walking:
+            case PBPredefinedTaskType::Setback:
                 action = new Setback(trainIDs);
                 break;
             case PBPredefinedTaskType::Break:
@@ -378,7 +378,7 @@ void POSAction::Serialize(const LocationEngine &engine, const State *state, PBAc
         }
         else if (instanceof<Setback>(action))
         {
-            pb_task_type->set_predefined(PBPredefinedTaskType::Walking);
+            pb_task_type->set_predefined(PBPredefinedTaskType::Setback);
         }
         else if (instanceof<Arrive>(action))
         {
@@ -761,10 +761,10 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 break;
             }
-            case PB_HIP_PredefinedTaskType::Walking:
+            case PB_HIP_PredefinedTaskType::Setback:
             {
                 // A shunting unit reversing direction in place (no track change).
-                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Walking
+                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Setback
                 // into a real Setback action - this HIP-format conversion was simply
                 // missing the case, so it silently dropped the task (see
                 // doc/known-issue-plan-type.md).
@@ -772,7 +772,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 PBTaskType *taskType = task_action->mutable_type();
 
-                taskType->set_predefined(PBPredefinedTaskType::Walking);
+                taskType->set_predefined(PBPredefinedTaskType::Setback);
 
                 pb_actions.push_back(action_);
 

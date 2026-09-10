@@ -945,6 +945,25 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
     POSPlan plan = POSPlan::CreatePOSPlan(location, &scenario, pb_plan);
     plan.SetSchemaVersion(pb_hip_plan.has_schemaversion() ? pb_hip_plan.schemaversion() : 1);
 
+    switch (pb_hip_plan.feasibility())
+    {
+    case PB_HIP_Feasibility::Feasible:
+        plan.SetFeasibility(Feasibility::Feasible);
+        break;
+    case PB_HIP_Feasibility::Infeasible:
+        plan.SetFeasibility(Feasibility::Infeasible);
+        break;
+    default:
+        plan.SetFeasibility(Feasibility::Unknown);
+        break;
+    }
+    if (pb_hip_plan.has_producer())
+        plan.SetProducer(pb_hip_plan.producer());
+    if (pb_hip_plan.has_cost())
+        plan.SetCost(pb_hip_plan.cost());
+    if (pb_hip_plan.has_costdetails())
+        plan.SetCostDetails(pb_hip_plan.costdetails());
+
     bool feasible = pb_run.feasible();
 
     return new RunResult(location->GetLocationFilePath(), scenario, plan, feasible);

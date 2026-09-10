@@ -74,12 +74,28 @@ class POSPrecedenceConstraint {
  * 
  * A POSPlan consists of a list of POSAction%s, POSMatch%es and POSPrecedenceConstraint%s
  */
+/**
+ * A producer's own verdict on whether its submitted POSPlan satisfies all
+ * hard constraints - not a claim about whether some other plan for the same
+ * Scenario might exist. Mirrors PB_HIP_Feasibility (see Proto.h), kept as a
+ * plain enum here so POSPlan's public interface doesn't have to expose a
+ * protobuf type.
+ */
+enum class Feasibility { Unknown, Feasible, Infeasible };
+
 class POSPlan {
 private:
     vector<POSAction> actions;
     vector<POSMatch> matching;
     vector<POSPrecedenceConstraint> graph;
     bool feasible;
+    // The producer's own declared feasibility/producer/cost metadata (see
+    // PB_HIP_Plan). Defaults match what an absent field means on the wire:
+    // Unknown feasibility, no producer/cost/explanation given.
+    Feasibility feasibility = Feasibility::Unknown;
+    string producer = "";
+    double cost = 0.0;
+    string costDetails = "";
 public:
     /** Construct an empty POSPlan */
     POSPlan() = default;
@@ -89,6 +105,22 @@ public:
     inline const vector<POSAction>& GetActions() const { return actions; }
     /** Add a POSAction to the list of POSAction%s */
     inline void AddAction(const POSAction& action) { actions.push_back(action); }
+    /** Get the producer's declared feasibility verdict for this specific plan (Unknown if none) */
+    inline Feasibility GetFeasibility() const { return feasibility; }
+    /** Set the producer's declared feasibility verdict for this specific plan */
+    inline void SetFeasibility(Feasibility f) { feasibility = f; }
+    /** Get the free-text producer identification for this plan ("" if none) */
+    inline const string& GetProducer() const { return producer; }
+    /** Set the free-text producer identification for this plan */
+    inline void SetProducer(const string& p) { producer = p; }
+    /** Get the producer's declared total cost for this plan (0.0 if none) */
+    inline double GetCost() const { return cost; }
+    /** Set the producer's declared total cost for this plan */
+    inline void SetCost(double c) { cost = c; }
+    /** Get the free-form cost breakdown for this plan ("" if none) */
+    inline const string& GetCostDetails() const { return costDetails; }
+    /** Set the free-form cost breakdown for this plan */
+    inline void SetCostDetails(const string& c) { costDetails = c; }
     /** Serialize this plan to a protobuf object */
     void Serialize(LocationEngine& engine, const Scenario& scenario, PBPOSPlan* pb_plan) const;
     /** Serialize this plan to a protobuf file */

@@ -7,9 +7,9 @@ name: CTest
 # not pull_request.
 on:
   push:
-    branches: [ "main", "dev", "release/2.0.0", "edge" ]
+    branches: [ "main", "edge" ]
   pull_request:
-    branches: [ "main", "dev", "release/2.0.0" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:

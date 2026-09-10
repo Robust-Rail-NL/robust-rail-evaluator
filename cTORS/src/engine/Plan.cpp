@@ -761,6 +761,23 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 break;
             }
+            case PB_HIP_PredefinedTaskType::Walking:
+            {
+                // A shunting unit reversing direction in place (no track change).
+                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Walking
+                // into a real Setback action - this HIP-format conversion was simply
+                // missing the case, so it silently dropped the task (see
+                // doc/known-issue-plan-type.md).
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::Walking);
+
+                pb_actions.push_back(action_);
+
+                break;
+            }
             case PB_HIP_PredefinedTaskType::Arrive:
             {
 

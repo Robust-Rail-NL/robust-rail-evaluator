@@ -3,8 +3,10 @@
 #
 # The version is read from CMakeLists.txt's project(TORS VERSION ...) plus
 # TORS_VERSION_SUFFIX (the single source of truth — use bump-version.sh to
-# change it) and passed into the image as a build-arg, so the Dockerfile
-# LABEL never needs a separate edit.
+# change it) and passed into the image as a build-arg, so neither the
+# Dockerfile LABEL nor the built binary's own startup "TORS <version>" line
+# (TORS_VERSION_OVERRIDE, consumed by cTORS/CMakeLists.txt — see its comment)
+# needs a separate edit.
 #
 # The :latest tag is only applied to final releases (no TORS_VERSION_SUFFIX).
 # Prerelease versions (e.g. 2.0.0-alpha.4 on the noproto branch) are pushed

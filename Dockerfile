@@ -29,10 +29,23 @@ COPY . .
 # Publish those under a separate tag - never as the release tag, since an
 # assertion failure aborts the process.
 ARG ASSERTIONS=OFF
+# Empty by default, so a bare "docker build" with no --build-arg (i.e. not
+# going through docker-push.sh/docker-push-edge.sh) still gets a sensible
+# version: whatever's checked into the top-level CMakeLists.txt. When
+# docker-push.sh/docker-push-edge.sh passes VERSION (the same value also put
+# in the LABEL below), TORS_VERSION_OVERRIDE makes main.cpp's startup
+# "TORS <version>" line - read from the binary's own compiled-in TORS_VERSION,
+# not from the LABEL, which a running container can't introspect - actually
+# match what the image claims to be. Previously it never did for edge builds:
+# this ARG only reached the LABEL, so every image printed whatever version
+# happened to be committed in CMakeLists.txt at build time, coincidentally
+# correct for ordinary releases and silently wrong for edge builds (see
+# docker-push-edge.sh).
+ARG VERSION=
 
 RUN mkdir -p build \
     && cd build \
-    && cmake .. -DCTORS_ASSERTIONS=${ASSERTIONS} \
+    && cmake .. -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
     && cmake --build .
 
 

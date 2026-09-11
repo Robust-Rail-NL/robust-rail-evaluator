@@ -377,6 +377,7 @@ void LocationEngine::ApplyActionAndStep(State *state, const SimpleAction &action
 bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 {
 	auto state = StartSession(scenario);
+	state->SetPlanSchemaVersion(plan.GetSchemaVersion());
 	Step(state);
 	auto it = plan.GetActions().begin();
 	int stalledIterations = 0;
@@ -470,6 +471,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 {
 
 	auto state = StartSession(scenario);
+	state->SetPlanSchemaVersion(plan.GetSchemaVersion());
 	state->file.open(path);
 
 	Step(state);

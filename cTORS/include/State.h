@@ -80,6 +80,11 @@ private:
 	map<int, const ShuntingUnit*> trainIDToShuntingUnit;
 	map<int, const Train*> trainIDToTrain;
 	bool changed;
+	// The interchange schemaVersion of the plan being evaluated against this
+	// State, or 1 (the fully tolerant default) if none has been set - see
+	// POSPlan::GetSchemaVersion(). Not known at construction time: State is
+	// built from a Scenario alone, before any plan is attached.
+	int planSchemaVersion = 1;
 public:
 	State() = delete;
 	/** Construct an initial State object from a Scenario object and a vector of Track%s in a Location */
@@ -113,6 +118,10 @@ public:
 	inline int GetEndTime() const { return endTime; }
 	/** Get the start time of this Scenario */
 	inline int GetStartTime() const { return startTime; }
+	/** Get the interchange schemaVersion of the plan being evaluated (1 if none set) */
+	inline int GetPlanSchemaVersion() const { return planSchemaVersion; }
+	/** Set the interchange schemaVersion of the plan being evaluated */
+	inline void SetPlanSchemaVersion(int version) { planSchemaVersion = version; }
 	
 	//Changed
 	/** Returns true if this state has changed since the last time it was set to unchanged */

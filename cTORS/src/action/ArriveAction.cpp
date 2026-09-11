@@ -29,7 +29,7 @@ const Action* ArriveActionGenerator::Generate(const State* state, const SimpleAc
 	auto inc = state->GetIncomingByID(arrive->GetIncomingID());
 	if(inc == nullptr) throw InvalidActionException("There is no incoming train with ID " + to_string(arrive->GetIncomingID()));
 	auto su = inc->GetShuntingUnit();
-	return new ArriveAction(su, 0, inc);
+	return new ArriveAction(su, arrive->GetDuration(), inc);
 }
 
 void ArriveActionGenerator::Generate(const State* state, list<const Action*>& out) const {

@@ -129,7 +129,14 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
                 // The instanding semantics (no arrival track reserved) come from
                 // Incoming::IsInstanding(), not from the task type, so the two cases
                 // are handled identically here.
-                action = new Arrive(scenario->GetIncomingByTrainIDs(trainIDs));
+                //
+                // minDuration carries the case where the train reached the arrival
+                // track but its route into the yard wasn't free yet: the plan gives
+                // the Arrive itself that duration (see Wait's minDuration usage
+                // below for the same pattern), rather than following it with a Wait
+                // that would fail legal_on_parking_track_rule on a non-parking
+                // arrival track such as a gateway (solver#13).
+                action = new Arrive(scenario->GetIncomingByTrainIDs(trainIDs), minDuration);
                 break;
             case PBPredefinedTaskType::StandOut:
             {

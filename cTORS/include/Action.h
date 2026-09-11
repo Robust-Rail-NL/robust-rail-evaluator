@@ -202,21 +202,36 @@ public:
 
 /**
  * The Arrive action lets a scheduled ShuntingUnit arrive on the shunting yard.
+ *
+ * By default it arrives instantaneously, which is correct when there is no
+ * plan to consult (e.g. candidate generation during search).
+ *
+ * When replaying a plan, a train that reached the arrival track but whose
+ * route into the yard was not free yet may need to occupy that track for a
+ * while before moving on. A non-negative duration lets the Arrive itself span
+ * that gap instead of it being expressed as a trailing Wait - which fails
+ * legal_on_parking_track_rule when the arrival track (e.g. a gateway) does
+ * not allow parking, since Arrive is exempt from that rule but Wait is not.
  */
 class Arrive : public SimpleAction {
 private:
 	int incomingID;
 	bool standingType;
+	int duration;
 
 public:
 	Arrive() = delete;
-	/** Construct an Arrive action from the Incoming event */
-	Arrive(const Incoming* inc) : SimpleAction(inc->GetShuntingUnit()), incomingID(inc->GetID()), standingType(inc->IsInstanding()) {}
+	/** Construct an Arrive action from the Incoming event, arriving instantaneously. */
+	Arrive(const Incoming* inc) : Arrive(inc, 0) {}
+	/** Construct an Arrive action from the Incoming event, occupying the arrival track for the given duration. */
+	Arrive(const Incoming* inc, int duration) : SimpleAction(inc->GetShuntingUnit()), incomingID(inc->GetID()), standingType(inc->IsInstanding()), duration(duration) {}
 	/** Default copy constructor */
 	Arrive(const Arrive& arrive) = default;
 
 	/** Get the id of the Incoming event */
 	inline const int GetIncomingID() const { return incomingID; }
+	/** How long the ShuntingUnit occupies the arrival track before it is routed into the yard. */
+	inline int GetDuration() const { return duration; }
 	inline const string toString() const override {
 		if(!standingType)
 			return "Arrive: " + GetTrainsToString();

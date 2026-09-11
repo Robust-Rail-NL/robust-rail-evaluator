@@ -60,4 +60,25 @@ namespace cTORSTest
 		// per carriage variant (1 TT/1 and 1 TT/2 each way), so this must not throw.
 		CHECK_NOTHROW(scenario.CheckScenarioCorrectness(location));
 	}
+
+	TEST_CASE("Scenario correctness: task time is scoped per shunting unit, not summed across the whole scenario (issue #12)")
+	{
+		// Self-contained fixture under cTORSTest/fixtures/parallel_facility_task_time_test.
+		Location location(TORS_DATA_DIR "/parallel_facility_task_time_test", true);
+
+		// Two shunting units each needing 2000s of service time (4000s combined)
+		// against a 3600s scenario used to be rejected outright, because
+		// CheckScenarioCorrectness summed task duration across every shunting unit
+		// in the scenario instead of scoping it per unit - ignoring that they can be
+		// serviced in parallel on separate facilities. Reproduces the exact numbers
+		// from the issue's report ([4000] > [3600]).
+		Scenario scenario(TORS_DATA_DIR "/parallel_facility_task_time_test/scenario.json", location);
+		CHECK_NOTHROW(scenario.CheckScenarioCorrectness(location));
+
+		// Guards against the fix over-correcting into a no-op: a single shunting
+		// unit's own tasks (4000s here) still can't exceed the scenario's end time
+		// (3600s), since one unit genuinely can't be in two places at once.
+		Scenario overage(TORS_DATA_DIR "/parallel_facility_task_time_test/scenario_single_unit_overage.json", location);
+		CHECK_THROWS_AS(overage.CheckScenarioCorrectness(location), std::invalid_argument);
+	}
 }

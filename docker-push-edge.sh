@@ -31,6 +31,8 @@
 # for why (network=host, shared with sibling Robust-Rail-NL projects).
 set -euo pipefail
 
+docker login ghcr.io
+
 IMAGE="ghcr.io/robust-rail-nl/tors"
 BUILDER_NAME="robust-rail-builder"
 

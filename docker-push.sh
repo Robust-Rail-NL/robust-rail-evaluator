@@ -43,6 +43,8 @@
 # buildx builder isn't tied to a specific repo or Dockerfile.
 set -euo pipefail
 
+docker login ghcr.io
+
 IMAGE="ghcr.io/robust-rail-nl/tors"
 BUILDER_NAME="robust-rail-builder"
 

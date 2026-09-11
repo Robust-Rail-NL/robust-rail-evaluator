@@ -43,10 +43,7 @@ ARG ASSERTIONS=OFF
 # docker-push-edge.sh).
 ARG VERSION=
 
-RUN mkdir -p build \
-    && cd build \
-    && cmake .. -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
-    && cmake --build . --parallel 8
+RUN ./build.sh -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION}
 
 
 # Runtime stage: only the binary and its shared library dependencies

@@ -19,29 +19,26 @@ The basic project set up uses the structure provided by cmake. The subfolders ar
 
 # Building
 ### Build the evaluator from C++ source
-In the source directory execute the following commands:
+In the source directory execute the following command:
 ```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
+./build.sh
 ```
-This has been tested with gcc 9.4.0 Older versions may not support the c++17 standard. 
+This has been tested with gcc 9.4.0 Older versions may not support the c++17 standard.
+
+`build.sh` creates `build/` if needed, then configures and compiles; any
+arguments are passed through to cmake's configure step. It runs the compile
+with one job per core (minus a couple, left free for the rest of the
+machine) under `nice`, so it also yields the CPU automatically whenever
+something else actually wants it.
 
 ### Build the evaluator with debug option
 ```bash
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-cmake --build .
+./build.sh -DCMAKE_BUILD_TYPE=Debug
 ```
 
 To go back from debug to release:
 ```bash
-mkdir build
-cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build .
+./build.sh -DCMAKE_BUILD_TYPE=Release
 ```
 
 # Debugging in Visual Studio Code
@@ -188,12 +185,12 @@ cd build/cTORSTest
 ./CompatibilityTest
 ```
 
-In case of modification of the code, compile with: 
+In case of modification of the code, compile with:
 
 ```bash
-cd build
-cmake --build .
+./build.sh
 ```
+(safe to re-run — it reconfigures and rebuilds only what changed)
 
 
 
@@ -261,12 +258,9 @@ The usage of **[Dev-Container](https://code.visualstudio.com/docs/devcontainers/
 Note: all the dependencies are already contained by the Docker instance.
 
 ### Compile the evaluator from C++ source
-In the source directory execute the following commands:
+In the source directory execute the following command:
 ```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
+./build.sh
 ```
 
 ### Dependencies installation

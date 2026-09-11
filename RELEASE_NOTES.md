@@ -1,5 +1,79 @@
 # Release notes
 
+## 2.1.0 — 2026-09-11
+
+A fix-focused release. No interchange-format changes — this is not a
+lockstep release with generator/solver. Does **not** include the
+saw-movement/orientation fix for evaluator#13 — that lands its own
+explicit-`Setback` wire change and is being rolled out via the `edge`
+channel first, alongside matching solver/planner changes; see
+[#13](https://github.com/Robust-Rail-NL/robust-rail-evaluator/issues/13).
+
+### Two of 2.0.0's known limitations are fixed upstream
+
+Both fixtures called out in 2.0.0 as expected-to-fail now produce valid
+plans, fixed on the solver side (solver 2.1.0):
+
+- **solver#13** — a delayed Arrival now carries a real duration instead of a
+  trailing Wait, fixing `6t_custom_example3`.
+- **solver#14** — outStanding trains are now costed against the scenario end
+  time, so the solver no longer produces a plan that overruns the horizon for
+  free. `7t_custom_example1` now evaluates cleanly. Note: this avoids
+  triggering [evaluator#6](https://github.com/Robust-Rail-NL/robust-rail-evaluator/issues/6)
+  rather than fixing it — the underlying diagnostic-quality bug
+  (`EvaluatePlan` reporting the symptom, not the cause, for a plan that
+  genuinely does extend past the horizon) is still open.
+
+solver#18 (ignored `standingIndex`) is also fixed upstream; TORS itself
+already honoured it, so nothing changes here.
+
+### Fixed: scenario task-duration check summed across the wrong scope (#12)
+
+`Scenario::CheckScenarioCorrectness` rejected a scenario if the *sum* of
+every train's required task duration exceeded the scenario's end time —
+which wrongly rejects a scenario where that time is spread across multiple
+facilities in parallel (e.g. two hours of work split across two maintenance
+facilities in one hour). The check is now scoped per shunting unit: a single
+unit's own tasks still can't exceed the scenario end time, but different
+units no longer share one global budget. Reported with a full repro by an
+external user — thanks to [@luteberget](https://github.com/luteberget).
+
+### JSON input validation (closes evaluator#1)
+
+Several gaps where malformed or wrong-shaped JSON produced a silent
+default/empty result instead of an error are closed:
+
+- A `Location`/`Scenario`/`Plan`/`Run` JSON document with some unrelated
+  field set but none of its essential content (e.g. a location with no
+  `trackParts`) now fails at the parse boundary with a clear message,
+  instead of loading "successfully" and crashing several steps later with
+  an unhelpful `map::at`.
+- Syntactically valid JSON that doesn't match the target message shape at
+  all now throws, instead of silently parsing into an all-default,
+  empty message.
+- `main.cpp` catches and reports these failures on every `--plan_type`
+  branch (previously only some paths had a `try`/`catch` at all).
+- `--plan_type` is now validated and defaults to `Solver` (previously
+  accepted any free-form string, silently doing nothing on a typo).
+
+### Repo hygiene
+
+- Added the `edge` image channel (`docker-push-edge.sh`) alongside the
+  existing `stable` release path — see `CONTRIBUTING.md`. `edge` builds now
+  also report their own `<version>-edge+<date>.<sha>` string at startup,
+  matching what's already in the image's OCI label.
+- Retired the unmaintained Python front-end (`TORS/`) — a strictly older,
+  never-shipped snapshot of the same code developed in `AlgTUDelft/cTORS`.
+  `pyTORS` (the pybind11 binding) is kept; only the application built on top
+  of it is gone.
+- Removed orphaned files with no live consumer: `.gitlab-ci.yml`,
+  `setup.py`, `vis_config.json`.
+
+### Publishing
+
+Unchanged from 2.0.0: versioned from `CMakeLists.txt`'s `project(TORS
+VERSION ...)`, pushed to `ghcr.io/robust-rail-nl/tors` via `docker-push.sh`.
+
 ## 2.0.0 — 2026-08-20
 
 This is the evaluator's (TORS's) slice of the shared 2.0.0 release: the same

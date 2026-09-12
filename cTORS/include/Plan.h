@@ -98,9 +98,20 @@ public:
 };
 
 /**
+ * One outgoing train whose IDs match an Exit action, but whose declared departure
+ * time fell outside the action's suggested time window - the caller has already
+ * filtered by ID match (via ShuntingUnit::MatchesTrainIDs, tested on its own in
+ * VehicleTest.cpp); this only ever describes a genuine time mismatch.
+ */
+struct ExitCandidate {
+    int id;
+    int departureTime;
+};
+
+/**
  * A RunResult describes a TORS session
- * 
- * A TORS session is run at a Location, given a certain Scenario. 
+ *
+ * A TORS session is run at a Location, given a certain Scenario.
  * In this context a POSPlan will be, or was run
  */
 class RunResult {
@@ -171,6 +182,24 @@ public:
     static PBAction CreateBeginMoveAction(PB_HIP_Action &pb_hip_action);
 
     static PBAction CreateEndMoveAction(PB_HIP_Action &pb_hip_action);
+
+    /**
+     * Build the diagnostic reported when an Exit action's suggested time window
+     * matches no outgoing train's declared departure time.
+     *
+     * Takes only ID-matching candidates (see ExitCandidate). Falls back to a
+     * single "no such outgoing train" message when the caller found no ID
+     * match at all.
+     *
+     * @param candidates outgoing trains whose IDs matched the action, but whose
+     *   time didn't
+     * @param actionStart the Exit action's suggested start time
+     * @param actionEnd the Exit action's suggested end time
+     * @param trainIDs the train IDs the Exit action was for, used only in the
+     *   no-ID-match fallback message
+     */
+    static string FormatExitMismatchError(const std::vector<ExitCandidate> &candidates,
+                                          int actionStart, int actionEnd, const std::vector<int> &trainIDs);
 
 };
     /** Read Plan from JSON and create protobuf fromat plan (run result)*/

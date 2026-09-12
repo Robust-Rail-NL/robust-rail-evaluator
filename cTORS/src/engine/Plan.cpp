@@ -52,30 +52,31 @@ POSAction &POSAction::operator=(const POSAction &pa)
     return *this;
 }
 
-static string formatExitTrainError(const int &track_exiting_train_ID, const bool &isTrainMatched, const int &actionStartTime, const int &actionEndTime, const int &trainMustDepartTime)
+string RunResult::FormatExitMismatchError(const vector<ExitCandidate> &candidates,
+                                          int actionStart, int actionEnd, const vector<int> &trainIDs)
 {
-    std::ostringstream oss;
-    oss << "\n+---------------------------+\n";
-    oss << "|     🚨 ERROR OCCURRED     |\n";
-    oss << "+---------------------------+\n";
-    oss << "| Tracked Train     : " << track_exiting_train_ID << "\n";
-    oss << "| Is Train matched  : " << (isTrainMatched ? "Yes" : "No") << "\n";
-    oss << "| Action start time : " << actionStartTime << "\n";
-    oss << "| Action end time   : " << actionEndTime << "\n";
-    oss << "| Trains's departure: " << trainMustDepartTime << "\n";
-    oss << "+---------------------------+\n";
-    oss << "| Error Suspected:  \n";
-    if (trainMustDepartTime >= actionStartTime || trainMustDepartTime <= actionEndTime)
+    if (candidates.empty())
+        return "No outgoing train found matching train IDs " + Join(trainIDs, "-") + ".";
+
+    vector<string> errorMessages;
+    for (const auto &candidate : candidates)
     {
-        oss << "| Trains's departure mismatch " << "\n";
-        oss << "| with Action start/end time" << "\n";
+        std::ostringstream oss;
+        oss << "\n+---------------------------+\n";
+        oss << "|     🚨 ERROR OCCURRED     |\n";
+        oss << "+---------------------------+\n";
+        oss << "| Tracked Train     : " << candidate.id << "\n";
+        oss << "| Action start time : " << actionStart << "\n";
+        oss << "| Action end time   : " << actionEnd << "\n";
+        oss << "| Trains's departure: " << candidate.departureTime << "\n";
+        oss << "+---------------------------+\n";
+        oss << "| Error Suspected:  \n";
+        oss << "| Trains's departure mismatch \n";
+        oss << "| with Action start/end time\n";
+        oss << "+---------------------------+\n";
+        errorMessages.push_back(oss.str());
     }
-    else
-    {
-        oss << "| Probably train IDs cannot be found " << "\n";
-    }
-    oss << "+---------------------------+\n";
-    return oss.str();
+    return Join(errorMessages.begin(), errorMessages.end(), " \n\n");
 }
 
 // Fixed to enable multi move actions
@@ -195,31 +196,24 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
                                   });
                 if (it == outgoingTrains.end())
                 {
-                    vector<string> errorMessages;
-                    const string pathToLocationFile = location->GetLocationFilePath();
-
+                    vector<ExitCandidate> candidates;
                     for (const Outgoing *train : outgoingTrains)
-                    {
-                        // auto trains = train->GetShuntingUnit()->GetTrains();
-                        // trains.at(0)
+                        if (train->GetShuntingUnit()->MatchesTrainIDs(trainIDs, types))
+                            candidates.push_back({train->GetID(), train->GetTime()});
 
-                        string errorMessage = formatExitTrainError(train->GetID(), train->GetShuntingUnit()->MatchesTrainIDs(trainIDs, types), start, end, train->GetTime());
-                        errorMessages.push_back(errorMessage);
-                        // cout << "Train: " << train->GetID() << " Tracked Trains: " << track_exiting_trains[train->GetID()] << " Matcing : " << train->GetShuntingUnit()->MatchesTrainIDs(trainIDs, types) << "Action Start Time: " << start << "Action End Time: " << end << " Train Start/End Time: " << train->GetTime()<< endl;
-                    }
+                    string errorMessage = RunResult::FormatExitMismatchError(candidates, start, end, trainIDs);
 
+                    const string pathToLocationFile = location->GetLocationFilePath();
                     if (!pathToLocationFile.empty())
                     { // That means that the EVAL_AND_STORE mode was called
                         LocationEngine engine(pathToLocationFile);
                         auto state = engine.StartSession(*scenario);
                         state->file.open(scenario->GetEvaluatiorStoragePath());
-                        for (string errMessage : errorMessages)
-                            state->file << errMessage;
+                        state->file << errorMessage;
                         state->file << "The plan is not valid";
                         state->file.close();
                     }
-                    // throw invalid_argument("Outgoing Train with ids " + Join(outgoingTrains.begin(), outgoingTrains.end(), ", ") + " does not exist.");
-                    throw invalid_argument(Join(errorMessages.begin(), errorMessages.end(), " \n\n"));
+                    throw invalid_argument(errorMessage);
                 }
 
                 action = new Exit(trainIDs, (*it)->GetID(), (*it)->IsInstanding());

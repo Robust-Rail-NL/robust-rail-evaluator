@@ -174,4 +174,32 @@ namespace cTORSTest
 			CHECK(merged.task().type().predefined() == PBPredefinedTaskType::Combine);
 		}
 	}
+
+	TEST_CASE("FormatExitMismatchError reports only the ID-matching candidates it's given") {
+		// Regression test: an outgoing train with unrelated IDs used to be reported
+		// as a "departure mismatch" too, just because it was also outgoing somewhere
+		// in the scenario - a formatting condition that was true for nearly any input.
+		// The caller is now responsible for filtering to ID-matching candidates (via
+		// ShuntingUnit::MatchesTrainIDs, tested on its own in VehicleTest.cpp) before
+		// calling this; these tests exercise what this function does with the result.
+		vector<int> trainIDs = {4000};
+
+		SUBCASE("one ID-matching candidate outside the window") {
+			vector<ExitCandidate> candidates = {
+				{4000, 1500},  // declared departure 1500, outside the action's window below
+			};
+			string error = RunResult::FormatExitMismatchError(candidates, 1830, 1830, trainIDs);
+
+			CHECK(error.find("Tracked Train     : 4000") != string::npos);
+			CHECK(error.find("departure mismatch") != string::npos);
+		}
+
+		SUBCASE("no candidates at all (nothing matched by ID)") {
+			vector<ExitCandidate> candidates = {};
+			string error = RunResult::FormatExitMismatchError(candidates, 1830, 1830, trainIDs);
+
+			CHECK(error.find("No outgoing train found matching train IDs 4000") != string::npos);
+			CHECK(error.find("departure mismatch") == string::npos);
+		}
+	}
 }

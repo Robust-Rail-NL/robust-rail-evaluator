@@ -41,12 +41,23 @@
 # BUILDER_NAME is shared with sibling Robust-Rail-NL projects (e.g.
 # robust-rail-solver) that need the same multi-arch/network=host setup — a
 # buildx builder isn't tied to a specific repo or Dockerfile.
+#
+# --cache-to/--cache-from push and pull the build cache through a dedicated
+# ":buildcache" tag, shared across all three builds below (plain, -assert,
+# :devel all share the same builder-stage apt-get layer). See
+# robust-rail-planner's docker-push.sh for the mechanism; ghcr.io/robust-rail-nl
+# is public, so this costs no storage/bandwidth quota. It mainly benefits that
+# apt-get layer, not the actual compile - see the Dockerfile's ccache
+# cache-mount comment for why VERSION being baked into the compile command
+# means this registry cache can't help there the way it does in
+# robust-rail-planner.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 docker login ghcr.io
 
 IMAGE="ghcr.io/robust-rail-nl/tors"
+CACHE_REF="$IMAGE:buildcache"
 BUILDER_NAME="robust-rail-builder"
 
 RELEASE=$(sed -n 's:.*project(TORS VERSION \([0-9.]*\)).*:\1:p' CMakeLists.txt)
@@ -68,6 +79,8 @@ docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --build-arg "VERSION=$VERSION" \
     "${TAGS[@]}" \
+    --cache-to "type=registry,ref=$CACHE_REF,mode=max" \
+    --cache-from "type=registry,ref=$CACHE_REF" \
     --push \
     .
 
@@ -83,6 +96,8 @@ docker buildx build \
     --build-arg "VERSION=$VERSION" \
     --build-arg "ASSERTIONS=ON" \
     "${TAGS[@]}" \
+    --cache-to "type=registry,ref=$CACHE_REF,mode=max" \
+    --cache-from "type=registry,ref=$CACHE_REF" \
     --push \
     .
 
@@ -98,5 +113,7 @@ docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --target builder \
     -t "$IMAGE:devel" \
+    --cache-to "type=registry,ref=$CACHE_REF,mode=max" \
+    --cache-from "type=registry,ref=$CACHE_REF" \
     --push \
     .

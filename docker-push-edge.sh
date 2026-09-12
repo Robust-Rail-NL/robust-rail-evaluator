@@ -28,13 +28,17 @@
 # see CONTRIBUTING.md's "No -assert or :devel variant for edge" for why.
 #
 # Requires the same buildx builder as docker-push.sh — see its header comment
-# for why (network=host, shared with sibling Robust-Rail-NL projects).
+# for why (network=host, shared with sibling Robust-Rail-NL projects), and for
+# why this also shares docker-push.sh's :buildcache ref — edge and release
+# builds hit the same builder-stage apt-get layer, so each warms the cache
+# for the other.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 docker login ghcr.io
 
 IMAGE="ghcr.io/robust-rail-nl/tors"
+CACHE_REF="$IMAGE:buildcache"
 BUILDER_NAME="robust-rail-builder"
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -57,6 +61,8 @@ docker buildx build \
     --platform linux/amd64,linux/arm64 \
     --build-arg "VERSION=$EDGE_VERSION" \
     -t "$IMAGE:edge" \
+    --cache-to "type=registry,ref=$CACHE_REF,mode=max" \
+    --cache-from "type=registry,ref=$CACHE_REF" \
     --push \
     .
 

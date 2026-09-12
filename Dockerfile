@@ -77,15 +77,21 @@ RUN --mount=type=cache,target=/root/.ccache,id=ccache-${TARGETARCH} \
 # Runtime stage: only the binary and its shared library dependencies
 FROM ubuntu:24.04
 
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y libprotobuf32t64 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Deliberately placed after the apt-get above, not before: VERSION changes
+# every release, and Docker's layer cache invalidates everything after the
+# first layer whose resolved content differs from a previous build - even a
+# metadata-only LABEL. Keeping it here means a rebuild whose only change is
+# VERSION can still reuse the apt layer via the registry build cache (see
+# docker-push.sh) instead of redoing it.
 ARG VERSION=0.0.0
 LABEL org.opencontainers.image.source="https://github.com/Robust-Rail-NL/robust-rail-evaluator" \
       org.opencontainers.image.description="TORS evaluator" \
       org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.licenses="Apache-2.0"
-
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y libprotobuf32t64 \
-    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /workspace
 

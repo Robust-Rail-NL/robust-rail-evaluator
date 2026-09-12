@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # Build stage: compiles the C++ project. Also published on its own as the
 # ":devel" tag (see docker-push.sh) so .devcontainer/devcontainer.json can
 # pull a ready-made toolchain image instead of rebuilding it from scratch.
@@ -9,6 +11,7 @@ RUN apt-get update \
     && apt-get install --no-install-recommends -y \
     build-essential \
     ca-certificates \
+    ccache \
     cmake \
     curl \
     gdb \
@@ -18,6 +21,16 @@ RUN apt-get update \
     protobuf-compiler \
     python3 \
     && rm -rf /var/lib/apt/lists/*
+
+# TARGETARCH is one of BuildKit's automatic (but must-be-declared) build args.
+# Used below to give amd64 and arm64 their own ccache cache-mount instead of
+# sharing one: docker-push.sh builds both platforms concurrently on the same
+# builder, and ccache entries for the two are never interchangeable anyway
+# (different compiler target), so sharing an id would only add mount
+# contention for no reuse benefit.
+ARG TARGETARCH
+ENV CCACHE_DIR=/root/.ccache
+ENV CCACHE_MAXSIZE=2G
 
 WORKDIR /workspace
 
@@ -43,7 +56,22 @@ ARG ASSERTIONS=OFF
 # docker-push-edge.sh).
 ARG VERSION=
 
-RUN ./build.sh -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION}
+# --mount=type=cache persists /root/.ccache across builds on the same
+# buildx builder (robust-rail-builder is shared/persistent across releases,
+# not recreated per build — see docker-push.sh), so a rebuild that changes
+# only VERSION or a handful of source files reuses ccache's object cache for
+# everything else instead of recompiling from scratch. This is deliberately
+# not the same mechanism as robust-rail-planner's registry build cache
+# (--cache-to/--cache-from type=registry): that caches whole layers keyed on
+# exact instruction inputs, which would never hit here since VERSION (and
+# thus this RUN command's own arguments) changes every release; ccache
+# caches per translation unit instead, so it stays useful even when this
+# step's Docker-level cache is always a miss. It also won't help a
+# completely fresh builder/machine the way the registry cache does — it's
+# only warm as long as robust-rail-builder itself persists.
+RUN --mount=type=cache,target=/root/.ccache,id=ccache-${TARGETARCH} \
+    ./build.sh -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
+    -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 
 # Runtime stage: only the binary and its shared library dependencies

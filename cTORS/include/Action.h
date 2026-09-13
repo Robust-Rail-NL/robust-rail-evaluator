@@ -314,10 +314,17 @@ public:
 class MultiMove : public SimpleAction {
 private:
 	vector<string> trackIDs;
+	int duration;
 public:
 	MultiMove() = delete;
-	/** Construct a MultiMove action for the ShuntingUnit described by the train ids over the given list of Track IDs */
-	MultiMove(const vector<int>& trainIDs, const vector<string>& trackIDs) : SimpleAction(trainIDs), trackIDs(trackIDs) {}
+	/**
+	 * Construct a MultiMove action for the ShuntingUnit described by the train ids over the given list of Track IDs.
+	 *
+	 * A non-negative duration is honoured as given (the duration a replayed plan declared for this
+	 * move); a negative one (the default) means "no plan duration", so the generated MoveAction falls
+	 * back to the fixed per-track-type duration TORS uses during its own search.
+	 */
+	MultiMove(const vector<int>& trainIDs, const vector<string>& trackIDs, int duration = -1) : SimpleAction(trainIDs), trackIDs(trackIDs), duration(duration) {}
 	/** Construct a MultiMove action for the ShuntingUnit described by the train ids over the given vector of Track%s */
 	MultiMove(const vector<int>& trainIDs, const vector<const Track*>& tracks);
 	/** Construct a MultiMove action for the ShuntingUnit su over the given vector of Track%s */
@@ -332,6 +339,10 @@ public:
 	inline const string& GetDestinationID() const { return trackIDs.back(); }
 	/** Get the Track IDs of the route */
 	inline const vector<string>& GetTrackIDs() const {return trackIDs; }
+	/** The duration a replayed plan declared for this move, in seconds, or a negative value if none was given. */
+	inline int GetDuration() const { return duration; }
+	/** Whether this MultiMove carries a duration of its own (i.e. it comes from a replayed plan). */
+	inline bool HasDuration() const { return duration >= 0; }
 	inline const string toString() const override { return "Move: " + GetTrainsToString() + " along path " + Join(trackIDs," - "); }
 	inline const string GetGeneratorName() const override { return "move"; }
 	inline const MultiMove* Clone() const override { return new MultiMove(*this); }

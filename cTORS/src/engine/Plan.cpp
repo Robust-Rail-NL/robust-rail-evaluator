@@ -112,7 +112,11 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
         transform(trackIDs_mult.begin(), trackIDs_mult.end(), tracks.begin(), [](const int &s) -> string
                   { return to_string(s); });
 
-        action = new MultiMove(trainIDs, tracks);
+        // Trust the plan's own duration for this move rather than recomputing one from the
+        // fixed per-track-type sum: a long multi-hop route can make that sum outlast what the
+        // plan scheduled around it, leaving the move still "active" when the plan's next action
+        // for this unit (typically EndMove) is due (issue #18).
+        action = new MultiMove(trainIDs, tracks, minDuration);
     }
     else if (pb_action.has_task())
     {

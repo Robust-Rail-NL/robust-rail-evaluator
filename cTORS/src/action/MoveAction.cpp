@@ -74,9 +74,13 @@ const Action* MoveActionGenerator::Generate(const State* state, const SimpleActi
 		auto move = static_cast<const MultiMove*>(&action);
 		auto& trackIDs = move->GetTrackIDs();
 		vector<const Track*> tracks(trackIDs.size());
-		transform(trackIDs.begin(), trackIDs.end(), tracks.begin(), [this](const string& id) 
+		transform(trackIDs.begin(), trackIDs.end(), tracks.begin(), [this](const string& id)
 			-> const Track* { return  location->GetTrackByID(id); });
-		auto length = location->GetDistance(tracks);
+		// A replayed plan's own duration takes precedence over the fixed per-track-type sum:
+		// that sum is a reasonable stand-in when nothing else declares a duration (TORS's own
+		// search), but for a plan-supplied MultiMove it can outlast or undershoot what the plan
+		// itself scheduled around this move (issue #18).
+		auto length = move->HasDuration() ? move->GetDuration() : location->GetDistance(tracks);
 		return new MoveAction(su, tracks, length, false);
 	}
 	throw invalid_argument("The MoveActionGenerator can only deal with Move and MultiMove actions and not with " + action.toString());

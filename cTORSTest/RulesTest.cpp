@@ -211,6 +211,56 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("A multi-hop move replayed from a plan finishes on the plan's own duration (issue #18)") {
+		// TORS's own search has no plan to consult, so MoveActionGenerator falls back to
+		// summing a fixed duration per track type crossed (Location::GetDistance with
+		// byType=true). That sum is independent of whatever duration a replayed plan
+		// actually declared for this move, and over a long enough multi-hop route it can
+		// exceed the plan's own window - the action then stays "active" past the plan's
+		// next scheduled action for the same unit, which fails with a misleading "shunting
+		// unit is already active" error. Trust the plan's own duration instead, the same
+		// way Wait and Arrive already do above.
+		Location location(TORS_DATA_DIR "/scenario_unification_test", true);
+		Scenario scenario;
+
+		vector<Track*> tracks = location.GetTracks();
+		State state(scenario, tracks);
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train train(1, &testType);
+		ShuntingUnit su(1, {train});
+		auto previous = location.GetTrackByID("1");
+		auto position = location.GetTrackByID("2");
+		state.AddShuntingUnit(&su, position, previous);
+
+		json params = json::object();
+		params["no_routing_duration"] = 100;
+		params["constant_time"] = 0;
+		params["default_time"] = true;
+		params["norm_time"] = true;
+		params["walk_time"] = true;
+		MoveActionGenerator generator(params, &location);
+
+		vector<string> routeIDs = {"1", "2"};
+		vector<const Track*> route = {previous, position};
+		auto fixedTypeSum = location.GetDistance(route);
+
+		SUBCASE("a planned multi-hop move finishes on the plan's duration, not the fixed per-track-type sum") {
+			int planDuration = fixedTypeSum + 12345;
+			MultiMove planned({1}, routeIDs, planDuration);
+			const Action* action = generator.Generate(&state, planned);
+			CHECK(action->GetDuration() == planDuration);
+			delete action;
+		}
+
+		SUBCASE("an unplanned multi-hop move (TORS's own search) still uses the fixed per-track-type sum") {
+			MultiMove unplanned({1}, routeIDs);
+			const Action* action = generator.Generate(&state, unplanned);
+			CHECK(action->GetDuration() == fixedTypeSum);
+			delete action;
+		}
+	}
+
 	TEST_CASE("Parking is about standing still, not about passing through") {
 		// A gateway forbids parking because it is the connection to the main line,
 		// but every departure has to move onto it before leaving. Rejecting a

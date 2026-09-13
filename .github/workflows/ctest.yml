@@ -31,6 +31,23 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    # doctest allows two TEST_CASEs with the same name - nothing rejects it,
+    # so it doesn't announce itself. Twice now the same fix got written from
+    # scratch by two independent commits weeks apart (most recently
+    # "Throw on JSON that parses ok but doesn't match the target message"),
+    # and both landed once edge's repeated "merge main into edge" picked up
+    # both lineages - a duplicate TEST_CASE name is the cheapest visible
+    # symptom of exactly that. Runs before the expensive build/dependency
+    # steps so it fails fast.
+    - name: Check for duplicate TEST_CASE names
+      run: |
+        duplicates=$(grep -rhoE 'TEST_CASE\("[^"]*"\)' cTORSTest/*.cpp | sort | uniq -d)
+        if [ -n "$duplicates" ]; then
+          echo "Duplicate TEST_CASE name(s) found - almost certainly the same fix written twice:"
+          echo "$duplicates"
+          exit 1
+        fi
+
     # build-essential, cmake, git and python3 are already on the runner. The
     # rest is what .devcontainer/Dockerfile installs on top of ubuntu:24.04.
     - name: Install dependencies

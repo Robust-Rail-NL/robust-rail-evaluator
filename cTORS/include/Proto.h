@@ -66,6 +66,7 @@ typedef HIP_protos::MemberOfStaff PB_HIP_MemberOfStaff;
 typedef HIP_protos::Plan PB_HIP_Plan;
 typedef HIP_protos::Action PB_HIP_Action;
 typedef HIP_protos::Resource PB_HIP_Recource;
+typedef HIP_protos::Feasibility PB_HIP_Feasibility;
 
 
 

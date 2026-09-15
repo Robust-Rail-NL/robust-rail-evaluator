@@ -4,6 +4,18 @@ package HIP_protos;
 import "HIP_Common.proto";
 import "HIP_Scenario.proto";
 
+// A producer's own verdict on whether its submitted Plan satisfies all hard
+// constraints - not a claim about whether some other plan for the same
+// Scenario might exist. Unknown is 0 (the proto3 default for an unset
+// field), so an absent value and an explicit "Unknown" are indistinguishable
+// on the wire - matching the schema's own default for a producer that
+// doesn't compute this, or a plan predating this field.
+enum Feasibility {
+	Unknown = 0;
+	Feasible = 1;
+	Infeasible = 2;
+}
+
 // This message contains the result of a shunting algorithm.
 message Plan {
 	// The shared interchange schema version. Present as an explicit-presence
@@ -18,6 +30,24 @@ message Plan {
 	// the plan because the evaluator supposedly could not reach the original.
 	// It receives --path_location directly, and never read this.
 	reserved 2;
+
+	Feasibility feasibility = 4;
+
+	// Free text identifying what produced this plan, e.g.
+	// "robust-rail-solver 2.0.0-edge+20260826.a1b2c3d" - for a human
+	// debugging a failed evaluation, not for programmatic parsing.
+	optional string producer = 5;
+
+	// The producer's own total objective/cost value for this plan, in
+	// whatever units and scale that producer uses - not comparable across
+	// different producers.
+	optional double cost = 6;
+
+	// Free-form human-readable breakdown of cost, e.g. the solver's own
+	// SolutionCost.ToString() output. Not structured: the term breakdown is
+	// producer-specific and isn't a general interchange concept the way the
+	// total itself is.
+	optional string costDetails = 7;
 }
 
 message Action {

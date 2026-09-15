@@ -92,7 +92,7 @@ string Join(list<Obj> objects, const string& sep) {
 // The shared interchange schemaVersion carried by Location, Scenario, and
 // Plan. Independent monotonic integer, decoupled from tool release versions;
 // increments only on breaking changes to the wire format. See
-// SCHEMA_CHANGELOG.md in robust-rail-generator for what changed at each
+// SCHEMA_CHANGELOG.md in robust-rail-general for what changed at each
 // version.
 constexpr int EXPECTED_SCHEMA_VERSION = 2;
 

@@ -64,6 +64,18 @@ inline void CheckScenarioEnded(const State *state)
  * spinning forever. */
 static const int MAX_STALLED_EVALUATE_PLAN_ITERATIONS = 100;
 
+/** Logs a line (never rejects) when a plan's own declared feasibility
+ * verdict disagrees with what evaluation actually found - a producer
+ * integrity check, not a validity check. Silent when the plan declared
+ * Unknown, since that's not a claim to check against. */
+static void WarnIfFeasibilityMismatch(const POSPlan &plan, bool valid)
+{
+	if (plan.GetFeasibility() == Feasibility::Feasible && !valid)
+		cerr << "WARNING: plan declared feasibility \"Feasible\" but evaluation found it invalid." << endl;
+	else if (plan.GetFeasibility() == Feasibility::Infeasible && valid)
+		cerr << "WARNING: plan declared feasibility \"Infeasible\" but evaluation found it valid." << endl;
+}
+
 void LocationEngine::Step(State *state)
 {
 	ExecuteImmediateEvents(state);
@@ -435,6 +447,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 			cout << "------------------------------------RESULT------------------------------------" << endl;
 			cout << e.what() << endl;
 			cout << "------------------------------------------------------------------------------" << endl;
+			WarnIfFeasibilityMismatch(plan, false);
 			return false;
 			break;
 		}
@@ -444,6 +457,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 			cout << "Scenario failed. Invalid action: " << e.what() << "." << endl;
 			cout << "------------------------------------------------------------------------------" << endl;
 
+			WarnIfFeasibilityMismatch(plan, false);
 			return false;
 			break;
 		}
@@ -464,6 +478,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan)
 		cout << "------------------------------------------------------------------------------" << endl;
 	}
 
+	WarnIfFeasibilityMismatch(plan, result);
 	return result;
 }
 
@@ -522,6 +537,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 			state->file << "------------------------------------RESULT------------------------------------" << endl;
 			state->file << e.what() << endl;
 			state->file << "------------------------------------------------------------------------------" << endl;
+			WarnIfFeasibilityMismatch(plan, false);
 			return false;
 			break;
 		}
@@ -531,6 +547,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 			state->file << "Scenario failed. Invalid action: " << e.what() << "." << endl;
 			state->file << "------------------------------------------------------------------------------" << endl;
 
+			WarnIfFeasibilityMismatch(plan, false);
 			return false;
 			break;
 		}
@@ -552,6 +569,7 @@ bool LocationEngine::EvaluatePlan(const Scenario &scenario, const POSPlan &plan,
 	}
 
 	state->file.close();
+	WarnIfFeasibilityMismatch(plan, result);
 	return result;
 }
 

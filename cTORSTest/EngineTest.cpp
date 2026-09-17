@@ -40,6 +40,12 @@ namespace cTORSTest
 		CHECK(tasks.front().optional == false); // "optional": false in the fixture
 		CHECK(tasks.front().duration == 50);
 
+		// Regression test (issue #25): train102 has "tasks": [] in the fixture, so it
+		// never gets a key in the Incoming's tasks map (only trains with at least one
+		// task do). GetTasksForTrain must return an empty list for it rather than
+		// throwing unordered_map::at.
+		CHECK(scenario.GetTasksForTrain(train102).size() == 0);
+
 		REQUIRE(scenario.GetOutgoingTrains().size() == 1);
 		auto outgoing = scenario.GetOutgoingTrains().front();
 		CHECK(outgoing->GetID() == 20); // derived from TrainRequest.displayName, which has no separate id field

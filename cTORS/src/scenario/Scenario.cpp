@@ -396,8 +396,6 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
 				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
-				if (incomingTrainTypes.find(trainType) != incomingTrainTypes.end())
-					incomingTrainTypes[trainType] = 0;
 				incomingTrainTypes[trainType] += 1;
 			}
 		}
@@ -407,9 +405,6 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			for (Train trainUnit : shuntingUnit->GetTrains())
 			{
 				auto trainType = make_pair(trainUnit.GetType()->displayName, trainUnit.GetType()->carriages);
-				if (inStandingTrainTypes.find(trainType) != inStandingTrainTypes.end())
-					inStandingTrainTypes[trainType] = 0;
-
 				inStandingTrainTypes[trainType] += 1;
 			}
 		}
@@ -469,9 +464,6 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			{
 				string trainType = trainUnit.GetType()->displayName;
 				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
-				if (outgoingTrainTypes.find(typeKey) != outgoingTrainTypes.end())
-					outgoingTrainTypes[typeKey] = 0;
-
 				outgoingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
@@ -486,9 +478,6 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 				string trainType = trainUnit.GetType()->displayName;
 				auto typeKey = make_pair(trainType, trainUnit.GetType()->carriages);
-				if (outStandingTrainTypes.find(typeKey) != outStandingTrainTypes.end())
-					outStandingTrainTypes[typeKey] = 0;
-
 				outStandingTrainTypes[typeKey] += 1;
 
 				trainsTypes[&trainUnit] = trainType;
@@ -524,10 +513,15 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 	for (const auto &[trainType, count] : incomingTrainTypes)
 	{
-		string trainTypeLabel = trainType.first + "-" + to_string(trainType.second);
+		const string &trainTypeLabel = trainType.first;
 		if (outgoingTrainTypes[trainType] > count + inStandingTrainTypes[trainType] - outStandingTrainTypes[trainType])
 		{
-			throw invalid_argument("The number of departure trains of type: [" + trainTypeLabel + "] : " + to_string(outgoingTrainTypes[trainType]) + "does not match the number of arrived trains of type[" + trainTypeLabel + "] : " + to_string(count) + "plus the number of instanding trains of type [" + trainTypeLabel + "] : " + to_string(inStandingTrainTypes[trainType]) + "or the required number of outstanding trains of type [" + trainTypeLabel + "] : " + to_string(outStandingTrainTypes[trainType]) + "is too high compared to the instanding, incoming and outgoing trains");
+			throw invalid_argument(
+				"More trains of type [" + trainTypeLabel + "] are asked to leave than the scenario has: "
+				+ to_string(outgoingTrainTypes[trainType]) + " departing and "
+				+ to_string(outStandingTrainTypes[trainType]) + " required to stay in the yard, against "
+				+ to_string(count) + " arriving and "
+				+ to_string(inStandingTrainTypes[trainType]) + " already standing in the yard.");
 		}
 	}
 

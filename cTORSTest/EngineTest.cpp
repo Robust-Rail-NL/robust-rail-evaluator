@@ -162,4 +162,18 @@ namespace cTORSTest
 
 		CHECK_THROWS_AS(engine.ApplyActionAndStep(state, Service(su, task101, *train101, facility)), InvalidActionException);
 	}
+
+	TEST_CASE("Scenario correctness: per-type train counts accumulate past 1")
+	{
+		// Self-contained fixture under cTORSTest/fixtures/per_type_count_accumulation_test:
+		// 1 TT-1 train arrives, but 2 TT-1 trains depart (in two separate outgoing
+		// shunting units). The per-type counters used to be reset to 0 every time a
+		// type was seen again, capping every count at 1 regardless of how many
+		// trains actually had that type - so an imbalance like this (1 in, 2 out)
+		// was never detected as long as both sides had at least one train of the
+		// type. Must be rejected as infeasible.
+		Location location(TORS_DATA_DIR "/per_type_count_accumulation_test", true);
+		Scenario scenario(TORS_DATA_DIR "/per_type_count_accumulation_test/scenario.json", location);
+		CHECK_THROWS_AS(scenario.CheckScenarioCorrectness(location), std::invalid_argument);
+	}
 }

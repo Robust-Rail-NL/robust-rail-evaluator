@@ -1,0 +1,40 @@
+{
+  "trackParts": [
+    {
+      "id": "1",
+      "type": "RailRoad",
+      "aSide": ["2"],
+      "bSide": ["3"],
+      "length": 300,
+      "name": "rail0",
+      "sawMovementAllowed": false,
+      "parkingAllowed": true
+    },
+    {
+      "id": "2",
+      "type": "Bumper",
+      "aSide": ["1"],
+      "bSide": [],
+      "length": 10,
+      "name": "bumper0",
+      "sawMovementAllowed": false,
+      "parkingAllowed": false
+    },
+    {
+      "id": "3",
+      "type": "Bumper",
+      "aSide": ["1"],
+      "bSide": [],
+      "length": 10,
+      "name": "bumper1",
+      "sawMovementAllowed": false,
+      "parkingAllowed": false
+    }
+  ],
+  "facilities": [],
+  "taskTypes": [],
+  "movementConstant": 0,
+  "movementTrackCoefficient": 0,
+  "movementSwitchCoefficient": 0,
+  "distanceEntries": []
+}

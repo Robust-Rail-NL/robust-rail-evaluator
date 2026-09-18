@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "in": [
+    {
+      "entryTrackPart": "2",
+      "firstParkingTrackPart": "1",
+      "arrival": "100",
+      "departure": "100",
+      "id": 10,
+      "members": [
+        { "id": 101, "typePrefix": "TT", "carriages": 1, "tasks": [] }
+      ]
+    }
+  ],
+  "inStanding": [],
+  "out": [
+    {
+      "leaveTrackPart": "3",
+      "lastParkingTrackPart": "1",
+      "arrival": "500",
+      "departure": "600",
+      "id": 20,
+      "trainUnits": [
+        { "id": 201, "typePrefix": "TT", "carriages": 1 }
+      ],
+      "standingIndex": null
+    },
+    {
+      "leaveTrackPart": "3",
+      "lastParkingTrackPart": "1",
+      "arrival": "700",
+      "departure": "800",
+      "id": 21,
+      "trainUnits": [
+        { "id": 202, "typePrefix": "TT", "carriages": 1 }
+      ],
+      "standingIndex": null
+    }
+  ],
+  "outStanding": [],
+  "nonServiceTraffic": [],
+  "disabledTrackParts": [],
+  "workers": [],
+  "startTime": "0",
+  "endTime": "1000",
+  "trainUnitTypes": [
+    {
+      "typePrefix": "TT",
+      "carriages": 1,
+      "length": 100,
+      "combineDuration": "100",
+      "splitDuration": "100",
+      "backNormTime": "100",
+      "backAdditionTime": "100",
+      "travelSpeed": "50",
+      "startUpTime": "100",
+      "needsLoco": false,
+      "isLoco": false,
+      "needsElectricity": false,
+      "idPrefix": 0
+    }
+  ]
+}

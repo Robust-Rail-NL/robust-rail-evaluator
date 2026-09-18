@@ -287,13 +287,29 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
         }
         else
         {
-            const Train *train = scenario->GetTrainByID(stoi(pb_action.task().trainunitids().at(0)));
-            auto tasks = scenario->GetTasksForTrain(train);
+            // A service task belongs to whichever individual member of the (possibly
+            // coupled) shunting unit actually needs it in the scenario - not
+            // necessarily the first train unit id listed on the action. Two coupled
+            // units travel together, so the plan's action lists both member ids even
+            // though only one of them may have this task (issue #25).
             auto taskTypeString = taskType.other();
-            auto it = find_if(tasks.begin(), tasks.end(), [taskTypeString](auto &t) -> bool
-                              { return t.taskType == taskTypeString; });
-            if (it == tasks.end())
-                throw invalid_argument("Could not find task " + taskTypeString + " for train " + train->toString());
+            const Train *train = nullptr;
+            vector<Task> tasks;
+            vector<Task>::const_iterator it;
+            for (int id : trainIDs)
+            {
+                const Train *candidate = scenario->GetTrainByID(id);
+                tasks = scenario->GetTasksForTrain(candidate);
+                it = find_if(tasks.begin(), tasks.end(), [taskTypeString](auto &t) -> bool
+                             { return t.taskType == taskTypeString; });
+                if (it != tasks.end())
+                {
+                    train = candidate;
+                    break;
+                }
+            }
+            if (train == nullptr)
+                throw invalid_argument("Could not find task " + taskTypeString + " for any of trains " + Join(trainIDs, "-"));
             const Facility *facility = location->GetFacilityByID(pb_action.task().facilities().at(0).id());
             action = new Service(trainIDs, *it, *train, facility);
         }

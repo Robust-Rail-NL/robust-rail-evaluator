@@ -40,6 +40,12 @@ namespace cTORSTest
 		CHECK(tasks.front().optional == false); // "optional": false in the fixture
 		CHECK(tasks.front().duration == 50);
 
+		// Regression test (issue #25): train102 has "tasks": [] in the fixture, so it
+		// never gets a key in the Incoming's tasks map (only trains with at least one
+		// task do). GetTasksForTrain must return an empty list for it rather than
+		// throwing unordered_map::at.
+		CHECK(scenario.GetTasksForTrain(train102).size() == 0);
+
 		REQUIRE(scenario.GetOutgoingTrains().size() == 1);
 		auto outgoing = scenario.GetOutgoingTrains().front();
 		CHECK(outgoing->GetID() == 20); // derived from TrainRequest.displayName, which has no separate id field
@@ -80,6 +86,81 @@ namespace cTORSTest
 		// (3600s), since one unit genuinely can't be in two places at once.
 		Scenario overage(TORS_DATA_DIR "/parallel_facility_task_time_test/scenario_single_unit_overage.json", location);
 		CHECK_THROWS_AS(overage.CheckScenarioCorrectness(location), std::invalid_argument);
+	}
+
+	TEST_CASE("A Service action services every coupled member sharing the task, sequentially (issue #26)")
+	{
+		// Self-contained fixture under cTORSTest/fixtures/multi_member_service_test:
+		// both members of the incoming shunting unit independently need the same
+		// mandatory "Clean" task (50s each).
+		LocationEngine engine(TORS_DATA_DIR "/multi_member_service_test");
+		auto &scenario = engine.GetScenario(TORS_DATA_DIR "/multi_member_service_test/scenario.json");
+
+		auto state = engine.StartSession(scenario);
+		engine.Step(state);
+
+		auto incoming = scenario.GetIncomingTrains().front();
+		engine.ApplyActionAndStep(state, Arrive(incoming));
+
+		auto su = state->GetShuntingUnitByID(10);
+		REQUIRE(su != nullptr);
+		auto train101 = su->GetTrainByID(101);
+		auto train102 = su->GetTrainByID(102);
+		REQUIRE(train101 != nullptr);
+		REQUIRE(train102 != nullptr);
+
+		auto &facilities = state->GetShuntingUnitState(su).position->GetFacilities();
+		REQUIRE(facilities.size() == 1);
+
+		int timeBefore = state->GetTime();
+		// Only one member is named on the SimpleAction, as a replayed plan action
+		// would - the plan doesn't record which specific coupled member the task
+		// was "for" (issue #25).
+		auto task101 = state->GetTasksForTrain(train101).front();
+		engine.ApplyActionAndStep(state, Service(su, task101, *train101, facilities.front()));
+
+		CHECK(state->GetTasksForTrain(train101).size() == 0);
+		CHECK(state->GetTasksForTrain(train102).size() == 0);
+		// Sequential, not parallel: 50 (train101) + 50 (train102), matching the
+		// solver's own duration model behind issue #26 rather than finishing both
+		// at once after only 50s.
+		CHECK(state->GetTime() - timeBefore == 100);
+
+		// That total comes from the second member's ServiceAction carrying the
+		// running cumulative duration (100), not its own task's duration (50) -
+		// see ServiceAction's totalOccupiedDuration constructor. Documented here
+		// so this deliberate GetDuration()-isn't-the-task's-own-duration choice
+		// doesn't read as a bug to a future reader.
+		// (recorded[0] is the preceding Arrive; the two Service actions follow.)
+		auto &recorded = engine.GetResult(state)->GetActions();
+		REQUIRE(recorded.size() == 3);
+		CHECK(recorded[1].GetMinimumDuration() == 50);
+		CHECK(recorded[2].GetMinimumDuration() == 100);
+	}
+
+	TEST_CASE("A Service action throws when the unit isn't at any facility")
+	{
+		LocationEngine engine(TORS_DATA_DIR "/multi_member_service_test");
+		auto &scenario = engine.GetScenario(TORS_DATA_DIR "/multi_member_service_test/scenario.json");
+		auto &location = engine.GetLocation();
+
+		auto state = engine.StartSession(scenario);
+		engine.Step(state);
+
+		// Place the unit directly on a bumper track (no facility there), rather
+		// than arriving onto the fixture's parking track (which does have one),
+		// so the Service branch's "no facility at this position" guard is the
+		// thing actually exercised.
+		auto incoming = scenario.GetIncomingTrains().front();
+		auto su = incoming->GetShuntingUnit();
+		state->AddShuntingUnit(su, location.GetTrackByID("2"), location.GetTrackByID("3"));
+		state->AddTasksToTrains(incoming->GetTasks());
+
+		auto train101 = su->GetTrainByID(101);
+		auto task101 = state->GetTasksForTrain(train101).front();
+		auto facility = location.GetFacilityByID(1);
+
+		CHECK_THROWS_AS(engine.ApplyActionAndStep(state, Service(su, task101, *train101, facility)), InvalidActionException);
 	}
 
 	TEST_CASE("Scenario correctness: per-type train counts accumulate past 1")

@@ -705,6 +705,28 @@ public:
 	 */
 	ServiceAction(const ShuntingUnit* su, const Train* tu, const Task& ta, const Facility* fa, vector<const Employee*> employees) :
 		Action(su, {}, employees, ta.duration), train(tu), task(ta), facility(fa) {}
+	/**
+	 *  Construct a ServiceAction whose GetDuration() (and therefore its
+	 *  ActionFinish scheduling, and whatever ends up recorded about it) is
+	 *  totalOccupiedDuration rather than ta.duration.
+	 *
+	 *  This is for one specific situation: several coupled members of the same
+	 *  ShuntingUnit are serviced sequentially during one facility visit (they
+	 *  cannot be serviced in parallel - they're physically coupled, and the
+	 *  solver's own cost model bills their durations as a sum, not a max), but
+	 *  all of them are applied at the same simulated instant since there's no
+	 *  clean way to actually defer a later one's Start() until the earlier
+	 *  ones finish (see LocationEngine::ApplyAction's handling of a Service
+	 *  SimpleAction). Passing the running cumulative total as
+	 *  totalOccupiedDuration for each member after the first is what makes the
+	 *  ShuntingUnit's last active action still end at the correct, later,
+	 *  sequential time - but it means GetDuration() on that ServiceAction no
+	 *  longer equals ta.duration. Use GetTask()->duration for that member's own
+	 *  real task duration; use GetDuration() only to know when the unit
+	 *  becomes free again.
+	 */
+	ServiceAction(const ShuntingUnit* su, const Train* tu, const Task& ta, const Facility* fa, vector<const Employee*> employees, int totalOccupiedDuration) :
+		Action(su, {}, employees, totalOccupiedDuration), train(tu), task(ta), facility(fa) {}
 	/** Get the Train that this service Task is operated on */
 	inline const Train* GetTrain() const { return train; }
 	/** Get the Facility at which the Task will be executed */

@@ -24,8 +24,8 @@ const google::protobuf::RepeatedField<google::protobuf::uint64> &GetShuntingUnit
     return su.memberids();
 }
 
-bool RunResult::NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, int index,
-                                       const PB_HIP_ShuntingUnit &unit)
+bool RunResult::NextActionForUnitHasTaskType(const vector<PB_HIP_Action> &actions, int index,
+                                       const PB_HIP_ShuntingUnit &unit, PB_HIP_PredefinedTaskType type)
 {
     const auto &members = GetShuntingUnitMemberIDs(unit);
     for (size_t i = static_cast<size_t>(index) + 1; i < actions.size(); i++)
@@ -33,9 +33,15 @@ bool RunResult::NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, in
         const auto &candidate = actions[i].shuntingunit().memberids();
         if (!std::equal(members.begin(), members.end(), candidate.begin(), candidate.end()))
             continue;
-        return actions[i].tasktype().predefined() == PB_HIP_PredefinedTaskType::Exit;
+        return actions[i].tasktype().predefined() == type;
     }
     return false;
+}
+
+bool RunResult::NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, int index,
+                                       const PB_HIP_ShuntingUnit &unit)
+{
+    return NextActionForUnitHasTaskType(actions, index, unit, PB_HIP_PredefinedTaskType::Exit);
 }
 
 POSAction &POSAction::operator=(const POSAction &pa)
@@ -265,7 +271,7 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
 
                 break;
             }
-            case PBPredefinedTaskType::Walking:
+            case PBPredefinedTaskType::Setback:
                 action = new Setback(trainIDs);
                 break;
             case PBPredefinedTaskType::Break:
@@ -376,7 +382,7 @@ void POSAction::Serialize(const LocationEngine &engine, const State *state, PBAc
         }
         else if (instanceof<Setback>(action))
         {
-            pb_task_type->set_predefined(PBPredefinedTaskType::Walking);
+            pb_task_type->set_predefined(PBPredefinedTaskType::Setback);
         }
         else if (instanceof<Arrive>(action))
         {
@@ -704,15 +710,22 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 pb_actions.push_back(action_);
 
-                // A movement that leads straight into an Exit gets no EndMove: the
-                // unit is leaving the yard, not coming to rest. That has to be asked
+                // A movement that leads straight into an Exit, or into a Setback, gets
+                // no EndMove: the unit is leaving the yard, or about to reverse and
+                // carry straight on - neither is coming to rest. That has to be asked
                 // of this shunting unit's own next action, not of whichever action
                 // happens to come next in the plan — the actions of all units are
                 // interleaved by time, so another unit's action in between used to
                 // produce a spurious EndMove on the gateway, which the parking rules
                 // then rejected. Reaching the end of the plan is also a valid answer,
-                // and indexing one past the end was undefined behaviour.
-                if (!RunResult::NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit))
+                // and indexing one past the end was undefined behaviour. Without the
+                // Setback case, a Move ending on a non-parking track (e.g. the
+                // gateway) to do a Setback got the same spurious rejection -
+                // the unit was never parking there, just reversing.
+                bool nextEndsMoveAnyway = RunResult::NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit) ||
+                    RunResult::NextActionForUnitHasTaskType(pb_action, index, hip_shuntingUnit,
+                                                             PB_HIP_PredefinedTaskType::Setback);
+                if (!nextEndsMoveAnyway)
                 {
                     PBAction EndMoveAction = RunResult::CreateEndMoveAction(hip_action);
 
@@ -755,6 +768,23 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
             case PB_HIP_PredefinedTaskType::Wait:
             {
                 action_.mutable_break_();
+                pb_actions.push_back(action_);
+
+                break;
+            }
+            case PB_HIP_PredefinedTaskType::Setback:
+            {
+                // A shunting unit reversing direction in place (no track change).
+                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Setback
+                // into a real Setback action - this HIP-format conversion was simply
+                // missing the case, so it silently dropped the task (see
+                // doc/known-issue-plan-type.md).
+                PBTaskAction *task_action = action_.mutable_task();
+
+                PBTaskType *taskType = task_action->mutable_type();
+
+                taskType->set_predefined(PBPredefinedTaskType::Setback);
+
                 pb_actions.push_back(action_);
 
                 break;
@@ -897,6 +927,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
         scenario.SetEvaluatiorStoragePath(pathToStoreEval);
 
     POSPlan plan = POSPlan::CreatePOSPlan(location, &scenario, pb_plan);
+    plan.SetSchemaVersion(pb_hip_plan.has_schemaversion() ? pb_hip_plan.schemaversion() : 1);
 
     bool feasible = pb_run.feasible();
 

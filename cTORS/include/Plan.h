@@ -80,6 +80,13 @@ private:
     vector<POSMatch> matching;
     vector<POSPrecedenceConstraint> graph;
     bool feasible;
+    // The interchange schemaVersion this plan declared, or 1 if it declared
+    // none (see PB_HIP_Plan.schemaVersion). Distinct from Location/Scenario's
+    // own schemaVersion fields. Defaults to 1 - the pre-Setback-requirement,
+    // fully tolerant version - so a plan built without ever calling
+    // SetSchemaVersion() (e.g. the internal Run round-trip format, which has
+    // no schemaVersion field at all) keeps today's behavior.
+    int schemaVersion = 1;
 public:
     /** Construct an empty POSPlan */
     POSPlan() = default;
@@ -89,6 +96,10 @@ public:
     inline const vector<POSAction>& GetActions() const { return actions; }
     /** Add a POSAction to the list of POSAction%s */
     inline void AddAction(const POSAction& action) { actions.push_back(action); }
+    /** Get the interchange schemaVersion this plan declared (1 if none) */
+    inline int GetSchemaVersion() const { return schemaVersion; }
+    /** Set the interchange schemaVersion this plan declared */
+    inline void SetSchemaVersion(int version) { schemaVersion = version; }
     /** Serialize this plan to a protobuf object */
     void Serialize(LocationEngine& engine, const Scenario& scenario, PBPOSPlan* pb_plan) const;
     /** Serialize this plan to a protobuf file */
@@ -169,13 +180,18 @@ public:
 
     /**
      * Whether the next action belonging to this shunting unit, after the one at
-     * `index`, is an Exit. False if the unit has no further action in the plan.
+     * `index`, has the given task type. False if the unit has no further action
+     * in the plan.
      *
      * A plan interleaves the actions of every shunting unit in time order, so the
      * next entry in the list usually belongs to a different unit. Asking about the
      * list rather than the unit is what produced a spurious EndMove before a
-     * departure.
+     * departure (see NextActionForUnitIsExit) and, identically, before a Setback.
      */
+    static bool NextActionForUnitHasTaskType(const std::vector<PB_HIP_Action> &actions, int index,
+                                        const PB_HIP_ShuntingUnit &unit, PB_HIP_PredefinedTaskType type);
+
+    /** Whether the next action belonging to this shunting unit is an Exit. */
     static bool NextActionForUnitIsExit(const std::vector<PB_HIP_Action> &actions, int index,
                                         const PB_HIP_ShuntingUnit &unit);
 

@@ -1,0 +1,49 @@
+{
+  "trackParts": [
+    {
+      "id": "1",
+      "type": "RailRoad",
+      "aSide": ["2"],
+      "bSide": ["3"],
+      "length": 300,
+      "name": "rail0",
+      "sawMovementAllowed": false,
+      "parkingAllowed": true
+    },
+    {
+      "id": "2",
+      "type": "Bumper",
+      "aSide": ["1"],
+      "bSide": [],
+      "length": 10,
+      "name": "bumper0",
+      "sawMovementAllowed": false,
+      "parkingAllowed": false
+    },
+    {
+      "id": "3",
+      "type": "Bumper",
+      "aSide": ["1"],
+      "bSide": [],
+      "length": 10,
+      "name": "bumper1",
+      "sawMovementAllowed": false,
+      "parkingAllowed": false
+    }
+  ],
+  "facilities": [
+    {
+      "id": 1,
+      "type": "Clean",
+      "taskTypes": [{ "other": "Clean" }],
+      "simultaneousUsageCount": 1,
+      "relatedTrackPartIDs": [1],
+      "timeWindow": { "start": 0, "end": 100000 }
+    }
+  ],
+  "taskTypes": [],
+  "movementConstant": 0,
+  "movementTrackCoefficient": 0,
+  "movementSwitchCoefficient": 0,
+  "distanceEntries": []
+}

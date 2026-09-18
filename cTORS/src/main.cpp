@@ -131,10 +131,19 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::exception &e)
+			catch (const std::invalid_argument &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
+			}
+			catch (const std::exception &e)
+			{
+				// Anything other than std::invalid_argument here is an internal
+				// evaluator failure, not a determination about the plan - exit
+				// non-zero so a caller checking only the exit code can tell the
+				// difference, rather than getting a false "not valid" verdict.
+				std::cerr << "Unexpected error while evaluating the plan: " << e.what() << std::endl;
+				return 1;
 			}
 
 			return 0;
@@ -168,10 +177,19 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::exception &e)
+			catch (const std::invalid_argument &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
+			}
+			catch (const std::exception &e)
+			{
+				// Anything other than std::invalid_argument here is an internal
+				// evaluator failure, not a determination about the plan - exit
+				// non-zero so a caller checking only the exit code can tell the
+				// difference, rather than getting a false "not valid" verdict.
+				std::cerr << "Unexpected error while evaluating the plan: " << e.what() << std::endl;
+				return 1;
 			}
 
 			return 0;
@@ -270,10 +288,19 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::exception &e)
+			catch (const std::invalid_argument &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
+			}
+			catch (const std::exception &e)
+			{
+				// Anything other than std::invalid_argument here is an internal
+				// evaluator failure, not a determination about the plan - exit
+				// non-zero so a caller checking only the exit code can tell the
+				// difference, rather than getting a false "not valid" verdict.
+				std::cerr << "Unexpected error while evaluating the plan: " << e.what() << std::endl;
+				return 1;
 			}
 
 			return 0;
@@ -308,10 +335,19 @@ int main(int argc, char *argv[])
 					cout << "The plan is not valid" << endl;
 				}
 			}
-			catch (const std::exception &e)
+			catch (const std::invalid_argument &e)
 			{
 				std::cerr << "Invalid argument: " << e.what() << std::endl;
 				cout << "The plan is not valid" << endl;
+			}
+			catch (const std::exception &e)
+			{
+				// Anything other than std::invalid_argument here is an internal
+				// evaluator failure, not a determination about the plan - exit
+				// non-zero so a caller checking only the exit code can tell the
+				// difference, rather than getting a false "not valid" verdict.
+				std::cerr << "Unexpected error while evaluating the plan: " << e.what() << std::endl;
+				return 1;
 			}
 
 			return 0;

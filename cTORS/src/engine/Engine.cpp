@@ -117,142 +117,97 @@ void LocationEngine::ApplyAction(State *state, const Action *action)
 	results[state]->AddAction(posaction);
 }
 
+/** One coupled member's outstanding task matching a Service action's task type,
+ * together with the Facility it will be serviced at. */
+struct ServiceMatch
+{
+	const Train *train;
+	Task task;
+	const Facility *facility;
+};
+
 void LocationEngine::ApplyAction(State *state, const SimpleAction &action)
 {
-	// debug_out("\tApplying action 2nd" + action.toString());
-	const Action *_action = GenerateAction(state, action);
-
-	// if (const SplitAction *split_action = dynamic_cast<const SplitAction *>(_action))
-	// {
-	// 	cout << " Test - Split Acttion" << endl;
-	// 	auto suA = split_action->GetASideShuntingUnit();
-	// 	for (auto &tu : suA->GetTrains())
-	// 	{
-	// 		// Tasks per train ?
-	// 		cout << "TrainUnit" << tu << endl;
-	// 		for (const Task &task : state->GetTasksForTrain(&tu))
-	// 		{
-	// 			cout << task << endl;
-	// 		}
-	// 	}
-	// }
-
-	// Added by R.G.Kromes - 03/02/2025
-	// If the action is a service, it is checked if the sunting train contains multiple
-	// train units. In case of mutiple train units this part of the function esures that
-	// all the service acctions related to the train composed by different train units
-	// are validated and executed.
-	// In the previous version only one servie action was executed even if it should
-	// have been applied for multiple train units
-	if (const Service *s_action = dynamic_cast<const Service *>(&action)) // Check polymorphism is Service
+	// A Service SimpleAction only names one representative train, but the
+	// ShuntingUnit it travels in may have several coupled members that each
+	// independently need the same task type - the plan only records one visit
+	// for the whole unit (issue #25/#26). Service every matching member here
+	// instead of just the one named on the action.
+	if (const Service *s_action = dynamic_cast<const Service *>(&action))
 	{
-		cout << "START Revisit Modification" << endl;
+		auto su = state->GetShuntingUnitByTrainIDs(action.GetTrainIDs());
+		if (su == nullptr)
+			throw InvalidActionException("Shunting unit with trains " + Join(action.GetTrainIDs(), "-") + " not found");
 
-		auto _su = _action->GetShuntingUnit();
+		auto &taskType = s_action->GetTask().taskType;
+		auto position = state->GetShuntingUnitState(su).position;
+		auto &facilities = position->GetFacilities();
+		if (facilities.empty())
+			throw InvalidActionException("There is no facility at " + position->toString() + " to service task " + taskType + ".");
 
-		auto _suState = state->GetShuntingUnitState(_su);
-		auto tr = _suState.position;
-		auto &fas = tr->GetFacilities();
-
-		cout << _su << endl;
-		map<int, vector<const Action *>> action_per_tu;
-		for (auto &tu : _su->GetTrains())
-		{
-			cout << "TrainUnit" << tu << ": ";
+		vector<ServiceMatch> matches;
+		for (auto &tu : su->GetTrains())
 			for (const Task &task : state->GetTasksForTrain(&tu))
-			{
-				cout << task << ": ";
-				for (auto fa : fas)
-				{
-					cout << " -> facility : " << fa;
-					if (static_cast<const Service *>(&action)->GetTask().toString() == task.toString())
-					{
-						const Action *sub_action = actionManager.GetGenerator(action.GetGeneratorName())->Generate(state, Service(_su, task, tu, fa));
-						action_per_tu[tu.GetID()].push_back(sub_action);
-					}
-				}
-				cout << endl;
-			}
-		}
-		cout << "END Revisit Modification" << endl;
+				if (task.taskType == taskType)
+					matches.push_back({&tu, task, facilities.front()});
+		if (matches.empty())
+			throw InvalidActionException("Could not find task " + taskType + " for any train in " + su->toString() + ".");
 
-		// list<const Action *> actions;
-		// // <train_ID, actions[]>
-		// map<int, vector<const Action *>> action_per_tu;
-		// for (const auto &[su, suState] : state->GetShuntingUnitStates())
-		// {
-		// 	if (suState.moving || suState.waiting || suState.HasActiveAction())
-		// 		continue;
-		// 	auto tr = suState.position;
-		// 	auto &fas = tr->GetFacilities();
-		// 	for (auto &tu : su->GetTrains())
-		// 	{
-		// 		cout << "TrainUnit" << tu << ": ";
-		// 		for (const Task &task : state->GetTasksForTrain(&tu))
-		// 		{
-		// 			cout << task << ": ";
-
-		// 			// cout << "alternative task: " <<  << endl;
-		// 			for (auto fa : fas)
-		// 			{
-		// 				cout << " -> facility : " << fa;
-		// 				const Action *sub_action = actionManager.GetGenerator(action.GetGeneratorName())->Generate(state, Service(su, task, tu, fa));
-		// 				actions.push_back(sub_action);
-
-		// 				if (static_cast<const Service *>(&action)->GetTask().toString() == task.toString())
-		// 					action_per_tu[tu.GetID()].push_back(sub_action);
-		// 			}
-		// 			cout << "" << endl;
-		// 		}
-		// 	}
-		// }
-		// cout << "Actions :" << endl;
-		// for (const Action *a : actions)
-		// {
-		// 	cout << a << endl;
-		// }
-
-		// take only the first action per train unit
-		cout << "Actions per train unit :" << endl;
-		for (auto &[tu_ID, _act] : action_per_tu)
+		// Coupled members are serviced sequentially during the same facility
+		// visit, not in parallel: the plan's own action durations (and the
+		// solver's cost model) sum every matched member's task duration. All
+		// matches are applied at the same instant (state->GetTime() does not
+		// advance between them - there is no event-based way to defer a later
+		// match's Start() without risking interference with unrelated units
+		// concurrently mid-decision elsewhere in the yard), so the only lever
+		// available is each ServiceAction's own scheduled duration.
+		//
+		// This means GetDuration() on a match after the first is NOT that
+		// member's own task duration - it's cumulative, i.e. "how much longer
+		// the ShuntingUnit must stay occupied counting from now", so its
+		// ActionFinish event lands at the correct sequential end time. Anything
+		// that reads GetDuration() off one of these ServiceActions (directly, or
+		// via the RunResult/POSAction this ends up recorded as) will see that
+		// inflated figure, not the individual member's real task duration -
+		// which is still recoverable from GetTask()->duration if needed.
+		int cumulativeDuration = 0;
+		for (auto &match : matches)
 		{
-			cout << "Train Unit: " << tu_ID << " : " << _act.at(0) << endl;
-			cout << "Check validity: " << endl;
+			cumulativeDuration += match.task.duration;
+			const Action *sub_action = new ServiceAction(su, match.train, match.task, match.facility, {}, cumulativeDuration);
 
-			auto is_valid = actionManager.IsValid(state, _act.at(0));
+			auto is_valid = actionManager.IsValid(state, sub_action);
 			if (!is_valid.first)
 			{
-				cout << " Not Valid action :-( " << endl;
+				delete sub_action;
 				throw InvalidActionException(is_valid.second);
 			}
 			try
 			{
-				cout << " Valid action :-) " << endl;
-				ApplyAction(state, _act.at(0));
+				ApplyAction(state, sub_action);
 			}
 			catch (exception &e)
 			{
 				throw InvalidActionException("Error in applying action (" + action.toString() + "): " + e.what());
 			}
 		}
+		return;
 	}
-	else
-	{
 
-		auto is_valid = actionManager.IsValid(state, _action);
-		if (!is_valid.first)
-		{
-			delete _action;
-			throw InvalidActionException(is_valid.second);
-		}
-		try
-		{
-			ApplyAction(state, _action);
-		}
-		catch (exception &e)
-		{
-			throw InvalidActionException("Error in applying action (" + _action->toString() + "): " + e.what());
-		}
+	const Action *_action = GenerateAction(state, action);
+	auto is_valid = actionManager.IsValid(state, _action);
+	if (!is_valid.first)
+	{
+		delete _action;
+		throw InvalidActionException(is_valid.second);
+	}
+	try
+	{
+		ApplyAction(state, _action);
+	}
+	catch (exception &e)
+	{
+		throw InvalidActionException("Error in applying action (" + _action->toString() + "): " + e.what());
 	}
 }
 

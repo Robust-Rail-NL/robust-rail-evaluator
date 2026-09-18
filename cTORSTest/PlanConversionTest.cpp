@@ -214,6 +214,31 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("A service task is matched to whichever coupled member actually has it (issue #25)") {
+		// scenario_unification_test: train101 has one "Clean" task, train102 has
+		// none, and both are members of the same (coupled) incoming shunting unit.
+		Location location(TORS_DATA_DIR "/scenario_unification_test", true);
+		Scenario scenario(TORS_DATA_DIR "/scenario_unification_test/scenario.json", location);
+
+		PBAction pb_action;
+		pb_action.add_trainunitids("101");
+		pb_action.add_trainunitids("102");
+		PBTaskAction *task = pb_action.mutable_task();
+		task->mutable_type()->set_other("Clean");
+		// Listed in the "wrong" order on purpose: the untasked member (102) comes
+		// first, so a lookup that only checked trainunitids(0) would pick it and
+		// fail to find the task, even though its coupled sibling (101) has it.
+		task->add_trainunitids("102");
+		task->add_trainunitids("101");
+		task->add_facilities()->set_id(1);
+
+		POSAction posAction = POSAction::CreatePOSAction(&location, &scenario, pb_action);
+		auto service = dynamic_cast<const Service *>(posAction.GetAction());
+		REQUIRE(service != nullptr);
+		CHECK(service->GetTrain().GetID() == 101);
+		CHECK(service->GetTask().taskType == "Clean");
+	}
+
 	TEST_CASE("FormatExitMismatchError reports only the ID-matching candidates it's given") {
 		// Regression test: an outgoing train with unrelated IDs used to be reported
 		// as a "departure mismatch" too, just because it was also outgoing somewhere

@@ -110,8 +110,15 @@ public:
 	const Incoming* GetIncomingByTrainID(int id) const;
 	/** Get an Outgoing train by one of its Train ids */
 	const Outgoing* GetOutgoingByTrainID(int id) const;
-	/** Get all the Task%s for a Train in this Scenario */
-	const vector<Task> GetTasksForTrain(const Train* train) const { return GetIncomingByTrain(train)->GetTasks().at(train); }
+	/** Get all the Task%s for a Train in this Scenario. Returns an empty list for a
+	 * train the scenario never assigned any task to, rather than throwing - the
+	 * caller (a plan referencing a service task for this train) is what determines
+	 * whether that's actually an error. */
+	const vector<Task> GetTasksForTrain(const Train* train) const {
+		auto& tasks = GetIncomingByTrain(train)->GetTasks();
+		auto it = tasks.find(train);
+		return it == tasks.end() ? vector<Task>() : it->second;
+	}
 
 	/** Set the start time of this scenario */
 	inline void SetStartTime(int startTime) { this->startTime = startTime; }

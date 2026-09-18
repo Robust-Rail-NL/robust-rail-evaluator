@@ -31,15 +31,7 @@
       "parkingAllowed": false
     }
   ],
-  "facilities": [
-    {
-      "id": 1,
-      "type": "Clean",
-      "taskTypes": [{ "other": "Clean" }],
-      "simultaneousUsageCount": 1,
-      "relatedTrackPartIDs": [1]
-    }
-  ],
+  "facilities": [],
   "taskTypes": [],
   "movementConstant": 0,
   "movementTrackCoefficient": 0,

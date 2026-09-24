@@ -65,7 +65,7 @@ inline void CheckScenarioEnded(const State *state)
 static const int MAX_STALLED_EVALUATE_PLAN_ITERATIONS = 100;
 
 /** Logs a line (never rejects) when a plan's own declared feasibility
- * verdict disagrees with what evaluation actually found - a producer
+ * verdict disagrees with what evaluation actually found - an origin
  * integrity check, not a validity check. Silent when the plan declared
  * Unknown, since that's not a claim to check against. */
 static void WarnIfFeasibilityMismatch(const POSPlan &plan, bool valid)

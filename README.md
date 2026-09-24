@@ -118,7 +118,7 @@ Arguments:
 
 **--departure_delay**: a certain amount of departure delay can be allowed - by default it is 0 (no departure delay is allowed) 
 
-**--plan_type** **"Solver"** - plan follows a Solver plan format (plan was issued by robust-rail-solver). This is the default when `--plan_type` is omitted, since it's what every real plan producer uses.
+**--plan_type** **"Solver"** - plan follows a Solver plan format (plan was issued by robust-rail-solver). This is the default when `--plan_type` is omitted, since it's what every real plan origin uses.
 
 **--plan_type** **"Evaluator"** - plan follows TORS's own internal round-trip format (produced by an `INTER`-mode session), not a format any external tool emits. See [doc/known-issue-plan-type.md](doc/known-issue-plan-type.md) before using this.
 

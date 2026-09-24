@@ -957,8 +957,8 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
         plan.SetFeasibility(Feasibility::Unknown);
         break;
     }
-    if (pb_hip_plan.has_producer())
-        plan.SetProducer(pb_hip_plan.producer());
+    if (pb_hip_plan.has_origin())
+        plan.SetOrigin(pb_hip_plan.origin());
     if (pb_hip_plan.has_cost())
         plan.SetCost(pb_hip_plan.cost());
     if (pb_hip_plan.has_costdetails())

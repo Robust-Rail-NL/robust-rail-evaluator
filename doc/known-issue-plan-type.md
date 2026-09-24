@@ -42,7 +42,7 @@ different top-level JSON shapes:
   round-trip format (see `Scenario.h`'s comment: "Used only for TORS's
   internal Run round-trip format"), with top-level `location`/`scenario`/
   `plan`/`feasible` fields, produced by `RunResult::Serialize` at the end of
-  an `INTER` (interactive) session. It is not the format any real producer
+  an `INTER` (interactive) session. It is not the format any real origin
   (solver, planner, or a hand-written bug report) emits.
 
 Feeding a `Solver`-shaped file to `--plan_type Evaluator` doesn't throw
@@ -82,7 +82,7 @@ byte-for-byte matching the reporter's error text.
 2. **DONE — default `--plan_type` to `Solver`.** It was a required argument
    with no default; omitting it now defaults to `Solver`. This only helps
    the omission case, not passing `Evaluator` explicitly.
-3. **Still open — retire or rename `Evaluator`.** It has no real producer besides TORS's
+3. **Still open — retire or rename `Evaluator`.** It has no real origin besides TORS's
    own `INTER`-mode round-trip output, and its name collides confusingly
    with the tool's own name. Options to weigh: drop it outright (breaking,
    if anyone relies on the `INTER` round-trip workflow); rename it to

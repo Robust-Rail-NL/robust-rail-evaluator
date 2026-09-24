@@ -109,42 +109,42 @@ namespace cTORSTest
 		}
 	}
 
-	TEST_CASE("A movement is also followed by no EndMove if that unit's own next action is a Setback") {
+	TEST_CASE("A movement is also followed by no EndMove if that unit's own next action is a Reverse") {
 		// Same bug as the Exit case above, newly reachable once a plan can use an
-		// explicit Setback: a Move ending on a non-parking track (e.g. the
-		// gateway) to do a Setback got a spurious EndMove there too - the
+		// explicit Reverse: a Move ending on a non-parking track (e.g. the
+		// gateway) to do a Reverse got a spurious EndMove there too - the
 		// unit isn't parking, it's about to reverse and carry straight on.
 		PB_HIP_ShuntingUnit reversing;
 		reversing.set_id(1);
 		reversing.add_memberids(2601);
 
-		SUBCASE("its Setback comes immediately next") {
+		SUBCASE("its Reverse comes immediately next") {
 			vector<PB_HIP_Action> actions = {
 				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
-				MakeHipAction(PB_HIP_PredefinedTaskType::Setback, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
 			};
 			CHECK(RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
-				PB_HIP_PredefinedTaskType::Setback));
+				PB_HIP_PredefinedTaskType::Reverse));
 		}
 
-		SUBCASE("its Setback comes next for this unit, but not next in the list") {
+		SUBCASE("its Reverse comes next for this unit, but not next in the list") {
 			vector<PB_HIP_Action> actions = {
 				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
 				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2801}),
-				MakeHipAction(PB_HIP_PredefinedTaskType::Setback, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
 			};
 			CHECK(RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
-				PB_HIP_PredefinedTaskType::Setback));
+				PB_HIP_PredefinedTaskType::Reverse));
 		}
 
 		SUBCASE("the unit goes on to do something else") {
 			vector<PB_HIP_Action> actions = {
 				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
 				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
-				MakeHipAction(PB_HIP_PredefinedTaskType::Setback, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
 			};
 			CHECK(!RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
-				PB_HIP_PredefinedTaskType::Setback));
+				PB_HIP_PredefinedTaskType::Reverse));
 		}
 	}
 

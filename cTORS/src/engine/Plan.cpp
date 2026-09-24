@@ -267,7 +267,7 @@ POSAction POSAction::CreatePOSAction(const Location *location, const Scenario *s
 
                 break;
             }
-            case PBPredefinedTaskType::Setback:
+            case PBPredefinedTaskType::Reverse:
                 action = new Setback(trainIDs);
                 break;
             case PBPredefinedTaskType::Break:
@@ -378,7 +378,7 @@ void POSAction::Serialize(const LocationEngine &engine, const State *state, PBAc
         }
         else if (instanceof<Setback>(action))
         {
-            pb_task_type->set_predefined(PBPredefinedTaskType::Setback);
+            pb_task_type->set_predefined(PBPredefinedTaskType::Reverse);
         }
         else if (instanceof<Arrive>(action))
         {
@@ -706,7 +706,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 pb_actions.push_back(action_);
 
-                // A movement that leads straight into an Exit, or into a Setback, gets
+                // A movement that leads straight into an Exit, or into a Reverse, gets
                 // no EndMove: the unit is leaving the yard, or about to reverse and
                 // carry straight on - neither is coming to rest. That has to be asked
                 // of this shunting unit's own next action, not of whichever action
@@ -715,12 +715,12 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
                 // produce a spurious EndMove on the gateway, which the parking rules
                 // then rejected. Reaching the end of the plan is also a valid answer,
                 // and indexing one past the end was undefined behaviour. Without the
-                // Setback case, a Move ending on a non-parking track (e.g. the
-                // gateway) to do a Setback got the same spurious rejection -
+                // Reverse case, a Move ending on a non-parking track (e.g. the
+                // gateway) to do a Reverse got the same spurious rejection -
                 // the unit was never parking there, just reversing.
                 bool nextEndsMoveAnyway = RunResult::NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit) ||
                     RunResult::NextActionForUnitHasTaskType(pb_action, index, hip_shuntingUnit,
-                                                             PB_HIP_PredefinedTaskType::Setback);
+                                                             PB_HIP_PredefinedTaskType::Reverse);
                 if (!nextEndsMoveAnyway)
                 {
                     PBAction EndMoveAction = RunResult::CreateEndMoveAction(hip_action);
@@ -768,10 +768,10 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 break;
             }
-            case PB_HIP_PredefinedTaskType::Setback:
+            case PB_HIP_PredefinedTaskType::Reverse:
             {
                 // A shunting unit reversing direction in place (no track change).
-                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Setback
+                // POSPlan::CreatePOSPlan already turns PBPredefinedTaskType::Reverse
                 // into a real Setback action - this HIP-format conversion was simply
                 // missing the case, so it silently dropped the task (see
                 // doc/known-issue-plan-type.md).
@@ -779,7 +779,7 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
                 PBTaskType *taskType = task_action->mutable_type();
 
-                taskType->set_predefined(PBPredefinedTaskType::Setback);
+                taskType->set_predefined(PBPredefinedTaskType::Reverse);
 
                 pb_actions.push_back(action_);
 

@@ -75,7 +75,7 @@ class POSPrecedenceConstraint {
  * A POSPlan consists of a list of POSAction%s, POSMatch%es and POSPrecedenceConstraint%s
  */
 /**
- * A producer's own verdict on whether its submitted POSPlan satisfies all
+ * An origin's own verdict on whether its submitted POSPlan satisfies all
  * hard constraints - not a claim about whether some other plan for the same
  * Scenario might exist. Mirrors PB_HIP_Feasibility (see Proto.h), kept as a
  * plain enum here so POSPlan's public interface doesn't have to expose a
@@ -89,7 +89,7 @@ private:
     vector<POSMatch> matching;
     vector<POSPrecedenceConstraint> graph;
     bool feasible;
-    // The producer's own declared feasibility/origin/cost metadata (see
+    // The plan's own declared feasibility/origin/cost metadata (see
     // PB_HIP_Plan). Defaults match what an absent field means on the wire:
     // Unknown feasibility, no origin/cost/explanation given.
     Feasibility feasibility = Feasibility::Unknown;
@@ -105,17 +105,17 @@ public:
     inline const vector<POSAction>& GetActions() const { return actions; }
     /** Add a POSAction to the list of POSAction%s */
     inline void AddAction(const POSAction& action) { actions.push_back(action); }
-    /** Get the producer's declared feasibility verdict for this specific plan (Unknown if none) */
+    /** Get the origin's declared feasibility verdict for this specific plan (Unknown if none) */
     inline Feasibility GetFeasibility() const { return feasibility; }
-    /** Set the producer's declared feasibility verdict for this specific plan */
+    /** Set the origin's declared feasibility verdict for this specific plan */
     inline void SetFeasibility(Feasibility f) { feasibility = f; }
     /** Get the free-text identification of what produced this plan ("" if none) */
     inline const string& GetOrigin() const { return origin; }
     /** Set the free-text identification of what produced this plan */
     inline void SetOrigin(const string& o) { origin = o; }
-    /** Get the producer's declared total cost for this plan (0.0 if none) */
+    /** Get the origin's declared total cost for this plan (0.0 if none) */
     inline double GetCost() const { return cost; }
-    /** Set the producer's declared total cost for this plan */
+    /** Set the origin's declared total cost for this plan */
     inline void SetCost(double c) { cost = c; }
     /** Get the free-form cost breakdown for this plan ("" if none) */
     inline const string& GetCostDetails() const { return costDetails; }

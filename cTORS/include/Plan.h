@@ -74,6 +74,15 @@ class POSPrecedenceConstraint {
  * 
  * A POSPlan consists of a list of POSAction%s, POSMatch%es and POSPrecedenceConstraint%s
  */
+/**
+ * An origin's own verdict on whether its submitted POSPlan satisfies all
+ * hard constraints - not a claim about whether some other plan for the same
+ * Scenario might exist. Mirrors PB_HIP_Feasibility (see Proto.h), kept as a
+ * plain enum here so POSPlan's public interface doesn't have to expose a
+ * protobuf type.
+ */
+enum class Feasibility { Unknown, Feasible, Infeasible };
+
 class POSPlan {
 private:
     vector<POSAction> actions;
@@ -87,6 +96,13 @@ private:
     // SetSchemaVersion() (e.g. the internal Run round-trip format, which has
     // no schemaVersion field at all) keeps today's behavior.
     int schemaVersion = 1;
+    // The plan's own declared feasibility/origin/cost metadata (see
+    // PB_HIP_Plan). Defaults match what an absent field means on the wire:
+    // Unknown feasibility, no origin/cost/explanation given.
+    Feasibility feasibility = Feasibility::Unknown;
+    string origin = "";
+    double cost = 0.0;
+    string costDetails = "";
 public:
     /** Construct an empty POSPlan */
     POSPlan() = default;
@@ -100,6 +116,22 @@ public:
     inline int GetSchemaVersion() const { return schemaVersion; }
     /** Set the interchange schemaVersion this plan declared */
     inline void SetSchemaVersion(int version) { schemaVersion = version; }
+    /** Get the origin's declared feasibility verdict for this specific plan (Unknown if none) */
+    inline Feasibility GetFeasibility() const { return feasibility; }
+    /** Set the origin's declared feasibility verdict for this specific plan */
+    inline void SetFeasibility(Feasibility f) { feasibility = f; }
+    /** Get the free-text identification of what produced this plan ("" if none) */
+    inline const string& GetOrigin() const { return origin; }
+    /** Set the free-text identification of what produced this plan */
+    inline void SetOrigin(const string& o) { origin = o; }
+    /** Get the origin's declared total cost for this plan (0.0 if none) */
+    inline double GetCost() const { return cost; }
+    /** Set the origin's declared total cost for this plan */
+    inline void SetCost(double c) { cost = c; }
+    /** Get the free-form cost breakdown for this plan ("" if none) */
+    inline const string& GetCostDetails() const { return costDetails; }
+    /** Set the free-form cost breakdown for this plan */
+    inline void SetCostDetails(const string& c) { costDetails = c; }
     /** Serialize this plan to a protobuf object */
     void Serialize(LocationEngine& engine, const Scenario& scenario, PBPOSPlan* pb_plan) const;
     /** Serialize this plan to a protobuf file */

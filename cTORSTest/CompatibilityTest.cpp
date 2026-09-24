@@ -158,4 +158,67 @@ namespace cTORSTest
 		CHECK_THROWS_AS(ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan), std::invalid_argument);
 		fs::remove(tmp);
 	}
+
+	/** Parse a one-action HIP plan whose action has the given taskType JSON, then
+	 * convert it with CreateRunResult and return the invalid_argument message it
+	 * throws (empty if it throws none). */
+	static string ConversionErrorForTaskType(const string &name, const string &taskTypeJson)
+	{
+		fs::path tmp = fs::temp_directory_path() / ("compatibility_test_" + name + ".json");
+		{
+			std::ofstream out(tmp);
+			out << R"({"schemaVersion": 1, "actions": [{"startTime": 300, "endTime": 360, "taskType": )"
+				<< taskTypeJson
+				<< R"(, "shuntingUnit": {"id": 7, "memberIDs": [2401]}, "location": 15, "resources": []}]})";
+		}
+		PB_HIP_Plan pb_hip_plan;
+		ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan);
+		fs::remove(tmp);
+
+		LocationEngine engine(HIP_FIXTURE);
+		string error;
+		try
+		{
+			delete RunResult::CreateRunResult(pb_hip_plan, HIP_FIXTURE + "/scenario.json", &engine.GetLocation());
+		}
+		catch (const std::invalid_argument &e)
+		{
+			error = e.what();
+		}
+		return error;
+	}
+
+	TEST_CASE("A plan action with an unknown task type name is rejected, not dropped (issue #28)")
+	{
+		// "Setback" is what the reversal task type was called before it became
+		// "Reverse". ignore_unknown_fields makes protobuf skip the unknown enum
+		// name too, leaving the taskType oneof unset; the conversion used to drop
+		// such an action silently, so the plan was evaluated as if it had no
+		// reversal at all and failed on an unrelated-looking parking rule.
+		string error = ConversionErrorForTaskType("unknown_task_type", R"({"predefined": "Setback"})");
+
+		CHECK(error.find("Plan action 0") != string::npos);
+		CHECK(error.find("start time 300") != string::npos);
+		CHECK(error.find("shunting unit 7") != string::npos);
+		CHECK(error.find("no task type") != string::npos);
+	}
+
+	TEST_CASE("A plan action with no task type at all is rejected (issue #28)")
+	{
+		string error = ConversionErrorForTaskType("missing_task_type", "{}");
+
+		CHECK(error.find("Plan action 0") != string::npos);
+		CHECK(error.find("no task type") != string::npos);
+	}
+
+	TEST_CASE("A plan action with a predefined task type the conversion does not support is rejected (issue #28)")
+	{
+		// Break is a valid PredefinedTaskType, but the Solver-format conversion has
+		// no case for it; it used to fall through to a silent `default: break;`.
+		string error = ConversionErrorForTaskType("unsupported_task_type", R"({"predefined": "Break"})");
+
+		CHECK(error.find("Plan action 0") != string::npos);
+		CHECK(error.find("Break") != string::npos);
+		CHECK(error.find("does not support") != string::npos);
+	}
 }

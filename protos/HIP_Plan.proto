@@ -36,7 +36,7 @@ message Plan {
 	// Free text identifying what produced this plan, e.g.
 	// "robust-rail-solver 2.0.0-edge+20260826.a1b2c3d" - for a human
 	// debugging a failed evaluation, not for programmatic parsing.
-	optional string producer = 5;
+	optional string origin = 5;
 
 	// The producer's own total objective/cost value for this plan, in
 	// whatever units and scale that producer uses - not comparable across

@@ -10,6 +10,13 @@ void SetbackAction::Start(State* state) const {
 		//TODO
 	}
 	state->AddActiveAction(su, this);
+	// A Setback stops the current move (it reverses in place, then carries on) -
+	// no separate EndMoveAction precedes it (Plan.cpp suppresses that spurious
+	// EndMove the same way it already does for a movement leading into an Exit;
+	// unlike Exit, the unit isn't removed from state afterward, so Setback must
+	// clear `moving` itself or it's stuck true, which left a later, genuine
+	// EndMove on this same unit finding it "already active").
+	state->SetMoving(su, false);
 	state->SetBeginMoving(su, false);
 }
 

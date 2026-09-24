@@ -53,7 +53,7 @@ enum PredefinedTaskType {
 	Exit = 5;
 
 	// Interchange concepts (Scenario TaskSpec / Plan Action task types)
-	Walking = 6;
+	Reverse = 6;
 	Break = 7;
 	NonService = 8;
 	StandIn = 9;

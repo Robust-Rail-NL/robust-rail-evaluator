@@ -94,7 +94,17 @@ string Join(list<Obj> objects, const string& sep) {
 // increments only on breaking changes to the wire format. See
 // SCHEMA_CHANGELOG.md in robust-rail-generator for what changed at each
 // version.
-constexpr int EXPECTED_SCHEMA_VERSION = 1;
+constexpr int EXPECTED_SCHEMA_VERSION = 2;
+
+// The Plan schemaVersion at and above which a Move embedding an unflagged
+// saw movement (see blocked_track_rule) is rejected rather than merely
+// warned about - a plan must use an explicit Reverse action instead. Kept
+// as its own named constant, distinct from EXPECTED_SCHEMA_VERSION: a plan
+// with no schemaVersion at all is treated as version 1 for this specific
+// gate (tolerant, pre-Reverse-requirement) even though EXPECTED_SCHEMA_VERSION
+// (used only for the parse-time mismatch warning above) may move on its own
+// for unrelated reasons in the future.
+constexpr int REVERSE_REQUIRED_SCHEMA_VERSION = 2;
 
 // Warn-and-continue: a missing or unexpected schemaVersion is logged, never
 // a hard reject. Messages that don't declare a schemaVersion field (e.g.

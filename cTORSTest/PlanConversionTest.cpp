@@ -109,6 +109,45 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("A movement is also followed by no EndMove if that unit's own next action is a Reverse") {
+		// Same bug as the Exit case above, newly reachable once a plan can use an
+		// explicit Reverse: a Move ending on a non-parking track (e.g. the
+		// gateway) to do a Reverse got a spurious EndMove there too - the
+		// unit isn't parking, it's about to reverse and carry straight on.
+		PB_HIP_ShuntingUnit reversing;
+		reversing.set_id(1);
+		reversing.add_memberids(2601);
+
+		SUBCASE("its Reverse comes immediately next") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
+			};
+			CHECK(RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
+				PB_HIP_PredefinedTaskType::Reverse));
+		}
+
+		SUBCASE("its Reverse comes next for this unit, but not next in the list") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2801}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
+			};
+			CHECK(RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
+				PB_HIP_PredefinedTaskType::Reverse));
+		}
+
+		SUBCASE("the unit goes on to do something else") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Reverse, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitHasTaskType(actions, 0, reversing,
+				PB_HIP_PredefinedTaskType::Reverse));
+		}
+	}
+
 	TEST_CASE("Merging a combine keeps its two operands apart") {
 		// A cTORS Combine names two shunting units: the front one in the action's
 		// own trainUnitIds and the rear one in the task's. HIP emits one action per

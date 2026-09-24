@@ -654,6 +654,14 @@ void sort_actions_helperfunction(vector<PBAction> &actions)
     }
 }
 
+/** Identify a HIP action in an error message by its position in the plan,
+ * its start time and its shunting unit. */
+static string DescribeHIPAction(const PB_HIP_Action &hip_action, int index)
+{
+    return "Plan action " + to_string(index) + " (start time " + to_string(hip_action.starttime()) +
+        ", shunting unit " + to_string(hip_action.shuntingunit().id()) + ")";
+}
+
 RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string scenarioFileString, const Location *location, const string &pathToStoreEval, int departureDelay)
 {
     PBRun pb_run;
@@ -857,7 +865,11 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
             }
 
             default:
-                break;
+                // Silently dropping the action here would evaluate the plan as if it
+                // were never there (see issue #28); reject it, as CreatePOSAction does.
+                throw invalid_argument(DescribeHIPAction(hip_action, index) + " has predefined task type " +
+                    HIP_protos::PredefinedTaskType_Name(taskType.predefined()) +
+                    ", which the Solver-format plan conversion does not support.");
             }
         }
         else if (taskType.has_other())
@@ -884,6 +896,16 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
             }
 
             pb_actions.push_back(action_);
+        }
+        else
+        {
+            // Neither oneof member is set. Since parse_json_to_pb ignores unknown
+            // fields, protobuf also skips an unknown enum name there, so this is
+            // what a misspelled or renamed task type (e.g. "Setback" after it
+            // became "Reverse") ends up as - reject it instead of dropping the
+            // action without a trace (issue #28).
+            throw invalid_argument(DescribeHIPAction(hip_action, index) +
+                " has no task type; its taskType is missing, or its predefined name is not a known PredefinedTaskType.");
         }
 
         string jsonResult;

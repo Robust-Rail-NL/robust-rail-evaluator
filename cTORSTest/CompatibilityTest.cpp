@@ -158,5 +158,4 @@ namespace cTORSTest
 		CHECK_THROWS_AS(ParseHIP_PlanFromJson(tmp.string(), pb_hip_plan), std::invalid_argument);
 		fs::remove(tmp);
 	}
-
 }

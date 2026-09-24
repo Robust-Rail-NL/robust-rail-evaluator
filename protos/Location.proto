@@ -144,7 +144,7 @@ enum PredefinedTaskType {
     // Task represents the departure of a shunting unit on the facility.
     Exit = 5;
     // Task represents the reversal of a shunting unit.
-    Setback = 6;
+    Reverse = 6;
     // Task represents the break of a member of staff.
     Break = 7;
     // Non-Service traffic that blocks the infrastructure

@@ -91,7 +91,7 @@ private:
     bool feasible;
     // The interchange schemaVersion this plan declared, or 1 if it declared
     // none (see PB_HIP_Plan.schemaVersion). Distinct from Location/Scenario's
-    // own schemaVersion fields. Defaults to 1 - the pre-Setback-requirement,
+    // own schemaVersion fields. Defaults to 1 - the pre-Reverse-requirement,
     // fully tolerant version - so a plan built without ever calling
     // SetSchemaVersion() (e.g. the internal Run round-trip format, which has
     // no schemaVersion field at all) keeps today's behavior.
@@ -218,7 +218,7 @@ public:
      * A plan interleaves the actions of every shunting unit in time order, so the
      * next entry in the list usually belongs to a different unit. Asking about the
      * list rather than the unit is what produced a spurious EndMove before a
-     * departure (see NextActionForUnitIsExit) and, identically, before a Setback.
+     * departure (see NextActionForUnitIsExit) and, identically, before a Reverse.
      */
     static bool NextActionForUnitHasTaskType(const std::vector<PB_HIP_Action> &actions, int index,
                                         const PB_HIP_ShuntingUnit &unit, PB_HIP_PredefinedTaskType type);

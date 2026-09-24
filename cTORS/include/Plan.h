@@ -89,11 +89,11 @@ private:
     vector<POSMatch> matching;
     vector<POSPrecedenceConstraint> graph;
     bool feasible;
-    // The producer's own declared feasibility/producer/cost metadata (see
+    // The producer's own declared feasibility/origin/cost metadata (see
     // PB_HIP_Plan). Defaults match what an absent field means on the wire:
-    // Unknown feasibility, no producer/cost/explanation given.
+    // Unknown feasibility, no origin/cost/explanation given.
     Feasibility feasibility = Feasibility::Unknown;
-    string producer = "";
+    string origin = "";
     double cost = 0.0;
     string costDetails = "";
 public:
@@ -109,10 +109,10 @@ public:
     inline Feasibility GetFeasibility() const { return feasibility; }
     /** Set the producer's declared feasibility verdict for this specific plan */
     inline void SetFeasibility(Feasibility f) { feasibility = f; }
-    /** Get the free-text producer identification for this plan ("" if none) */
-    inline const string& GetProducer() const { return producer; }
-    /** Set the free-text producer identification for this plan */
-    inline void SetProducer(const string& p) { producer = p; }
+    /** Get the free-text identification of what produced this plan ("" if none) */
+    inline const string& GetOrigin() const { return origin; }
+    /** Set the free-text identification of what produced this plan */
+    inline void SetOrigin(const string& o) { origin = o; }
     /** Get the producer's declared total cost for this plan (0.0 if none) */
     inline double GetCost() const { return cost; }
     /** Set the producer's declared total cost for this plan */

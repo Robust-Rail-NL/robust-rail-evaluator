@@ -21,7 +21,7 @@ message Resource {
 	uint64 id = 5;
 
 	// A resource can be either a TrackPart or a Facility.
-	// Kept for compatibility with any producer that emits this legacy shape.
+	// Kept for compatibility with any origin that emits this legacy shape.
 	oneof resource {
 		// Set this field if this Resource is a TrackPart.
 		uint64 trackPartId = 3;

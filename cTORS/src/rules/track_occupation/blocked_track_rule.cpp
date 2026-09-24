@@ -25,7 +25,7 @@ pair<bool, string> blocked_track_rule::IsValid(const State* state, const Action*
 	// track. This should be represented as a separate Reverse action instead of being
 	// embedded in one Move - see doc/known-issue-plan-type.md. A plan declaring
 	// schemaVersion >= REVERSE_REQUIRED_SCHEMA_VERSION is rejected outright for this; an
-	// older (or unversioned) plan is only warned, since no real producer emits the explicit
+	// older (or unversioned) plan is only warned, since no real origin emits the explicit
 	// shape yet and existing plans must keep evaluating exactly as before.
 	for ( size_t i = 1; i + 1 < ress.size(); ++i ) {
 		auto res = ress.at(i);

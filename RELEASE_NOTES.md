@@ -1,5 +1,98 @@
 # Release notes
 
+## 2.2.0 — 2026-09-26
+
+Adopts interchange **schemaVersion 2** (see `SCHEMA_CHANGELOG.md` in
+`robust-rail-general`): an explicit `Reverse` action for an in-place reversal,
+and optional feasibility/origin/cost metadata on a `Plan`. Plans declaring
+`schemaVersion` 1, or none at all, still evaluate exactly as before.
+
+### Explicit reversals: the `Reverse` task type (#13)
+
+A saw movement (drive onto a track, reverse, drive back out) used to be
+embedded in a single `Move` action, and the evaluator's front/back
+orientation tracking went stale across it — the train could end up flipped
+in an unphysical way. Reported with a full repro by
+[@luteberget](https://github.com/luteberget) — thanks.
+
+- The `PredefinedTaskType` value `Walking` (6) is renamed to `Reverse`.
+  Nothing emitted `Walking` as a real value.
+- A Solver-format plan's `Reverse` task now becomes a real reversal action.
+  Previously the HIP-format conversion had no case for it and dropped the
+  task silently.
+- A `Move` that ends right before its unit's `Reverse` no longer gets a
+  spurious `EndMove`, which the parking rules used to reject on a
+  non-parking track such as a gateway.
+- A `Move` that embeds a saw movement:
+  - under `schemaVersion` 1 or none: still accepted, with a deprecation
+    warning;
+  - under `schemaVersion` 2: rejected, with a message asking for an explicit
+    `Reverse` action.
+- `EXPECTED_SCHEMA_VERSION` is now 2. A plan declaring 1 gets the usual
+  warn-and-continue mismatch warning, not a rejection.
+
+The evaluator's internal names (`SetbackAction`, the `setback_*` business
+rules and their `config.json` keys) are unchanged.
+
+### Plan feasibility, origin and cost
+
+A `Plan` may now carry `feasibility` (`Unknown`/`Feasible`/`Infeasible`),
+`origin` (free text identifying what produced the plan), `cost`, and
+`costDetails`. All are optional. The evaluator parses them, and logs a
+warning (never a rejection) when a plan's declared feasibility disagrees with
+the evaluation result. `Unknown` or absent is never checked.
+
+### Fixes
+
+- **Replayed multi-hop Moves use the plan's own duration (#18).** The
+  evaluator used to recompute a replayed `Move`'s duration from a fixed
+  per-track-type sum. On a long enough route, the move was then still
+  "active" when the plan's next action for that unit was due, which failed
+  with a misleading "shunting unit is already active" error.
+- **Service tasks on coupled shunting units (#25, #26).** A train with no
+  declared task crashed the evaluator with `unordered_map::at` and exit code
+  0. It now gets the existing "Could not find task" rejection. Coupled
+  members that share a service task are now serviced sequentially, matching
+  the solver's model, instead of in parallel.
+- **Per-type train counts in scenario checks (#24).** Each per-type count
+  in `CheckScenarioCorrectness` was capped at 1. The related error message
+  is also cleaned up. Thanks to
+  [@MayteSteeghs](https://github.com/MayteSteeghs).
+- **Exit-mismatch diagnostic (#16).** When an `Exit` action matched no
+  departure, the error listed every outgoing train. It now lists only trains
+  whose IDs actually match.
+- **Unknown task types are now rejected, not silently dropped (#28).** A plan
+  action whose task type wasn't a known `PredefinedTaskType` name (for
+  example `"Setback"` after its rename to `"Reverse"`) used to parse with the
+  action silently dropped from evaluation — no error, no trace, plan looked
+  cleanly evaluated with a piece missing. Now throws, naming the action's
+  index, start time and shunting unit. A known predefined type with no
+  conversion case (`Break`, `NonService`) is caught the same way.
+  `ignore_unknown_fields` otherwise stays on: unknown *fields* are still
+  tolerated by design.
+
+### Known limitations
+
+- The reversal duration comes from the train type, not the plan. A plan
+  that schedules a longer `Reverse` is fine: the unit finishes early and
+  waits.
+
+### Build and repo hygiene
+
+- `build.sh` is now the one build entry point, used by the Dockerfile, the
+  devcontainer and the VS Code tasks. It builds in parallel under `nice`.
+- The Docker build uses a persistent ccache mount and registry build
+  caching.
+- `docker-push.sh`/`docker-push-edge.sh` work from any directory, and log
+  out of ghcr.io when they exit.
+- CI fails on duplicate doctest `TEST_CASE` names, and a duplicated pair in
+  `CompatibilityTest.cpp` is removed.
+
+### Publishing
+
+Unchanged: versioned from `CMakeLists.txt`'s `project(TORS VERSION ...)`,
+pushed to `ghcr.io/robust-rail-nl/tors` via `docker-push.sh`.
+
 ## 2.1.0 — 2026-09-11
 
 A fix-focused release. No interchange-format changes — this is not a

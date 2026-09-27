@@ -710,8 +710,12 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
             {
 
                 // Zero movement in HIP might be generated for HIP specific reasons
-                // but a Zero movement is seen as an error by TORS
-                if (hip_action.endtime() - hip_action.starttime() == 0)
+                // but a Zero movement is seen as an error by TORS. A zero-duration Move
+                // is one such case; a Move with no resources is another - it moves the
+                // unit zero track parts (path would collapse to just hip_action.location(),
+                // a single entry with no distinct previous track - issue #31), which is what
+                // the solver emits for a unit that's staying where it already is.
+                if (hip_action.endtime() - hip_action.starttime() == 0 || hip_action.resources_size() == 0)
                 {
                     break;
                 }

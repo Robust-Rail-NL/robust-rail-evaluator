@@ -176,4 +176,19 @@ namespace cTORSTest
 		Scenario scenario(TORS_DATA_DIR "/per_type_count_accumulation_test/scenario.json", location);
 		CHECK_THROWS_AS(scenario.CheckScenarioCorrectness(location), std::invalid_argument);
 	}
+
+	TEST_CASE("MoveAction::GetPreviousTrack rejects a single-entry path (issue #31)")
+	{
+		// A Move whose path has only the destination (no resources) has no distinct
+		// previous track. tracks[tracks.size()-2] used to underflow (tracks.size() is
+		// unsigned) and read out of bounds via vector::operator[] instead of throwing -
+		// the solver genuinely emits such a Move for a unit staying where it already is.
+		Track destination("1", TrackPartType::Railroad, 100, "dest", false, false, false);
+		TrainUnitType type("SLT", 4, 100, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+		Train train(1, &type);
+		ShuntingUnit su(1, {train});
+
+		MoveAction move(&su, {&destination}, 60, false);
+		CHECK_THROWS_AS(move.GetPreviousTrack(), InvalidActionException);
+	}
 }

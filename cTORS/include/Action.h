@@ -616,7 +616,10 @@ public:
 	/** Get the destination Track of this MoveAction */
 	inline const Track* GetDestinationTrack() const { return tracks.back(); }
 	/** Get the previous Track of the moving ShuntingUnit when it has arrived on its destination Track */
-	inline const Track* GetPreviousTrack() const { return tracks[tracks.size()-2]; }
+	inline const Track* GetPreviousTrack() const {
+		if(tracks.size() < 2) throw InvalidActionException("A Move needs a path of at least 2 tracks, got " + to_string(tracks.size()) + ".");
+		return tracks[tracks.size()-2];
+	}
 	/** Get all the tracks that are used for this MoveAction */
 	inline const vector<const Track*>& GetTracks() const { return tracks; }
 	/** True if this MoveAction is a step-by-step move, otherwise false */

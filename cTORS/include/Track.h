@@ -151,7 +151,11 @@ public:
 	 * 3. If the type of this track is Switch and the A-side track is given, both B-side tracks are returned.
 	 */
 	inline const vector<const Track*> &GetNextTrackParts(const Track* previous) const {
-		return next.at(previous);
+		auto it = next.find(previous);
+		if(it == next.end())
+			throw InvalidActionException("Track " + id + " has no next track parts via previous track "
+				+ (previous == nullptr ? "(null)" : previous->GetID()) + " - it is not a real neighbor.");
+		return it->second;
 	}
 
 	/**

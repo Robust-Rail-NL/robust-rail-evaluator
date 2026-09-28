@@ -713,6 +713,20 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
                 // but a Zero movement is seen as an error by TORS
                 if (hip_action.endtime() - hip_action.starttime() == 0)
                 {
+                    cerr << "Warning: " << DescribeHIPAction(hip_action, index)
+                         << " is a Move with zero duration; skipping it as a no-op." << endl;
+                    break;
+                }
+
+                // A Move with no resources moves the unit zero track parts (path would
+                // collapse to just hip_action.location(), a single entry with no distinct
+                // previous track - issue #31); the solver emits this for a unit staying
+                // where it already is. Genuine and harmless, but still worth surfacing -
+                // it's a no-op the solver could just as well not have emitted at all.
+                if (hip_action.resources_size() == 0)
+                {
+                    cerr << "Warning: " << DescribeHIPAction(hip_action, index)
+                         << " is a Move with no resources (zero distance); skipping it as a no-op." << endl;
                     break;
                 }
 

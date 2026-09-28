@@ -30,4 +30,26 @@ namespace cTORSTest
 		CHECK(t2.IsBSide(&t4));
 		CHECK(!t2.IsBSide(&t3));
 	}
+
+	TEST_CASE("Track::GetNextTrackParts rejects a non-neighbor previous track (issue #30)") {
+		// next.at(previous) used to throw an opaque std::out_of_range (surfaced to
+		// callers as libstdc++'s "_Map_base::at") when previous isn't a real
+		// neighbor - which happens for an inStanding train's unvalidated
+		// entryTrackPart, reached at runtime via SetbackAction::Start. Must reject
+		// with a clear domain exception instead.
+		Track t1 = Track("r0", TrackPartType::Railroad, 100, "rail0", false, false, false);
+		Track t2 = Track("s1", TrackPartType::Switch, 50, "switch1", false, false, false);
+		Track t3 = Track("b2", TrackPartType::Bumper, 10, "bumper2", false, false, false);
+		Track t4 = Track("b3", TrackPartType::Bumper, 10, "bumper3", false, false, false);
+		Track t5 = Track("b4", TrackPartType::Bumper, 10, "bumper4", false, false, false);
+		t1.AssignNeighbors({&t3}, {&t2});
+		t2.AssignNeighbors({&t1}, {&t4,&t5});
+		t3.AssignNeighbors({&t1},{});
+		t4.AssignNeighbors({&t2},{});
+		t5.AssignNeighbors({&t2},{});
+
+		// t5 is a real track in the graph, just not a neighbor of t1.
+		CHECK_THROWS_AS(t1.GetNextTrackParts(&t5), InvalidActionException);
+		CHECK_THROWS_AS(t1.GetOppositeSide(&t5), InvalidActionException);
+	}
 }

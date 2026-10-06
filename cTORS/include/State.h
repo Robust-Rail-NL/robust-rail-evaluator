@@ -68,7 +68,7 @@ class State
 {
 private:
 	EventQueue events;
-	int time, startTime, endTime;
+	int time, startTime, endTime, departureDelay;
 	vector<const Incoming*> incomingTrains;
 	vector<const Outgoing*> outgoingTrains;
 	vector<const Employee*> employees;
@@ -122,6 +122,8 @@ public:
 	inline int GetPlanSchemaVersion() const { return planSchemaVersion; }
 	/** Set the interchange schemaVersion of the plan being evaluated */
 	inline void SetPlanSchemaVersion(int version) { planSchemaVersion = version; }
+	/** Get the slack allowed either side of a scheduled departure */
+	inline int GetDepartureDelay() const { return departureDelay; }
 	
 	//Changed
 	/** Returns true if this state has changed since the last time it was set to unchanged */

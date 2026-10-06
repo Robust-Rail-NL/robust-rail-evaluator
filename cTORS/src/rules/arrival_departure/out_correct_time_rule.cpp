@@ -3,8 +3,9 @@
 /**
  * Validates an ExitAction for the given state.
  * The ExitAction is invalid if
- * 1. for a departing ShuntingUnit, the time of the action is not the same as the
- *    time described by the Outgoing attribute;
+ * 1. for a departing ShuntingUnit, the time of the action differs from the time
+ *    described by the Outgoing attribute by more than --departure_delay, which
+ *    is 0 by default and so demands an exact match;
  * 2. for an outStanding ShuntingUnit, the scenario has not reached its end yet.
  *
  * An outStanding request describes a ShuntingUnit that stays in the shunting yard
@@ -25,8 +26,12 @@ pair<bool, string> out_correct_time_rule::IsValid(const State* state, const Acti
 					+ " stays in the yard, so it cannot leave before the end of the scenario at time "
 					+ to_string(state->GetEndTime()));
 		}
-		else if(state->GetTime() != outgoing->GetTime())
-			return make_pair(false, "Shunting unit " + outgoing->GetShuntingUnit()->toString() + " should leave at time " + to_string(outgoing->GetTime()) );
+		else {
+			int off = state->GetTime() - outgoing->GetTime();
+			if (off < 0) off = -off;
+			if (off > state->GetDepartureDelay())
+				return make_pair(false, "Shunting unit " + outgoing->GetShuntingUnit()->toString() + " should leave at time " + to_string(outgoing->GetTime()) );
+		}
 	}
 	return make_pair(true, "");
 }

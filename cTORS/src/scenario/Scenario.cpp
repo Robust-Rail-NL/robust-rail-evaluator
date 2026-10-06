@@ -63,7 +63,7 @@ void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location
 	}
 }
 
-Scenario::Scenario(const Scenario &scenario) : startTime(scenario.startTime), endTime(scenario.endTime)
+Scenario::Scenario(const Scenario &scenario) : startTime(scenario.startTime), endTime(scenario.endTime), departureDelay(scenario.departureDelay)
 {
 	disturbances = scenario.disturbances;
 	for (auto inc : scenario.incomingTrains)

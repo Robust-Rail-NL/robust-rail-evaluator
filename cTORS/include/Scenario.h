@@ -159,7 +159,7 @@ public:
 	inline void SetEvaluatiorStoragePath(string path) {pathToStoreEval = path;}
 	inline const string GetEvaluatiorStoragePath() const {return pathToStoreEval;}
 
-	mutable int departureDelay;
+	mutable int departureDelay = 0;
 	inline void InitDepartureDelay(int _departureDelay) const {departureDelay = _departureDelay;}
 	inline const int GetDepartureDelay() const {return departureDelay;}
 

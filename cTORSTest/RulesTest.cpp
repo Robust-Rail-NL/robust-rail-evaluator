@@ -362,4 +362,79 @@ namespace cTORSTest
 			CHECK(!octr.IsValid(&state, &exitAction).first);
 		}
 	}
+
+	TEST_CASE("--departure_delay relaxes the exit time rule") {
+		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, true, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+		vector<Track*> tracks = {&r0, &b0, &b1};
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train train(1, &testType);
+		ShuntingUnit su(1, {train});
+		Outgoing departing(2, new ShuntingUnit(1, {train}), &r0, &b0, 1800, false, 0);
+
+		Config config;
+		out_correct_time_rule octr(&config);
+
+		// Whether the exit at `time` is valid in a State built from a Scenario with `delay`.
+		auto exitValid = [&](int delay, int time) {
+			Scenario scenario;
+			scenario.SetEndTime(3600);
+			scenario.InitDepartureDelay(delay);
+			State state(scenario, tracks);
+			state.AddShuntingUnit(&su, &r0, &b0);
+			ExitAction exitAction(state.GetShuntingUnitByID(1), 0, &departing);
+			state.SetTime(time);
+			return octr.IsValid(&state, &exitAction).first;
+		};
+
+		SUBCASE("a Scenario starts without any delay") {
+			Scenario scenario;
+			CHECK(scenario.GetDepartureDelay() == 0);
+		}
+
+		SUBCASE("delay 0 demands an exact match") {
+			CHECK(exitValid(0, 1800));
+			CHECK(!exitValid(0, 1801));
+			CHECK(!exitValid(0, 1799));
+		}
+
+		SUBCASE("a late exit is valid up to the delay") {
+			CHECK(exitValid(5, 1800));
+			CHECK(exitValid(5, 1805));
+			CHECK(!exitValid(5, 1806));
+		}
+
+		SUBCASE("an early exit is valid up to the delay") {
+			CHECK(exitValid(5, 1795));
+			CHECK(!exitValid(5, 1794));
+		}
+
+		SUBCASE("the delay survives copying the Scenario") {
+			// RunResult holds its Scenario by value, so the Scenario that gets
+			// evaluated is always a copy of the one the delay was set on.
+			Scenario scenario;
+			scenario.InitDepartureDelay(42);
+			Scenario copy(scenario);
+			CHECK(copy.GetDepartureDelay() == 42);
+			State state(copy, tracks);
+			CHECK(state.GetDepartureDelay() == 42);
+		}
+
+		SUBCASE("an outStanding unit ignores the delay") {
+			Outgoing outstanding(1, new ShuntingUnit(1, {train}), &r0, &b0, 0, true, 0);
+			Scenario scenario;
+			scenario.SetEndTime(3600);
+			scenario.InitDepartureDelay(90);
+			State state(scenario, tracks);
+			state.AddShuntingUnit(&su, &r0, &b0);
+			ExitAction exitAction(state.GetShuntingUnitByID(1), 0, &outstanding);
+			state.SetTime(3550);
+			CHECK(!octr.IsValid(&state, &exitAction).first);
+		}
+	}
 }

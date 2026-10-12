@@ -56,6 +56,63 @@ namespace cTORSTest
 		cout << " Executed all tests "  << endl;
 	}
 
+	TEST_CASE("Length rule uses exact millimetre lengths") {
+		// 24.1 + 24.1 + 24.1 > 72.3 in double arithmetic (72.30000000000001), but fills the track exactly in decimal
+		Scenario scenario;
+		Track r0("r0", TrackPartType::Railroad, 100, "rail0", false, false, false);
+		Track s0("s0", TrackPartType::Switch, 50, "switch0", false, false, false);
+		Track exact("exact", TrackPartType::Railroad, 72.3, "exact", false, false, false);
+		Track shortBy1mm("short", TrackPartType::Railroad, 72.299, "short", false, false, false);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, false);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, false);
+		Track b2("b2", TrackPartType::Bumper, 10, "bumper2", false, false, false);
+		r0.AssignNeighbors({&b0}, {&s0});
+		exact.AssignNeighbors({&b1}, {&s0});
+		shortBy1mm.AssignNeighbors({&b2}, {&s0});
+		s0.AssignNeighbors({&r0}, {&exact, &shortBy1mm});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&exact}, {});
+		b2.AssignNeighbors({&shortBy1mm}, {});
+		vector<Track*> tracks = {&r0, &s0, &exact, &shortBy1mm, &b0, &b1, &b2};
+		State state(scenario, tracks);
+
+		TrainUnitType type("LenType", 1, 24.1, 100, 100, 100, 100, 50, 100, "LT", false, false, false);
+		CHECK(type.lengthMm == 24100);
+		CHECK(exact.GetLengthMm() == 72300);
+		CHECK(shortBy1mm.GetLengthMm() == 72299);
+		CHECK(exact.GetLength() == 72.3);
+
+		ShuntingUnit* su0 = new ShuntingUnit(0, {Train(0, &type)});
+		ShuntingUnit* su1 = new ShuntingUnit(1, {Train(1, &type)});
+		ShuntingUnit* mover = new ShuntingUnit(2, {Train(2, &type)});
+		state.AddShuntingUnit(su0, &exact, &b1);
+		state.AddShuntingUnit(su1, &exact, &b1);
+		state.AddShuntingUnit(mover, &r0, &b0);
+		CHECK(mover->GetLengthMm() == 24100);
+
+		Config config;
+		length_track_rule ltr(&config);
+		MoveAction toExact(mover, {&r0, &s0, &exact}, 0, false);
+		CHECK(ltr.IsValid(&state, &toExact).first);
+
+		// Same layout, one millimetre too short
+		ShuntingUnit* su3 = new ShuntingUnit(3, {Train(3, &type)});
+		ShuntingUnit* su4 = new ShuntingUnit(4, {Train(4, &type)});
+		state.AddShuntingUnit(su3, &shortBy1mm, &b2);
+		state.AddShuntingUnit(su4, &shortBy1mm, &b2);
+		MoveAction toShort(mover, {&r0, &s0, &shortBy1mm}, 0, false);
+		auto res = ltr.IsValid(&state, &toShort);
+		CHECK(!res.first);
+		CHECK(res.second.find("72.300000 > 72.299000") != string::npos);
+	}
+
+	TEST_CASE("MetresToMm rounds half away from zero") {
+		CHECK(MetresToMm(247.2, "t") == 247200);
+		CHECK(MetresToMm(0.0006, "t") == 1);
+		CHECK(MetresToMm(247.2004, "t") == 247200);
+		CHECK(MetresToMm(0, "t") == 0);
+	}
+
 	TEST_CASE("Service task rules test") {
 		Scenario scenario;
 

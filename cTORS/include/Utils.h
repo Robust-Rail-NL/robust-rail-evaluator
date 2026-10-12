@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <map>
 #include <queue>
+#include <cmath>
+#include <cstdint>
 //!\endcond
 #include "Proto.h"
 namespace fs = std::filesystem;
@@ -41,6 +43,19 @@ if(DEBUG_OUTPUT) { std::cout << s << std::endl; }
 #ifndef DELETE_VECTOR
 #define DELETE_VECTOR(l) l.erase(remove_if(l.begin(), l.end(), [](auto e) {delete e; return true;}), l.end());
 #endif
+
+/**
+ * Convert a length in metres to whole millimetres, rounding half away from zero.
+ * Lengths are compared as integers, so that exact fits are not decided by floating-point noise.
+ * Warns on stderr if the length has more than 3 decimals (and is thus rounded); \p what names the owner of the length.
+ */
+inline int64_t MetresToMm(double metres, const string& what) {
+	int64_t mm = llround(metres * 1000);
+	if (fabs(metres * 1000 - (double)mm) > 1e-6) {
+		cerr << "Warning: " << what << ": length " << metres << " m has more than 3 decimals; rounded to " << mm / 1000.0 << " m" << endl;
+	}
+	return mm;
+}
 
 template<typename Base, typename T>
 inline bool instanceof(const T* ptr) {

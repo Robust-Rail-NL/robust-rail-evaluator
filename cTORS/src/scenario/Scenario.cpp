@@ -369,12 +369,12 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 	for (const Incoming *train : incomingTrains)
 	{
 		// Test if arrival train length does not exceed the length of the track (RailRoad) it arrives
-		double shuntingUnitLength = 0.0;
-		double arrivalTrackLength = 0.0;
+		int64_t shuntingUnitLength = 0;
+		int64_t arrivalTrackLength = 0;
 		Track *arrivalTrack;
 
 		const ShuntingUnit *shuntingUnit = train->GetShuntingUnit();
-		shuntingUnitLength = shuntingUnit->GetLength();
+		shuntingUnitLength = shuntingUnit->GetLengthMm();
 		arrivalTrack = location.GetTrackByID(train->GetParkingTrack()->GetID());
 
 		// Type is railroad ? - if not then the train cannot arrive to this infrastructure
@@ -383,11 +383,11 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 			throw invalid_argument("The arrival track [" + arrivalTrack->GetID() + "]: type is " + to_string(arrivalTrack->GetType()) + " and it should be RailRoad");
 		}
 
-		arrivalTrackLength = arrivalTrack->GetLength();
+		arrivalTrackLength = arrivalTrack->GetLengthMm();
 
 		if (shuntingUnitLength > arrivalTrackLength)
 		{
-			throw invalid_argument("The length of the arrival train [" + to_string(train->GetID()) + "]: " + to_string(shuntingUnitLength) + " is greater than the length of the track's [" + arrivalTrack->GetID() + "] it arrives:" + to_string(arrivalTrackLength));
+			throw invalid_argument("The length of the arrival train [" + to_string(train->GetID()) + "]: " + to_string(shuntingUnitLength / 1000.0) + " is greater than the length of the track's [" + arrivalTrack->GetID() + "] it arrives:" + to_string(arrivalTrackLength / 1000.0));
 		}
 
 		if (!train->IsInstanding())
@@ -435,14 +435,14 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 	for (const Outgoing *train : outgoingTrains)
 	{
 		// Test if departure train length does not exceed the length of the track (RailRoad) it arrives
-		double shuntingUnitLength = 0.0;
-		double departureTrackLength = 0.0;
+		int64_t shuntingUnitLength = 0;
+		int64_t departureTrackLength = 0;
 		Track *departureTrack;
 
 		const ShuntingUnit *shuntingUnit = train->GetShuntingUnit();
-		shuntingUnitLength = shuntingUnit->GetLength();
+		shuntingUnitLength = shuntingUnit->GetLengthMm();
 		departureTrack = location.GetTrackByID(train->GetParkingTrack()->GetID());
-		departureTrackLength = departureTrack->GetLength();
+		departureTrackLength = departureTrack->GetLengthMm();
 
 		// Type is railroad ? - if not the then the train cannot depart from this infrastructure
 		if (departureTrack->GetType() != TrackPartType::Railroad)
@@ -452,7 +452,7 @@ void Scenario::CheckScenarioCorrectness(const Location &location) const
 
 		if (shuntingUnitLength > departureTrackLength)
 		{
-			throw invalid_argument("The length of the departure train [" + to_string(train->GetID()) + "]: " + to_string(shuntingUnitLength) + " is greater than the length of the track's [" + departureTrack->GetID() + "] it arrives:" + to_string(departureTrackLength));
+			throw invalid_argument("The length of the departure train [" + to_string(train->GetID()) + "]: " + to_string(shuntingUnitLength / 1000.0) + " is greater than the length of the track's [" + departureTrack->GetID() + "] it arrives:" + to_string(departureTrackLength / 1000.0));
 		}
 
 		unordered_map<const Train *, string, TrainHash, TrainEquals> trainsTypes;

@@ -2,11 +2,11 @@
 
 Track::Track(const string& id, TrackPartType type, double length, const string& name,
 	bool sawMovementAllowed, bool parkingAllowed, bool isElectrified) :
-	id(id), type(type), length(length),	name(name), sawMovementAllowed(sawMovementAllowed),
+	id(id), type(type), lengthMm(MetresToMm(length, "Track " + id)),	name(name), sawMovementAllowed(sawMovementAllowed),
 	parkingAllowed(parkingAllowed), isElectrified(isElectrified) { }
 
 Track::Track(const Track& track) :
-	id(track.id), type(track.type), length(track.length),
+	id(track.id), type(track.type), lengthMm(track.lengthMm),
 	name(track.name), sawMovementAllowed(track.sawMovementAllowed),
 	parkingAllowed(track.parkingAllowed), isElectrified(track.isElectrified),
 	aSides(track.aSides), bSides(track.bSides), next(track.next) { }

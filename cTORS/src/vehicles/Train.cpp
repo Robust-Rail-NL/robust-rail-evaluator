@@ -6,7 +6,7 @@ map<pair<string,int>, TrainUnitType *> TrainUnitType::typesByPrefixAndCarriages;
 void TrainUnitType::Serialize(PBTrainUnitType* pb_tt) const {
 	pb_tt->set_displayname(displayName);
 	pb_tt->set_carriages(carriages);
-	pb_tt->set_length(length);
+	pb_tt->set_length(GetLength());
 	pb_tt->set_combineduration(combineDuration);
 	pb_tt->set_splitduration(splitDuration);
 	pb_tt->set_backnormtime(backNormTime);

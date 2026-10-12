@@ -16,7 +16,7 @@ struct TrainUnitType {
 	static map<pair<string,int>,TrainUnitType*> typesByPrefixAndCarriages; /**< a static map containing all the HIP-path-initialized types, keyed by (typePrefix, carriages) since typePrefix alone is not unique */
 	const string displayName;		/**< The name of the train unit type */
 	const int carriages;			/**< The number of carriages */
-	const double length;			/**< The length of this train unit, in meters */
+	const int64_t lengthMm;			/**< The length of this train unit, in millimetres */
 	const int combineDuration;		/**< The time it takes to combine this type of train unit with another */
 	const int splitDuration;		/**< The time it takes to split this type of train unit */
 	const int backNormTime;			/**< the back norm time */
@@ -36,7 +36,7 @@ struct TrainUnitType {
 	 */
 	TrainUnitType(const string& displayName, int carriages, double length, int combineDuration, int splitDuration, int backNormTime,
 		int backAdditionTime, int travelSpeed, int startUpTime, const string& typePrefix, bool needsLoco, bool isLoco, bool needsElectricity) :
-		displayName(displayName), carriages(carriages), length(length), combineDuration(combineDuration), splitDuration(splitDuration),
+		displayName(displayName), carriages(carriages), lengthMm(MetresToMm(length, "TrainUnitType " + displayName)), combineDuration(combineDuration), splitDuration(splitDuration),
 		backNormTime(backNormTime), backAdditionTime(backAdditionTime), setbackTime(carriages*backAdditionTime), travelSpeed(travelSpeed),
 		startUpTime(startUpTime), typePrefix(typePrefix), needsLoco(needsLoco), isLoco(isLoco), needsElectricity(needsElectricity) {}
 	/** Construct a TrainUnitType from the given legacy (non-HIP) protobuf object */
@@ -47,6 +47,8 @@ struct TrainUnitType {
 	TrainUnitType(const PB_HIP_TrainUnitType& pb_tt) : TrainUnitType(pb_tt.typeprefix() + "-" + std::to_string(pb_tt.carriages()), pb_tt.carriages(), pb_tt.length(), pb_tt.combineduration(),
 		pb_tt.splitduration(), pb_tt.backnormtime(), pb_tt.backadditiontime(), pb_tt.travelspeed(), pb_tt.startuptime(), pb_tt.typeprefix(),
 		pb_tt.needsloco(), pb_tt.isloco(), pb_tt.needselectricity()) {}
+	/** Get the length of this train unit in metres */
+	double GetLength() const { return lengthMm / 1000.0; }
 	/** Get a string representation of this TrainUnitType */
 	const string& toString() const { return displayName; }
 	/** Returns true iff the two TrainUnitType%s have the same name and carriage count.

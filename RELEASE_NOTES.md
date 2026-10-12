@@ -1,5 +1,19 @@
 # Release notes
 
+## Unreleased
+
+### Exact integer-millimetre lengths (#39)
+
+Track and train-unit lengths were compared as raw `double`s, so a layout that
+fills a track exactly (e.g. three 24.1 m units on a 72.3 m track) could be
+rejected by floating-point noise. Lengths are now stored as integer
+millimetres (`llround(metres * 1000)`, half away from zero) and compared
+exactly with a strict `>`, matching the solver. The public API (protobuf,
+JSON, constructors, `GetLength()`, pyTORS `length`) stays in metres. A length
+with more than 3 decimals is rounded and a warning is printed to stderr.
+
+Verdicts can change: exact fits that previously failed by one ulp now pass.
+
 ## 2.2.0 — 2026-09-26
 
 Adopts interchange **schemaVersion 2** (see `SCHEMA_CHANGELOG.md` in

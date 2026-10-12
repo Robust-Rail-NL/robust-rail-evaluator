@@ -16,7 +16,7 @@ class ShuntingUnit {
 private:
 	int id;
 	vector<Train> trains;
-	double length;
+	int64_t lengthMm;
 	bool needsElectricity;
 	string trainString;
 	vector<int> trainIDs;
@@ -52,7 +52,9 @@ public:
 	/** Get the ID of the ShuntingUnit */
 	inline int GetID() const {return id; }
 	/** Get the total length of the ShuntingUnit */
-	inline double GetLength() const { return length; }
+	inline double GetLength() const { return lengthMm / 1000.0; }
+	/** Get the total length of the ShuntingUnit in millimetres */
+	inline int64_t GetLengthMm() const { return lengthMm; }
 	/** Returns true iff any of this ShuntingUnit's Train%s needs electricity */
 	inline bool NeedsElectricity() const { return needsElectricity; }
 	/** Get the number of Train%s in this ShuntingUnit */

@@ -19,7 +19,7 @@ pair<bool, string> length_track_rule::IsValid(const State* state, const Action* 
 	const Track* track;
 	const ShuntingUnit* su = action->GetShuntingUnit();
 	bool move = false;
-	double length = su->GetLength();
+	int64_t length = su->GetLengthMm();
 	if (auto aa = dynamic_cast<const ArriveAction*>(action)) {
 		track = aa->GetDestinationTrack();
 	} else if (auto ma = dynamic_cast<const MoveAction*>(action)) {
@@ -33,11 +33,11 @@ pair<bool, string> length_track_rule::IsValid(const State* state, const Action* 
 	}
 	auto& occ = state->GetOccupations(track);
 	for (auto& u : occ) {
-		length += u->GetLength();
+		length += u->GetLengthMm();
 	}
-	if (length > track->length) {
+	if (length > track->GetLengthMm()) {
 		if(!move || occ.size() > 0)
-			return make_pair(false, "Adding ShuntingUnit-"+su->toString() + " to Track " + track->toString() + " exceeds the maximum length (" + to_string(length) + " > " +to_string(track->length) + ")");
+			return make_pair(false, "Adding ShuntingUnit-"+su->toString() + " to Track " + track->toString() + " exceeds the maximum length (" + to_string(length / 1000.0) + " > " +to_string(track->GetLength()) + ")");
 	}
 	return make_pair(true, "");
 }

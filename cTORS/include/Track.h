@@ -66,7 +66,7 @@ private:
 public:
 	const string id; 				/**< The id of this track */
 	const TrackPartType type; 		/**< The type of this track */
-	const double length; 			/**< The length of thist track */
+	const int64_t lengthMm; 		/**< The length of this track, in millimetres */
 	const string name; 				/**< The name of this track */
 	const bool sawMovementAllowed; 	/**< Whether saw movements are allowed on this track */
 	const bool parkingAllowed;		/**< Whether parking is allowed on this track */
@@ -186,7 +186,9 @@ public:
 	/**
 	 * Get the length of this track
 	 */
-	inline double GetLength() const { return length; }
+	inline double GetLength() const { return lengthMm / 1000.0; }
+	/** Get the length of this track in millimetres */
+	inline int64_t GetLengthMm() const { return lengthMm; }
 	
 	/**
 	 * Get a string representation of this track

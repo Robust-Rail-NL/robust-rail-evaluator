@@ -52,13 +52,13 @@ ShuntingUnit::ShuntingUnit(const PB_HIP_TrainRequest& pb_tr)
 	: ShuntingUnit(static_cast<int>(pb_tr.id()), ConvertPBTrains(pb_tr.trainunits())) {}
 
 void ShuntingUnit::UpdateValues() {
-	length = 0;
+	lengthMm = 0;
 	needsElectricity = false;
 	trainString = "";
 	bool first = true;
 	trainIDs = {};
 	for (auto& t : trains) {
-		length += t.GetType()->length;
+		lengthMm += t.GetType()->lengthMm;
 		needsElectricity |= t.GetType()->needsElectricity;
 		trainString += (t.toString() + (first ? "" : "-"));
 		trainIDs.push_back(t.GetID()); // Probably here

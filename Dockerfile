@@ -1,5 +1,26 @@
 # syntax=docker/dockerfile:1
 
+# Deps stage: clones the FetchContent dependencies once, outside CMake. A
+# github.com clone made from inside the main build step failed intermittently
+# (e.g. "could not read Username"), and that step never cache-hits since
+# VERSION changes every release, so every build re-cloned. This stage's only
+# inputs are the script and the CMakeLists.txt files declaring the
+# dependencies, so Docker's layer cache keeps it until a version there is
+# bumped - the URL and tag are read from those files, never repeated here.
+# doctest is not needed: the image build skips the unit tests (see below).
+FROM ubuntu:24.04 AS deps
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY docker-fetch-deps.sh ./
+COPY cTORS/CMakeLists.txt cTORS/CMakeLists.txt
+COPY pyTORS/CMakeLists.txt pyTORS/CMakeLists.txt
+RUN ./docker-fetch-deps.sh /deps cTORS/CMakeLists.txt:json pyTORS/CMakeLists.txt:pybind
+
+
 # Build stage: compiles the C++ project. Also published on its own as the
 # ":devel" tag (see docker-push.sh) so .devcontainer/devcontainer.json can
 # pull a ready-made toolchain image instead of rebuilding it from scratch.
@@ -34,6 +55,7 @@ ENV CCACHE_MAXSIZE=2G
 
 WORKDIR /workspace
 
+COPY --from=deps /deps /deps
 COPY . .
 
 # Build ASSERTIONS=ON for an image intended for integration testing: same
@@ -72,11 +94,12 @@ ARG VERSION=
 #
 # -DTORS_BuildTests=OFF: the image never runs the unit tests (CI does, see
 # .github/workflows/ctest.yml), so don't build them here. Besides saving
-# compile time, this skips cTORSTest's FetchContent clone of doctest from
-# github.com, one fewer network fetch that can fail mid-build (e.g. when
-# GitHub throttles the concurrent amd64+arm64 clones from one IP).
+# compile time, this skips cTORSTest's FetchContent clone of doctest.
+# FETCHCONTENT_SOURCE_DIR_* points the remaining FetchContent dependencies at
+# the clones from the deps stage, so CMake does no network access.
 RUN --mount=type=cache,target=/root/.ccache,id=ccache-${TARGETARCH} \
     ./build.sh -DTORS_BuildTests=OFF \
+    -DFETCHCONTENT_SOURCE_DIR_JSON=/deps/json -DFETCHCONTENT_SOURCE_DIR_PYBIND=/deps/pybind \
     -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 

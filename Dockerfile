@@ -69,8 +69,15 @@ ARG VERSION=
 # step's Docker-level cache is always a miss. It also won't help a
 # completely fresh builder/machine the way the registry cache does — it's
 # only warm as long as robust-rail-builder itself persists.
+#
+# -DTORS_BuildTests=OFF: the image never runs the unit tests (CI does, see
+# .github/workflows/ctest.yml), so don't build them here. Besides saving
+# compile time, this skips cTORSTest's FetchContent clone of doctest from
+# github.com, one fewer network fetch that can fail mid-build (e.g. when
+# GitHub throttles the concurrent amd64+arm64 clones from one IP).
 RUN --mount=type=cache,target=/root/.ccache,id=ccache-${TARGETARCH} \
-    ./build.sh -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
+    ./build.sh -DTORS_BuildTests=OFF \
+    -DCTORS_ASSERTIONS=${ASSERTIONS} -DTORS_VERSION_OVERRIDE=${VERSION} \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 

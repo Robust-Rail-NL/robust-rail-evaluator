@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -10,7 +10,7 @@ include(FetchContent)
 
 FetchContent_Declare(pybind
   GIT_REPOSITORY https://github.com/pybind/pybind11.git
-  GIT_TAG v2.13.6)
+  GIT_TAG v3.1.0)
 FetchContent_GetProperties(pybind)
 if(NOT pybind_POPULATED)
   FetchContent_Populate(pybind)
@@ -28,7 +28,7 @@ find_package(Python COMPONENTS Interpreter Development)
 # Add target to generate pyi file, 
 if(Python_FOUND)
   add_custom_target(pyTORS_pyi ALL
-  COMMAND ${PYTHON_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/generate_docs.py" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+  COMMAND ${Python_EXECUTABLE} "${CMAKE_CURRENT_SOURCE_DIR}/generate_docs.py" ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
   add_dependencies(pyTORS_pyi pyTORS)
 endif()
 
@@ -40,7 +40,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 if(Python_FOUND)
-  execute_process ( COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process ( COMMAND ${Python_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
   message(STATUS "Python found. Intalling to ${PYTHON_SITE_PACKAGES}")
   install(TARGETS pyTORS
     COMPONENT python

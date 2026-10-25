@@ -36,7 +36,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 
 if(Python_FOUND)
-  execute_process ( COMMAND ${Python_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+  execute_process ( COMMAND ${Python_EXECUTABLE} -c "import sysconfig; print(sysconfig.get_path('purelib'))" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
   message(STATUS "Python found. Intalling to ${PYTHON_SITE_PACKAGES}")
   install(TARGETS pyTORS
     COMPONENT python

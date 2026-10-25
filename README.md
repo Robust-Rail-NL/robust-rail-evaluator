@@ -218,7 +218,7 @@ The supported platform is Ubuntu 24.04 or newer (or another distribution with
 a comparable toolchain). Ubuntu 22.04 is no longer supported: its protobuf 3.12
 cannot compile the `optional` fields in `protos/`.
 
-Install the build tools, protobuf and the Python development libraries (cmake 3.15 or higher is required):
+Install the build tools, protobuf and the Python development libraries (cmake 3.28 or higher is required):
 
 ```bash
 sudo apt update

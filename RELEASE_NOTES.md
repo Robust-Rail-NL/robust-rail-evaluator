@@ -44,6 +44,24 @@ over-filled a facility and were wrongly accepted now fail.
 - Skipping a no-op `Move` (zero duration or no resources) during HIP plan
   conversion now prints a warning instead of happening silently.
 
+### A Move may not drive through a unit parked on its first track (#20)
+
+`blocked_track_rule` is meant to reject a multi-track `Move` whose path
+crosses a track occupied by another shunting unit. It skipped the first track
+the unit enters, as well as the destination, so a unit parked on that first
+track could be driven straight through. The unit's own starting track is not
+part of the checked list, so only the destination is a legitimate exception
+(the unit stops there, and `length_track_rule` decides whether it fits). The
+first entered track is now checked like every other track the unit passes.
+
+Verdicts can change: plans that drove through a unit parked on the first track
+of a Move are now rejected. On the two locations shipped with the pipeline
+(Kleine Binckhorst and SimpleService) this cannot happen: the first track a
+Move enters there is always a zero-length switch, which cannot hold a parked
+unit, so no verdict on those locations changes. The fix matters for locations
+where parkable tracks are directly adjacent. It is covered by a rule-level unit
+test; no real plan exercises it.
+
 ### `--departure_delay` is applied per scenario
 
 The `--departure_delay` option was parsed but not copied into the `State`, so

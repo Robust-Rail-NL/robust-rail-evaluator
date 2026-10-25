@@ -14,12 +14,82 @@ with more than 3 decimals is rounded and a warning is printed to stderr.
 
 Verdicts can change: exact fits that previously failed by one ulp now pass.
 
+### Facility capacity counts shunting units (#38)
+
+`capacity_facility_rule` counted every active `ServiceAction` against a
+facility's capacity. A unit with several members gets one service action per
+member, so a two-member unit used up a capacity-2 facility on its own, and the
+rule also let a third unit in (it only compared the count after the loop,
+and not against the unit being validated). The rule now counts distinct
+shunting units, including the unit of the action under validation, and
+compares once against the capacity. A facility with capacity 0 refuses every
+service.
+
+Verdicts can change in both directions: plans that used a facility with
+several members at once and were wrongly rejected now pass, and plans that
+over-filled a facility and were wrongly accepted now fail.
+
+### Clearer errors for degenerate Move and Setback paths (#30, #31)
+
+- A HIP `Move` with no resources (a unit "moving" to the track it is already
+  on, as the solver emits) produced a one-entry path, and
+  `MoveAction::GetPreviousTrack()` read out of bounds on it, which could
+  segfault later. Such a `Move` is now skipped during plan conversion, and
+  `GetPreviousTrack()` throws an `InvalidActionException` for a path with
+  fewer than two entries.
+- `Track::GetNextTrackParts` (and `GetOppositeSide`) threw an opaque
+  `std::out_of_range` when `previous` was not a real neighbour of the track,
+  e.g. a `Setback` of an `inStanding` train before its first `Move`. It now
+  throws an `InvalidActionException` naming the tracks involved.
+- Skipping a no-op `Move` (zero duration or no resources) during HIP plan
+  conversion now prints a warning instead of happening silently.
+
+### A Move may not drive through a unit parked on its first track (#20)
+
+`blocked_track_rule` is meant to reject a multi-track `Move` whose path
+crosses a track occupied by another shunting unit. It skipped the first track
+the unit enters, as well as the destination, so a unit parked on that first
+track could be driven straight through. The unit's own starting track is not
+part of the checked list, so only the destination is a legitimate exception
+(the unit stops there, and `length_track_rule` decides whether it fits). The
+first entered track is now checked like every other track the unit passes.
+
+Verdicts can change: plans that drove through a unit parked on the first track
+of a Move are now rejected. On the two locations shipped with the pipeline
+(Kleine Binckhorst and SimpleService) this cannot happen: the first track a
+Move enters there is always a zero-length switch, which cannot hold a parked
+unit, so no verdict on those locations changes. The fix matters for locations
+where parkable tracks are directly adjacent. It is covered by a rule-level unit
+test; no real plan exercises it.
+
+### `--departure_delay` is applied per scenario
+
+The `--departure_delay` option was parsed but not copied into the `State`, so
+the exit-time rule never saw it. It now allows a departing unit to leave up to
+that many seconds before or after its scheduled time (default 0: exact match
+required). `outStanding` units ignore it.
+
+Verdicts can change: runs that pass a non-zero `--departure_delay` now accept
+exits inside that window.
+
 ### Build requirements
 
 Ubuntu 22.04 is no longer supported: its protobuf 3.12 cannot compile the
 `optional` fields in `protos/`. The minimum CMake version is now 3.28 (what
 Ubuntu 24.04 ships), pyTORS uses pybind11 v3.1.0, and the unit tests use
 doctest v2.5.1 (v2.4.11 does not configure on CMake 4).
+
+### Docker image
+
+The image build no longer clones dependencies from GitHub inside the main
+build step, which failed intermittently: `json` and `pybind11` are cloned in
+a separate, cached stage (`docker-fetch-deps.sh`), and the unit tests (and so
+doctest) are no longer built in the image.
+
+### CI
+
+The test workflow now runs on `ubuntu-24.04`, `ubuntu-24.04-arm` and
+`ubuntu-26.04`, with a dependency cache per runner.
 
 ## 2.2.0 — 2026-09-26
 

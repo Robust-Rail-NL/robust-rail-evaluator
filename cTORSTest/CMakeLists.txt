@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -18,13 +18,8 @@ set(CMAKE_VERBOSE_MAKEFILE on)
 ## import the test library
 FetchContent_Declare(doctest
   GIT_REPOSITORY https://github.com/doctest/doctest.git
-  GIT_TAG v2.4.11)
-
-FetchContent_GetProperties(doctest)
-if(NOT doctest)
-  FetchContent_Populate(doctest)
-  add_subdirectory(${doctest_SOURCE_DIR} ${doctest_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+  GIT_TAG v2.5.1)
+FetchContent_MakeAvailable(doctest)
 
 link_libraries(cTORS doctest::doctest)
 

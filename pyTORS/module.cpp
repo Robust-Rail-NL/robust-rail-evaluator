@@ -39,7 +39,7 @@ PYBIND11_MODULE(pyTORS, m) {
 	py::class_<ShuntingUnit>(m, "ShuntingUnit", DOC(ShuntingUnit))
 		.def(py::init<int, const vector<Train>&>(), DOC(ShuntingUnit, ShuntingUnit))
 		.def_property_readonly("id", &ShuntingUnit::GetID, DOC(ShuntingUnit,GetID))
-		.def_property("trains", &ShuntingUnit::GetTrains, &ShuntingUnit::SetTrains, DOC(ShuntingUnit,GetTrains), py::return_value_policy::reference, py::keep_alive<1, 2>())
+		.def_property("trains", py::cpp_function(&ShuntingUnit::GetTrains, py::return_value_policy::reference), py::cpp_function(&ShuntingUnit::SetTrains, py::keep_alive<1, 2>()), DOC(ShuntingUnit,GetTrains))
 		.def_property_readonly("length", &ShuntingUnit::GetLength, DOC(ShuntingUnit, GetLength))
 		.def_property_readonly("needs_electricity", &ShuntingUnit::NeedsElectricity, DOC(ShuntingUnit, NeedsElectricity))
 		.def_property_readonly("number_of_trains", &ShuntingUnit::GetNumberOfTrains, DOC(ShuntingUnit, GetNumberOfTrains))

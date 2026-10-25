@@ -19,12 +19,18 @@ jobs:
     # x86 workstation ever ran it. cTORS is the C++ component, so it is where
     # an architecture difference would plausibly show up.
     #
-    # fail-fast is off: when one architecture breaks, the interesting question
-    # is immediately whether the other one did too.
+    # ubuntu-26.04 (x64 only) builds with the newer toolchain (CMake 4, newer
+    # GCC, protobuf and Python) that developers already run, so a dependency
+    # or code that only breaks there shows up here, and moving the supported
+    # platform to 26.04 later is uneventful. The Docker image stays on
+    # ubuntu:24.04, so nothing else exercises that toolchain.
+    #
+    # fail-fast is off: when one runner breaks, the interesting question is
+    # immediately whether the others did too.
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-latest, ubuntu-24.04-arm]
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, ubuntu-26.04]
     runs-on: ${{ matrix.runner }}
     name: Build and test (${{ matrix.runner }})
     timeout-minutes: 40
@@ -65,12 +71,14 @@ jobs:
       uses: actions/cache@v4
       with:
         path: build/_deps
-        # runner.arch is part of the key because runner.os is "Linux" on both
-        # x64 and ARM64. Without it the two jobs share one cache entry and each
-        # restores whatever the other left behind — FetchContent populates
-        # build/_deps with configured, not merely downloaded, dependencies.
-        key: ${{ runner.os }}-${{ runner.arch }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
-        restore-keys: ${{ runner.os }}-${{ runner.arch }}-deps-
+        # matrix.runner is part of the key because runner.os is "Linux" on
+        # every job and runner.arch is the same for ubuntu-24.04 and
+        # ubuntu-26.04. Without it jobs share one cache entry and each restores
+        # whatever another left behind — FetchContent populates build/_deps
+        # with configured, not merely downloaded, dependencies, and those
+        # configured files depend on the architecture and toolchain.
+        key: ${{ matrix.runner }}-deps-${{ hashFiles('cTORS/CMakeLists.txt', 'cTORSTest/CMakeLists.txt', 'pyTORS/CMakeLists.txt') }}
+        restore-keys: ${{ matrix.runner }}-deps-
 
     - name: Configure
       run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release

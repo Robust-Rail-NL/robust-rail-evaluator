@@ -214,30 +214,23 @@ The following section explains how to compile this source code
 
 Before build on Linux - Native support
 
-Other dependencies to install:
+The supported platform is Ubuntu 24.04 or newer (or another distribution with
+a comparable toolchain). Ubuntu 22.04 is no longer supported: its protobuf 3.12
+cannot compile the `optional` fields in `protos/`.
+
+Install the build tools, protobuf and the Python development libraries (cmake 3.15 or higher is required):
 
 ```bash
 sudo apt update
-
-sudo apt install gcc-9
-
-sudo apt install g++-9
-
+sudo apt install build-essential cmake git libprotobuf-dev protobuf-compiler python3-dev
 ```
-If **error**: `No CMAKE_CXX_COMPILER could be found`
+
+If **error**: `No CMAKE_CXX_COMPILER could be found`, make sure `g++` is installed and selected:
 
 ```bash
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 90
 sudo update-alternatives --config g++
 ```
 Choose the correct version: Select the number corresponding to the version of g++ that is aimed to be used.
-
-### Install Cmake and Python development libraries
-To compile the evaluator, cmake 3.11 (or higher) is required and the python development libraries:
-```
-apt-get install cmake
-apt-get install python3-dev
-```
 
 # Building process - Dev-Container
 

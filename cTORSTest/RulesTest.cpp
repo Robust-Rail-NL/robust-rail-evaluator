@@ -160,6 +160,81 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("Facility capacity counts shunting units, not their members (issue #38)") {
+		Scenario scenario;
+
+		Track r0("r0", TrackPartType::Railroad, 1000, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train t1(1, &testType), t2(2, &testType), t3(3, &testType), t4(4, &testType), t5(5, &testType);
+		ShuntingUnit suA(1, {t1, t2}), suB(2, {t3, t4}), suC(3, {t5});
+		for (auto su : {&suA, &suB, &suC})
+			state.AddShuntingUnit(su, &r0, &b0);
+
+		Facility facility(1, "Clean", {"clean"}, 2, 0, 100000);
+		Config config;
+		capacity_facility_rule rule(&config);
+		Task task("clean", false, 100, {});
+
+		// Start a service of every member of the (state's own copy of the) unit
+		auto serviceMembers = [&](int suID) {
+			vector<const ServiceAction*> actions;
+			auto su = state.GetShuntingUnitByID(suID);
+			for (auto& train : su->GetTrains()) {
+				auto action = new ServiceAction(su, &train, task, &facility, {});
+				state.AddActiveAction(su, action);
+				actions.push_back(action);
+			}
+			return actions;
+		};
+		auto serviceOf = [&](int suID, int trainID) {
+			auto su = state.GetShuntingUnitByID(suID);
+			return ServiceAction(su, su->GetTrainByID(trainID), task, &facility, {});
+		};
+
+		SUBCASE("a unit with several members being serviced is one user") {
+			serviceMembers(1);
+			// B's first member, then B's second while A's members are still active
+			auto b1First = serviceOf(2, 3);
+			CHECK(rule.IsValid(&state, &b1First).first);
+			state.AddActiveAction(state.GetShuntingUnitByID(2), new ServiceAction(b1First));
+			auto b1Second = serviceOf(2, 4);
+			CHECK(rule.IsValid(&state, &b1Second).first);
+		}
+
+		SUBCASE("a facility with capacity 0 refuses every service") {
+			Facility closed(2, "Clean", {"clean"}, 0, 0, 100000);
+			auto su = state.GetShuntingUnitByID(3);
+			ServiceAction action(su, su->GetTrainByID(5), task, &closed, {});
+			CHECK(!rule.IsValid(&state, &action).first);
+		}
+
+		SUBCASE("a third unit is refused when two units are using the facility") {
+			serviceMembers(2);
+			state.AddActiveAction(state.GetShuntingUnitByID(3), new ServiceAction(serviceOf(3, 5)));
+			// Units B (two members) and C are active: the facility is full
+			auto a1 = serviceOf(1, 1);
+			CHECK(!rule.IsValid(&state, &a1).first);
+		}
+
+		SUBCASE("the second of two single-member units fits, the third does not") {
+			state.AddActiveAction(state.GetShuntingUnitByID(3), new ServiceAction(serviceOf(3, 5)));
+			auto b1First = serviceOf(2, 3);
+			CHECK(rule.IsValid(&state, &b1First).first);
+			state.AddActiveAction(state.GetShuntingUnitByID(2), new ServiceAction(b1First));
+			auto a1 = serviceOf(1, 1);
+			CHECK(!rule.IsValid(&state, &a1).first);
+		}
+	}
+
 	TEST_CASE("A wait replayed from a plan lasts as long as the plan says") {
 		// Waiting until the next event is the only sensible bound while searching:
 		// there is no plan to consult, and the search decides again at every event.

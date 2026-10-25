@@ -14,6 +14,13 @@ with more than 3 decimals is rounded and a warning is printed to stderr.
 
 Verdicts can change: exact fits that previously failed by one ulp now pass.
 
+### Build requirements
+
+Ubuntu 22.04 is no longer supported: its protobuf 3.12 cannot compile the
+`optional` fields in `protos/`. The minimum CMake version is now 3.15, pyTORS
+uses pybind11 v3.1.0, and the unit tests use doctest v2.5.1 (v2.4.11 does not
+configure on CMake 4).
+
 ## 2.2.0 — 2026-09-26
 
 Adopts interchange **schemaVersion 2** (see `SCHEMA_CHANGELOG.md` in

@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 2.3.0 — 2026-10-25
 
 ### Exact integer-millimetre lengths (#39)
 

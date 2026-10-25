@@ -11,11 +11,7 @@ include(FetchContent)
 FetchContent_Declare(pybind
   GIT_REPOSITORY https://github.com/pybind/pybind11.git
   GIT_TAG v3.1.0)
-FetchContent_GetProperties(pybind)
-if(NOT pybind_POPULATED)
-  FetchContent_Populate(pybind)
-  add_subdirectory(${pybind_SOURCE_DIR} ${pybind_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+FetchContent_MakeAvailable(pybind)
 
 pybind11_add_module(pyTORS MODULE module.cpp docstrings.h)
 target_link_libraries(pyTORS PRIVATE cTORS)

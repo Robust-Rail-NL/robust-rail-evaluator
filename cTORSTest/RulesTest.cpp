@@ -569,4 +569,69 @@ namespace cTORSTest
 			CHECK(!octr.IsValid(&state, &exitAction).first);
 		}
 	}
+
+	TEST_CASE("A move may not drive through a parked unit, but may stop next to one (issue #20)") {
+		// The tracks a MoveAction reserves exclude the unit's own track, so the
+		// first of them is already one it drives onto and through. Only the last,
+		// the destination, is somewhere it stops, and sharing that is left to the
+		// length rule.
+		Scenario scenario;
+
+		// b0 == r0 == r1 == r2 == r3 == b1
+		Track r0("r0", TrackPartType::Railroad, 1000, "rail0", false, true, true);
+		Track r1("r1", TrackPartType::Railroad, 1000, "rail1", false, true, true);
+		Track r2("r2", TrackPartType::Railroad, 1000, "rail2", false, true, true);
+		Track r3("r3", TrackPartType::Railroad, 1000, "rail3", false, true, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&r1});
+		r1.AssignNeighbors({&r0}, {&r2});
+		r2.AssignNeighbors({&r1}, {&r3});
+		r3.AssignNeighbors({&r2}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r3}, {});
+
+		vector<Track*> tracks = {&r0, &r1, &r2, &r3, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType testType("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, false);
+		Train moverTrain(1, &testType), parkedTrain(2, &testType);
+		ShuntingUnit mover(1, {moverTrain}), parked(2, {parkedTrain});
+		state.AddShuntingUnit(&mover, &r0, &b0);
+
+		Config config;
+		blocked_track_rule rule(&config);
+
+		auto moveAcrossFourTracks = [&]() {
+			vector<const Track*> path = {&r0, &r1, &r2, &r3};
+			MoveAction move(state.GetShuntingUnitByID(1), path, 100, false);
+			return rule.IsValid(&state, &move).first;
+		};
+
+		SUBCASE("a free path is allowed") {
+			CHECK(moveAcrossFourTracks());
+		}
+
+		SUBCASE("a unit parked on the first track of the path blocks it") {
+			state.AddShuntingUnit(&parked, &r1, &b0);
+			CHECK(!moveAcrossFourTracks());
+		}
+
+		SUBCASE("a unit parked on a middle track of the path blocks it") {
+			state.AddShuntingUnit(&parked, &r2, &b0);
+			CHECK(!moveAcrossFourTracks());
+		}
+
+		SUBCASE("a unit parked on the destination does not block the move") {
+			state.AddShuntingUnit(&parked, &r3, &b0);
+			CHECK(moveAcrossFourTracks());
+		}
+
+		SUBCASE("a unit parked on the destination of a one-track move does not block it") {
+			state.AddShuntingUnit(&parked, &r1, &b0);
+			vector<const Track*> path = {&r0, &r1};
+			MoveAction move(state.GetShuntingUnitByID(1), path, 100, false);
+			CHECK(rule.IsValid(&state, &move).first);
+		}
+	}
 }

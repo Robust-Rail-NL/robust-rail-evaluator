@@ -4,6 +4,7 @@
 #pragma once
 #ifndef FACILITY_H
 #define FACILITY_H
+#include <limits>
 #include "Track.h"
 #include "Train.h"
 
@@ -26,9 +27,11 @@ public:
 	Facility(const int id, const string& type,
 		const vector<string>& tasks, int simultaneousUsageCount, double tStart, double tEnd) : 
 			id(id), type(type), tasks(tasks), simultaneousUsageCount(simultaneousUsageCount), tStart(tStart), tEnd(tEnd) {}
-	/** Construct a Facility given the protobuf object */
+	/** Construct a Facility given the protobuf object. An absent timeWindow means the Facility is always available. */
 	Facility(const PBFacility& pb_facility) : Facility(pb_facility.id(), pb_facility.type(), ConvertPBTaskTypes(pb_facility.tasktypes()),
-			pb_facility.simultaneoususagecount(), pb_facility.timewindow().start(), pb_facility.timewindow().end()) {}
+			pb_facility.simultaneoususagecount(),
+			pb_facility.has_timewindow() ? pb_facility.timewindow().start() : 0.0,
+			pb_facility.has_timewindow() ? pb_facility.timewindow().end() : std::numeric_limits<double>::infinity()) {}
 	/** Default destructor */
 	~Facility() = default;
 	

@@ -634,4 +634,35 @@ namespace cTORSTest
 			CHECK(rule.IsValid(&state, &move).first);
 		}
 	}
+
+	TEST_CASE("A facility without a timeWindow is always available (issue #47)") {
+		PBFacility pb;
+		pb.set_id(1);
+		pb.set_type("Clean");
+		pb.set_simultaneoususagecount(1);
+
+		SUBCASE("absent window is unbounded") {
+			REQUIRE(!pb.has_timewindow());
+			Facility facility(pb);
+			CHECK(facility.IsAvailable(0, 100));
+			CHECK(facility.IsAvailable(1620, 300));
+			CHECK(facility.IsAvailable(10000000, 10000000));
+		}
+
+		SUBCASE("a present window keeps its meaning") {
+			pb.mutable_timewindow()->set_start(100);
+			pb.mutable_timewindow()->set_end(200);
+			Facility facility(pb);
+			CHECK(facility.IsAvailable(100, 50));
+			CHECK(!facility.IsAvailable(50, 50));
+			CHECK(!facility.IsAvailable(150, 100));
+		}
+
+		SUBCASE("an explicit window of [0, 0) stays never available") {
+			pb.mutable_timewindow();
+			REQUIRE(pb.has_timewindow());
+			Facility facility(pb);
+			CHECK(!facility.IsAvailable(0, 10));
+		}
+	}
 }

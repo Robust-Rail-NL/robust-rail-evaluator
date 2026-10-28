@@ -658,6 +658,15 @@ namespace cTORSTest
 			CHECK(!facility.IsAvailable(150, 100));
 		}
 
+		SUBCASE("the window is closed: a service may end exactly at its end") {
+			pb.mutable_timewindow()->set_start(100);
+			pb.mutable_timewindow()->set_end(200);
+			Facility facility(pb);
+			CHECK(facility.IsAvailable(100, 100));
+			CHECK(facility.IsAvailable(150, 50));
+			CHECK(!facility.IsAvailable(150, 51));
+		}
+
 		SUBCASE("an explicit window of [0, 0) stays never available") {
 			pb.mutable_timewindow();
 			REQUIRE(pb.has_timewindow());

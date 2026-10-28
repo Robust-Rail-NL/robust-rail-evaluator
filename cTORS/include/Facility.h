@@ -46,8 +46,8 @@ public:
 	const inline vector<Track*> &GetTracks() const { return tracks; }
 	/** Returns true iff this Facility services the given Task */
 	bool ExecutesTask(const Task* task) const;
-	/** Returns true iff this Facility is active during the given time window */
-	inline bool IsAvailable(int start, int duration) const { return start >= tStart && start + duration < tEnd; }
+	/** Returns true iff this Facility is active during the given time window (closed interval: a service may end exactly at the window end) */
+	inline bool IsAvailable(int start, int duration) const { return start >= tStart && start + duration <= tEnd; }
 	/** Get a string representation of this Facility */
 	inline const string toString() const { return "Facility " + to_string(id); }
 	/** Get the id of this Facility */

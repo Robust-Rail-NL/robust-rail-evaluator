@@ -1,5 +1,21 @@
 # Release notes
 
+## Unreleased
+
+### Facility without `timeWindow` is always available (#47)
+
+`timeWindow` is optional in `location.json`, but an absent value was read as
+`[0, 0)`, so every service at that facility was rejected with
+`Facility N is not available from X to Y.`. An absent `timeWindow` now means
+the facility is always available, matching the solver. A window that is
+present keeps its start and end.
+
+The window is now a closed interval: a service that ends exactly at the
+window end is accepted. It was rejected before (strict `<` on the end).
+
+Verdicts can change: plans using a facility without a window, or ending
+exactly at a window end, that were wrongly rejected now pass.
+
 ## 2.3.0 — 2026-10-25
 
 ### Exact integer-millimetre lengths (#39)

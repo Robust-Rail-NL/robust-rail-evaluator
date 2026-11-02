@@ -223,6 +223,10 @@ public:
     static bool NextActionForUnitHasTaskType(const std::vector<PB_HIP_Action> &actions, int index,
                                         const PB_HIP_ShuntingUnit &unit, PB_HIP_PredefinedTaskType type);
 
+    /** Whether the next action belonging to this shunting unit is a service task (issue #49). */
+    static bool NextActionForUnitIsService(const std::vector<PB_HIP_Action> &actions, int index,
+                                        const PB_HIP_ShuntingUnit &unit);
+
     /** Whether the next action belonging to this shunting unit is an Exit. */
     static bool NextActionForUnitIsExit(const std::vector<PB_HIP_Action> &actions, int index,
                                         const PB_HIP_ShuntingUnit &unit);

@@ -38,6 +38,21 @@ bool RunResult::NextActionForUnitHasTaskType(const vector<PB_HIP_Action> &action
     return false;
 }
 
+bool RunResult::NextActionForUnitIsService(const vector<PB_HIP_Action> &actions, int index,
+                                       const PB_HIP_ShuntingUnit &unit)
+{
+    const auto &members = GetShuntingUnitMemberIDs(unit);
+    for (size_t i = static_cast<size_t>(index) + 1; i < actions.size(); i++)
+    {
+        const auto &candidate = actions[i].shuntingunit().memberids();
+        if (!std::equal(members.begin(), members.end(), candidate.begin(), candidate.end()))
+            continue;
+        // Service tasks are the ones named by a custom ("other") task type.
+        return actions[i].tasktype().has_other();
+    }
+    return false;
+}
+
 bool RunResult::NextActionForUnitIsExit(const vector<PB_HIP_Action> &actions, int index,
                                        const PB_HIP_ShuntingUnit &unit)
 {
@@ -760,9 +775,14 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
                 // Reverse case, a Move ending on a non-parking track (e.g. the
                 // gateway) to do a Reverse got the same spurious rejection -
                 // the unit was never parking there, just reversing.
+                // Likewise a movement into a Service: the unit stops on the facility
+                // track only to be serviced, which is not parking, so a track with
+                // parkingAllowed=false must not reject it (issue #49). A Wait there,
+                // or anything else that is not a service, still gets its EndMove.
                 bool nextEndsMoveAnyway = RunResult::NextActionForUnitIsExit(pb_action, index, hip_shuntingUnit) ||
                     RunResult::NextActionForUnitHasTaskType(pb_action, index, hip_shuntingUnit,
-                                                             PB_HIP_PredefinedTaskType::Reverse);
+                                                             PB_HIP_PredefinedTaskType::Reverse) ||
+                    RunResult::NextActionForUnitIsService(pb_action, index, hip_shuntingUnit);
                 if (!nextEndsMoveAnyway)
                 {
                     PBAction EndMoveAction = RunResult::CreateEndMoveAction(hip_action);

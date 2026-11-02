@@ -148,6 +148,62 @@ namespace cTORSTest
 		}
 	}
 
+	TEST_CASE("A movement is followed by no EndMove if that unit's own next action is a service") {
+		// Issue #49: a unit that stops on a facility track only to be serviced is not
+		// parking, so the EndMove must not reach legal_on_parking_track_rule there.
+		PB_HIP_ShuntingUnit serviced;
+		serviced.set_id(1);
+		serviced.add_memberids(2601);
+
+		auto makeService = [](const vector<uint64_t> &ids) {
+			PB_HIP_Action a = MakeHipAction(PB_HIP_PredefinedTaskType::Move, ids);
+			a.mutable_tasktype()->set_other("Wasmachine");
+			return a;
+		};
+
+		SUBCASE("its service comes immediately next") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				makeService({2601}),
+			};
+			CHECK(RunResult::NextActionForUnitIsService(actions, 0, serviced));
+		}
+
+		SUBCASE("its service comes next for this unit, but not next in the list") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2801}),
+				makeService({2601}),
+			};
+			CHECK(RunResult::NextActionForUnitIsService(actions, 0, serviced));
+		}
+
+		SUBCASE("another unit's service does not count") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				makeService({2801}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsService(actions, 0, serviced));
+		}
+
+		SUBCASE("a Wait before the service keeps the EndMove") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+				MakeHipAction(PB_HIP_PredefinedTaskType::Wait, {2601}),
+				makeService({2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsService(actions, 0, serviced));
+		}
+
+		SUBCASE("the movement is the last action in the plan") {
+			vector<PB_HIP_Action> actions = {
+				MakeHipAction(PB_HIP_PredefinedTaskType::Move, {2601}),
+			};
+			CHECK(!RunResult::NextActionForUnitIsService(actions, 0, serviced));
+		}
+	}
+
 	TEST_CASE("Merging a combine keeps its two operands apart") {
 		// A cTORS Combine names two shunting units: the front one in the action's
 		// own trainUnitIds and the rear one in the task's. HIP emits one action per

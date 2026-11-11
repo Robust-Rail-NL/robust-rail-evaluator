@@ -1,6 +1,6 @@
 # Release notes
 
-## Unreleased
+## 2.4.0 — 2026-11-11
 
 ### Facility without `timeWindow` is always available (#47)
 
@@ -15,6 +15,40 @@ window end is accepted. It was rejected before (strict `<` on the end).
 
 Verdicts can change: plans using a facility without a window, or ending
 exactly at a window end, that were wrongly rejected now pass.
+
+### No `EndMove` before a service on a non-parking track (#49, #50)
+
+A unit that moves onto a facility track only to be serviced there is not
+parking, but the `EndMove` that closes the move was rejected by
+`legal_on_parking_track_rule` when the track has `parkingAllowed: false`, so the
+service stop was never reached. Plan conversion (`Plan.cpp`) now omits that
+`EndMove` when the unit's own next action is a service task, the same mechanism
+already used before an `Exit` or a `Reverse` (new helper
+`RunResult::NextActionForUnitIsService`).
+
+Unchanged: a `Wait`, or an `EndMove` followed by something that is not a
+service, is still rejected on a non-parking track. Staying on the service track
+after the service is also still rejected. Track length and capacity checks are
+not affected.
+
+Verdicts can change: plans that move a unit onto a non-parking service track and
+service it there were rejected at the `EndMove` before and now pass that step (a
+later rule can still reject them).
+
+Testing: unit tests for the helper in `PlanConversionTest.cpp` (all suites
+pass), and an end-to-end run on a copy of `example_kleine_binckhorst` with
+`parkingAllowed: false` on the cleaning tracks. A plan taken fully to "valid" on
+a non-parking service track has not been run.
+
+### Compatibility
+
+`schemaVersion` 2, as in 2.3.0. No change to the interchange format or to the CLI.
+
+### Reproducibility note
+
+The solver-versus-planner experiment grid (robust-rail-general,
+`experiments/issa-grid/`) validated its plans with the build `TORS
+2.3.0-edge+20261103.50bc79e`, which has the same source tree as this release.
 
 ## 2.3.0 — 2026-10-25
 

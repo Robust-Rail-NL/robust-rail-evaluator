@@ -20,6 +20,17 @@
 //          If a plan you expect to fail reports valid, first sanity-check that you have the
 //          right --plan_type before trusting the result.
 
+// Prints a titled banner: a line of dashes, the title centered on it, and another line of dashes.
+static void PrintBanner(const std::string &title)
+{
+	const std::size_t width = 97;
+	const std::string line(width, '-');
+	const std::size_t pad = title.size() < width ? (width - title.size()) / 2 : 0;
+	cout << line << endl;
+	cout << std::string(pad, ' ') << title << endl;
+	cout << line << endl;
+}
+
 int parse(int argc, char *argv[], std::string &mode, std::string &path_location, std::string &path_scenario, std::string &path_plan, std::string &plan_type, std::string &path_eval_result, int &departureDelay);
 
 int main(int argc, char *argv[])
@@ -39,9 +50,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	cout << "------------------------------------------------------------------" << endl;
-	cout << "LOCATION TEST" << endl;
-	cout << "--------------------------------------------------------------------------" << endl;
+	PrintBanner("LOCATION TEST");
 
 	// TODO: check whether both the "location.json" and the "config.json" exist in the folder specified by the path_location to give proper error message
 	std::unique_ptr<LocationEngine> engine_ptr;
@@ -58,7 +67,7 @@ int main(int argc, char *argv[])
 	const Location &location = engine.GetLocation();
 	const vector<Track *> &tracks = location.GetTracks();
 
-	cout << "\n Location \n";
+	cout << "\nLocation\n";
 
 	for (int i = 0; i < tracks.size(); i++)
 	{
@@ -70,9 +79,7 @@ int main(int argc, char *argv[])
 		cout << "name : " << tracks[i]->name << "\n";
 	}
 
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
-	cout << "								SCENARIO TEST 										 " << endl;
-	cout << "-------------------------------------------------------------------------------------------------" << endl;
+	PrintBanner("SCENARIO TEST");
 
 	const Scenario *scenario_ptr;
 	try
@@ -100,12 +107,11 @@ int main(int argc, char *argv[])
 
 	if (mode == "EVAL")
 	{
-		cout << "-------------------------------------------------------------------------------------------------" << endl;
-		cout << "							PLAN EVALUATION TEST 		  			   				  " << endl;
-		cout << "-------------------------------------------------------------------------------------------------" << endl;
+		PrintBanner("PLAN EVALUATION TEST");
 
 		if (plan_type == "Solver")
 		{
+			cout << "Departure delay: " << departureDelay << endl;
 			PB_HIP_Plan pb_hip_plan;
 
 			// Parses robus-rail-solver issued (plan also following Solver format)
@@ -116,18 +122,11 @@ int main(int argc, char *argv[])
 
 				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
 				{
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
 					cout << "The plan is valid" << endl;
 				}
 				else
 				{
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+					PrintBanner("PLAN EVALUATION FAILED");
 					cout << "The plan is not valid" << endl;
 				}
 			}
@@ -161,19 +160,12 @@ int main(int argc, char *argv[])
 				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
 				{
 
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
 					cout << "The plan is valid" << endl;
 				}
 				else
 				{
 
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+					PrintBanner("PLAN EVALUATION FAILED");
 					cout << "The plan is not valid" << endl;
 				}
 			}
@@ -257,12 +249,11 @@ int main(int argc, char *argv[])
 	}
 	else if (mode == "EVAL_AND_STORE")
 	{
-		cout << "-------------------------------------------------------------------------------------------------" << endl;
-		cout << "							PLAN EVALUATION TEST 		  			   				  " << endl;
-		cout << "-------------------------------------------------------------------------------------------------" << endl;
+		PrintBanner("PLAN EVALUATION TEST");
 
 		if (plan_type == "Solver")
 		{
+			cout << "Departure delay: " << departureDelay << endl;
 			PB_HIP_Plan pb_hip_plan;
 
 			// Parses robus-rail-solver issued (plan also following Solver format)
@@ -273,18 +264,11 @@ int main(int argc, char *argv[])
 
 				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan(), path_eval_result))
 				{
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
 					cout << "The plan is valid" << endl;
 				}
 				else
 				{
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+					PrintBanner("PLAN EVALUATION FAILED");
 					cout << "The plan is not valid" << endl;
 				}
 			}
@@ -319,19 +303,12 @@ int main(int argc, char *argv[])
 				if (engine.EvaluatePlan(runResult_external->GetScenario(), runResult_external->GetPlan()))
 				{
 
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
 					cout << "The plan is valid" << endl;
 				}
 				else
 				{
 
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-					cout << "					PLAN EVALUATION TEST 		  			   				  " << endl;
-					cout << "-------------------------------------------------------------------------------------------------" << endl;
-
+					PrintBanner("PLAN EVALUATION FAILED");
 					cout << "The plan is not valid" << endl;
 				}
 			}

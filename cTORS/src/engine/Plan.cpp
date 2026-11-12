@@ -993,7 +993,6 @@ RunResult *RunResult::CreateRunResult(const PB_HIP_Plan &pb_hip_plan, string sce
 
     // Add delay to the departure time, if not spceified the delay is 0 by default
     scenario.InitDepartureDelay(departureDelay);
-    cout << ">>>>>>> TEST departure delay time: " << scenario.GetDepartureDelay() << endl;
 
     if (!pathToStoreEval.empty())
         scenario.SetEvaluatiorStoragePath(pathToStoreEval);

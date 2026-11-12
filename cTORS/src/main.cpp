@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
 
 		if (plan_type == "Solver")
 		{
+			cout << "Departure delay: " << departureDelay << endl;
 			PB_HIP_Plan pb_hip_plan;
 
 			// Parses robus-rail-solver issued (plan also following Solver format)
@@ -252,6 +253,7 @@ int main(int argc, char *argv[])
 
 		if (plan_type == "Solver")
 		{
+			cout << "Departure delay: " << departureDelay << endl;
 			PB_HIP_Plan pb_hip_plan;
 
 			// Parses robus-rail-solver issued (plan also following Solver format)

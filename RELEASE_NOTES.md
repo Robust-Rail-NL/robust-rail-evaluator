@@ -1,5 +1,17 @@
 # Release notes
 
+## 2.4.1 — 2026-11-12
+
+### Tidier console output
+
+Console output only; verdicts, the interchange format and the CLI are
+unchanged. The stray `>>>>>>> TEST departure delay time` debug line is gone
+(`Departure delay: N` is now printed once below the `PLAN EVALUATION TEST`
+banner, for Solver plans), the banners are consistently centered with spaces
+instead of tabs, and the duplicate `PLAN EVALUATION TEST` banner is dropped for
+valid plans (`PLAN EVALUATION FAILED` for invalid ones). Anything that matches
+stdout on the exact banner text or whitespace needs updating.
+
 ## 2.4.0 — 2026-11-11
 
 ### Facility without `timeWindow` is always available (#47)

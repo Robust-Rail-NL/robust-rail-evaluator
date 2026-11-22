@@ -16,10 +16,12 @@ set -euo pipefail
 
 CMAKELISTS="CMakeLists.txt"
 
+# BEGIN SHARED BLOCK: bump-clean-tree (identical in every repo's bump-version.sh; edit all copies — checked by robust-rail-general/scripts/check_push_script_sync.py)
 if [[ -n "$(git status --porcelain)" ]]; then
     echo "Working tree is not clean; commit or stash changes before bumping the version" >&2
     exit 1
 fi
+# END SHARED BLOCK: bump-clean-tree
 
 RELEASE=$(sed -n 's:.*project(TORS VERSION \([0-9.]*\)).*:\1:p' "$CMAKELISTS")
 [[ -n "$RELEASE" ]] || { echo "Could not read project(TORS VERSION ...) from $CMAKELISTS" >&2; exit 1; }
@@ -28,6 +30,7 @@ SUFFIX=$(sed -n 's:.*set(TORS_VERSION_SUFFIX "\(.*\)").*:\1:p' "$CMAKELISTS")
 CURRENT="$RELEASE"
 [[ -n "$SUFFIX" ]] && CURRENT="$RELEASE-$SUFFIX"
 
+# BEGIN SHARED BLOCK: bump-usage (identical in every repo's bump-version.sh; edit all copies — checked by robust-rail-general/scripts/check_push_script_sync.py)
 usage() {
     echo "Usage: $0 <major|minor|patch|prerelease|X.Y.Z[-suffix]>" >&2
     echo "Current version: $CURRENT" >&2
@@ -35,6 +38,7 @@ usage() {
 }
 
 [[ $# -eq 1 ]] || usage
+# END SHARED BLOCK: bump-usage
 
 IFS='.' read -r MAJOR MINOR PATCH <<< "$RELEASE"
 
@@ -68,8 +72,10 @@ sed -i "s/project(TORS VERSION $RELEASE)/project(TORS VERSION $NEW_RELEASE)/" "$
 sed -i "s/set(TORS_VERSION_SUFFIX \"$SUFFIX\")/set(TORS_VERSION_SUFFIX \"$NEW_SUFFIX\")/" "$CMAKELISTS"
 
 git add "$CMAKELISTS"
+# BEGIN SHARED BLOCK: bump-commit-tag (identical in every repo's bump-version.sh; edit all copies — checked by robust-rail-general/scripts/check_push_script_sync.py)
 git commit -m "Bump version to $NEW"
 git tag -a "v$NEW" -m "v$NEW"
 
 echo "Bumped version: $CURRENT -> $NEW"
 echo "Created commit and tag v$NEW (not pushed — run 'git push --follow-tags' when ready)"
+# END SHARED BLOCK: bump-commit-tag

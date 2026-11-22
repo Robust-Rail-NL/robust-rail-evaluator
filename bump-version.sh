@@ -68,6 +68,13 @@ esac
 NEW="$NEW_RELEASE"
 [[ -n "$NEW_SUFFIX" ]] && NEW="$NEW_RELEASE-$NEW_SUFFIX"
 
+# BEGIN SHARED BLOCK: bump-tag-exists (identical in every repo's bump-version.sh; edit all copies — checked by robust-rail-general/scripts/check_push_script_sync.py)
+if git rev-parse -q --verify "refs/tags/v$NEW" >/dev/null; then
+    echo "Tag v$NEW already exists" >&2
+    exit 1
+fi
+# END SHARED BLOCK: bump-tag-exists
+
 sed -i "s/project(TORS VERSION $RELEASE)/project(TORS VERSION $NEW_RELEASE)/" "$CMAKELISTS"
 sed -i "s/set(TORS_VERSION_SUFFIX \"$SUFFIX\")/set(TORS_VERSION_SUFFIX \"$NEW_SUFFIX\")/" "$CMAKELISTS"
 

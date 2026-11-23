@@ -1,5 +1,24 @@
 # Contributing
 
+## Git hooks
+
+Tracked hooks live under [`.githooks/`](.githooks/). Git never runs a repo's
+tracked hooks without an opt-in, so enable them once per clone:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+- `pre-commit` refuses a direct commit to `edge` (see the branch flow below)
+  but lets a `git merge --no-ff` finish, including a conflicted one concluded
+  with `git commit`. The guard is shared with the sibling repos, whose copies
+  `robust-rail-general/scripts/check_push_script_sync.py` checks for drift.
+- `pre-push` refuses a direct push to `main`.
+
+`core.hooksPath` replaces git's hook directory wholesale, so it does not fall
+back to `.git/hooks/`; any hook you want enforced has to live in `.githooks/`.
+`--no-verify` skips both hooks: they are a backstop, not a guarantee.
+
 ## Image channels: `stable` and `edge`
 
 The TORS evaluator image is published under two channels:

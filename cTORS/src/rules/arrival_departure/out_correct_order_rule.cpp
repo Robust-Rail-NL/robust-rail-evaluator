@@ -6,12 +6,26 @@
  * 1. The assigned ShuntingUnit does not match the demans of the ShuntingUnit in the Outgoing attribute.
  * 
  * See ShuntingUnit::MatchesShuntingUnit(const ShuntingUnit*) const
+ *
+ * Additionally, for an Outgoing that is not standing, the units must leave in the requested
+ * order from the head (index 0 of the list in the scenario file is the head, see
+ * ShuntingUnit::MatchesHeadFirst). A unit that matches only when read backwards is, for now, still
+ * accepted, with a warning on stderr.
  * @return A pair describing 1) whether the action is valid, and 2) if not, why
  */
 pair<bool, string> out_correct_order_rule::IsValid(const State* state, const Action* action) const {
 	if (auto ea = dynamic_cast<const ExitAction*>(action)) {
 		if(!ea->GetOutgoing()->GetShuntingUnit()->MatchesShuntingUnit(ea->GetShuntingUnit()))
 			return make_pair(false, "Leaving shunting unit " + ea->GetShuntingUnit()->toString() + " did not match the train unit order of outgoing train " + ea->GetOutgoing()->GetShuntingUnit()->toString());
+		if(!ea->GetOutgoing()->IsInstanding()) {
+			auto physical = state->GetTrainUnitsInOrder(ea->GetShuntingUnit());
+			if(!ea->GetOutgoing()->GetShuntingUnit()->MatchesHeadFirst(physical)) {
+				cerr << "WARNING: Leaving shunting unit " << ea->GetShuntingUnit()->toString()
+					<< " matches outgoing train " << ea->GetOutgoing()->GetShuntingUnit()->toString()
+					<< " only when read from the tail: from the head the units leave in the opposite order"
+					<< " (the scenario lists the units of a departing train from its head)." << endl;
+			}
+		}
 	}
 	return make_pair(true, "");
 }

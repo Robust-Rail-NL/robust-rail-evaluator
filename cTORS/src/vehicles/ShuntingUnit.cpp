@@ -124,6 +124,21 @@ bool ShuntingUnit::MatchesShuntingUnit(const ShuntingUnit* su) const {
 	return true;
 }
 
+bool ShuntingUnit::MatchesHeadFirst(const vector<Train>& physicalHeadFirst) const {
+	auto& requested = GetTrains();
+	if(requested.size() != physicalHeadFirst.size()) return false;
+	for (size_t i = 0; i < requested.size(); i++) {
+		auto& exp = requested.at(requested.size() - 1 - i);
+		auto& act = physicalHeadFirst.at(i);
+		if(exp.GetID() != -1 && act.GetID() != -1) {
+			if(exp.GetID() != act.GetID()) return false;
+		} else if(*exp.GetType() != *act.GetType()) {
+			return false;
+		}
+	}
+	return true;
+}
+
 bool ShuntingUnit::MatchesTrainIDs(const vector<int>& ids, const vector<const TrainUnitType*>& types) const {
 	auto& su1Trains = GetTrains();
 	if(su1Trains.size() != ids.size()) return false;

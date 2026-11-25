@@ -5,7 +5,9 @@ void ArriveAction::Start(State* state) const {
 	const Track* parkingTrack = incoming->GetParkingTrack();
 	const Track* sideTrack = incoming->GetSideTrack();
 	const ShuntingUnit* su = GetShuntingUnit();
-	state->AddShuntingUnit(su, parkingTrack, sideTrack);
+	// The scenario lists the units of an arriving train from its head, and the internal order is
+	// the reverse (see ReverseTrainOrder), so the head is the last of the internal trains.
+	state->AddShuntingUnit(su, parkingTrack, sideTrack, &su->GetTrains().back());
 	if (!incoming->IsInstanding())
 		state->ReserveTracks(vector({ parkingTrack, sideTrack }));
 	state->AddTasksToTrains(incoming->GetTasks());

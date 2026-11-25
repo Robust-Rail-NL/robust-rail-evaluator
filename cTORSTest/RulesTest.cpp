@@ -728,6 +728,15 @@ namespace cTORSTest
 			CHECK(res.first);
 			CHECK(warnings.find("only when read from the tail") != string::npos);
 		}
+		SUBCASE("mirrored order is rejected for a plan declaring the head-first schema version") {
+			state.SetPlanSchemaVersion(HEAD_FIRST_REQUIRED_SCHEMA_VERSION);
+			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)}, warnings);
+			CHECK(!res.first);
+			CHECK(res.second.find("only when read from the tail") != string::npos);
+			CHECK(warnings.empty());
+			// The right order still passes.
+			CHECK(exitWith({Train(-1, &slt6), Train(-1, &slt4)}, warnings).first);
+		}
 		SUBCASE("a different set of units is rejected") {
 			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt4)}, warnings);
 			CHECK(!res.first);

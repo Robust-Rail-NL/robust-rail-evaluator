@@ -9,8 +9,9 @@
  *
  * Additionally, for an Outgoing that is not standing, the units must leave in the requested
  * order from the head (index 0 of the list in the scenario file is the head, see
- * ShuntingUnit::MatchesHeadFirst). A unit that matches only when read backwards is, for now, still
- * accepted, with a warning on stderr.
+ * ShuntingUnit::MatchesHeadFirst). A unit that matches only when read backwards is rejected for a
+ * plan declaring schemaVersion HEAD_FIRST_REQUIRED_SCHEMA_VERSION or later, and for an older (or
+ * unversioned) plan accepted with a warning on stderr.
  * @return A pair describing 1) whether the action is valid, and 2) if not, why
  */
 pair<bool, string> out_correct_order_rule::IsValid(const State* state, const Action* action) const {
@@ -20,6 +21,11 @@ pair<bool, string> out_correct_order_rule::IsValid(const State* state, const Act
 		if(!ea->GetOutgoing()->IsInstanding()) {
 			auto physical = state->GetTrainUnitsInOrder(ea->GetShuntingUnit());
 			if(!ea->GetOutgoing()->GetShuntingUnit()->MatchesHeadFirst(physical)) {
+				if(state->GetPlanSchemaVersion() >= HEAD_FIRST_REQUIRED_SCHEMA_VERSION)
+					return make_pair(false, "Leaving shunting unit " + ea->GetShuntingUnit()->toString() + " matches outgoing train "
+						+ ea->GetOutgoing()->GetShuntingUnit()->toString() + " only when read from the tail: from the head the units leave in the "
+						"opposite order. The scenario lists the units of a departing train from its head, and plans declaring schemaVersion "
+						+ to_string(HEAD_FIRST_REQUIRED_SCHEMA_VERSION) + " or later must leave in that order (use a Reverse, or split and combine).");
 				cerr << "WARNING: Leaving shunting unit " << ea->GetShuntingUnit()->toString()
 					<< " matches outgoing train " << ea->GetOutgoing()->GetShuntingUnit()->toString()
 					<< " only when read from the tail: from the head the units leave in the opposite order"

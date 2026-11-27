@@ -88,6 +88,17 @@ public:
 	 * 2. 1-3-2 and 1-2-3 do not match.
 	 */
 	bool MatchesShuntingUnit(const ShuntingUnit* su) const ;
+
+	/**
+	 * Checks if the given trains, listed from the head of the physical train, are what this
+	 * ShuntingUnit (an Outgoing request) asks for, read from the head as well.
+	 *
+	 * Unlike MatchesShuntingUnit this is directional: 1-2-3 matches 1-2-3 only. This ShuntingUnit
+	 * keeps its trains in the internal order (the reverse of the scenario file, see
+	 * ReverseTrainOrder), so the head-first request is its trains read back to front.
+	 * Matching is per position by ID when both IDs are known, by type otherwise.
+	 */
+	bool MatchesHeadFirst(const vector<Train>& physicalHeadFirst) const;
 	
 	/**
 	 * Checks if this ShuntingUnit matches a list of given train ids and train types.

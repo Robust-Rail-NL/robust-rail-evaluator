@@ -46,4 +46,24 @@ namespace cTORSTest {
         CHECK(requestSlt4.MatchesTrainIDs({-1}, {&slt4}));
     }
 
+    TEST_CASE("MatchesHeadFirst is directional") {
+        TrainUnitType slt4("SLT", 4, 100, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+        TrainUnitType slt6("SLT", 6, 150, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+
+        // The request is kept in the internal order, the reverse of the scenario file:
+        // a file listing [SLT-4, SLT-6] from the head is stored as {SLT-6, SLT-4}.
+        ShuntingUnit request(1, {Train(-1, &slt6), Train(-1, &slt4)});
+
+        CHECK(request.MatchesHeadFirst({Train(1, &slt4), Train(2, &slt6)}));
+        CHECK(!request.MatchesHeadFirst({Train(2, &slt6), Train(1, &slt4)}));
+        CHECK(!request.MatchesHeadFirst({Train(1, &slt4)}));
+        // The symmetric check cannot tell the two orders apart.
+        ShuntingUnit mirrored(2, {Train(2, &slt6), Train(1, &slt4)});
+        CHECK(request.MatchesShuntingUnit(&mirrored));
+
+        // With IDs on both sides, the IDs decide.
+        ShuntingUnit byID(3, {Train(2, &slt6), Train(1, &slt4)});
+        CHECK(byID.MatchesHeadFirst({Train(1, &slt4), Train(2, &slt6)}));
+        CHECK(!byID.MatchesHeadFirst({Train(2, &slt6), Train(1, &slt4)}));
+    }
 }

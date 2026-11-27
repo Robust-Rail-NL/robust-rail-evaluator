@@ -674,4 +674,72 @@ namespace cTORSTest
 			CHECK(!facility.IsAvailable(0, 10));
 		}
 	}
+
+	TEST_CASE("Exit order is read from the head") {
+		Scenario scenario;
+		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType slt4("SLT", 4, 100, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+		TrainUnitType slt6("SLT", 6, 150, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+
+		// A scenario file lists the arriving units from the head: [SLT-4, SLT-6] means the SLT-4
+		// leads. Internally the list is reversed, {SLT-6, SLT-4}, and the head is the last.
+		// Incoming owns (and deletes) its ShuntingUnit.
+		Incoming incoming(1, new ShuntingUnit(1, {Train(2, &slt6), Train(1, &slt4)}), &r0, &b0, 0, false, 0, {});
+		ArriveAction arrive(incoming.GetShuntingUnit(), &incoming);
+		arrive.Start(&state);
+		const ShuntingUnit* stateSU = state.GetShuntingUnitByID(1);
+		REQUIRE(state.GetFrontTrain(stateSU)->GetID() == 1);
+		auto fromHead = state.GetTrainUnitsInOrder(stateSU);
+		REQUIRE(fromHead.size() == 2);
+		CHECK(fromHead.at(0).GetID() == 1);
+		CHECK(fromHead.at(1).GetID() == 2);
+
+		Config config;
+		out_correct_order_rule rule(&config);
+		auto exitWith = [&](vector<Train> internal, string& warnings) {
+			Outgoing outgoing(1, new ShuntingUnit(1, internal), &r0, &b0, 0, false, 0);
+			ExitAction exitAction(stateSU, 0, &outgoing);
+			stringstream captured;
+			auto old = cerr.rdbuf(captured.rdbuf());
+			auto res = rule.IsValid(&state, &exitAction);
+			cerr.rdbuf(old);
+			warnings = captured.str();
+			return res;
+		};
+		string warnings;
+
+		SUBCASE("same order from the head is accepted silently") {
+			// File [SLT-4, SLT-6]
+			auto res = exitWith({Train(-1, &slt6), Train(-1, &slt4)}, warnings);
+			CHECK(res.first);
+			CHECK(warnings.empty());
+		}
+		SUBCASE("mirrored order is still accepted, with a warning") {
+			// File [SLT-6, SLT-4]
+			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)}, warnings);
+			CHECK(res.first);
+			CHECK(warnings.find("only when read from the tail") != string::npos);
+		}
+		SUBCASE("mirrored order is rejected for a plan declaring the head-first schema version") {
+			state.SetPlanSchemaVersion(HEAD_FIRST_REQUIRED_SCHEMA_VERSION);
+			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)}, warnings);
+			CHECK(!res.first);
+			CHECK(res.second.find("only when read from the tail") != string::npos);
+			CHECK(warnings.empty());
+			// The right order still passes.
+			CHECK(exitWith({Train(-1, &slt6), Train(-1, &slt4)}, warnings).first);
+		}
+		SUBCASE("a different set of units is rejected") {
+			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt4)}, warnings);
+			CHECK(!res.first);
+		}
+	}
 }

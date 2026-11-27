@@ -121,6 +121,15 @@ constexpr int EXPECTED_SCHEMA_VERSION = 2;
 // for unrelated reasons in the future.
 constexpr int REVERSE_REQUIRED_SCHEMA_VERSION = 2;
 
+// The Plan schemaVersion at and above which a departing unit must have the
+// requested units in the requested order read from the head (see
+// out_correct_order_rule), rather than merely in that order or its mirror.
+// Below it a mirror-only departure is accepted with a warning. Its own named
+// constant for the same reason as REVERSE_REQUIRED_SCHEMA_VERSION. No schema
+// version of this value is defined yet: robust-rail-general decides when the
+// head-first unit order (general#50) is declared by a version bump.
+constexpr int HEAD_FIRST_REQUIRED_SCHEMA_VERSION = 3;
+
 // Warn-and-continue: a missing or unexpected schemaVersion is logged, never
 // a hard reject. Messages that don't declare a schemaVersion field (e.g.
 // TORS-internal formats) are silently skipped.

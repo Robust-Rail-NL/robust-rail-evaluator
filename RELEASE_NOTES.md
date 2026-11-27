@@ -1,5 +1,29 @@
 # Release notes
 
+## Unreleased
+
+### Unit order is read from the head (robust-rail-general#50)
+
+The scenario now lists the units of an arriving or departing train from its
+head: index 0 is the unit that leads the train into or out of the yard
+(standing trains stay along the track, from the A side). The evaluator used to
+read the file tail-first, so this is a behaviour change, not only a new check.
+
+- **Arrival head.** The head of an arriving unit is index 0 in the file (it was
+  the last element). This decides which units a Split takes to which side, and
+  the setback time of a unit. Plans for the same scenario can change verdict.
+  On the 45 feasible fixtures of robust-rail-general none does.
+- **Exit order from the head.** An Exit of a non-standing unit is checked
+  directionally, against the head. A unit that leaves in the mirrored order is
+  accepted with a warning on stderr (`WARNING: Leaving shunting unit ... only
+  when read from the tail`) for a plan declaring a `schemaVersion` below 3 or
+  none, and rejected for a plan declaring 3 or later
+  (`HEAD_FIRST_REQUIRED_SCHEMA_VERSION`, as `REVERSE_REQUIRED_SCHEMA_VERSION`
+  does for a saw move). No schema version 3 is defined yet; until it is, no
+  plan is rejected by this check.
+- `MatchesShuntingUnit` is unchanged and still symmetric, for its other
+  callers (Combine finds the combined unit through it).
+
 ## 2.4.1 — 2026-11-12
 
 ### Tidier console output

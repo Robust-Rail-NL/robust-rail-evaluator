@@ -675,8 +675,9 @@ namespace cTORSTest
 		}
 	}
 
-	TEST_CASE("Exit order is read from the head") {
+	TEST_CASE("Exit order is read from the head for a scenario of the head-first schema version") {
 		Scenario scenario;
+		scenario.SetSchemaVersion(HEAD_FIRST_SCHEMA_VERSION);
 		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, false, true);
 		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
 		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
@@ -704,47 +705,67 @@ namespace cTORSTest
 
 		Config config;
 		out_correct_order_rule rule(&config);
-		auto exitWith = [&](vector<Train> internal, string& warnings) {
+		auto exitWith = [&](vector<Train> internal) {
 			Outgoing outgoing(1, new ShuntingUnit(1, internal), &r0, &b0, 0, false, 0);
 			ExitAction exitAction(stateSU, 0, &outgoing);
-			stringstream captured;
-			auto old = cerr.rdbuf(captured.rdbuf());
-			auto res = rule.IsValid(&state, &exitAction);
-			cerr.rdbuf(old);
-			warnings = captured.str();
-			return res;
+			return rule.IsValid(&state, &exitAction);
 		};
-		string warnings;
 
-		SUBCASE("same order from the head is accepted silently") {
+		SUBCASE("the same order from the head is accepted") {
 			// File [SLT-4, SLT-6]
-			auto res = exitWith({Train(-1, &slt6), Train(-1, &slt4)}, warnings);
-			CHECK(res.first);
-			CHECK(warnings.empty());
+			CHECK(exitWith({Train(-1, &slt6), Train(-1, &slt4)}).first);
 		}
-		SUBCASE("mirrored order is still accepted, with a warning") {
+		SUBCASE("the mirrored order is rejected") {
 			// File [SLT-6, SLT-4]
-			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)}, warnings);
-			CHECK(res.first);
-			CHECK(warnings.find("only when read from the tail") != string::npos);
-		}
-		SUBCASE("mirrored order is rejected for a plan declaring the head-first schema version") {
-			state.SetPlanSchemaVersion(HEAD_FIRST_REQUIRED_SCHEMA_VERSION);
-			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)}, warnings);
+			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt6)});
 			CHECK(!res.first);
 			CHECK(res.second.find("only when read from the tail") != string::npos);
-			CHECK(warnings.empty());
-			// The right order still passes.
-			CHECK(exitWith({Train(-1, &slt6), Train(-1, &slt4)}, warnings).first);
 		}
 		SUBCASE("a different set of units is rejected") {
-			auto res = exitWith({Train(-1, &slt4), Train(-1, &slt4)}, warnings);
-			CHECK(!res.first);
+			CHECK(!exitWith({Train(-1, &slt4), Train(-1, &slt4)}).first);
+		}
+		SUBCASE("a standing departure is not checked against a head") {
+			Outgoing outgoing(1, new ShuntingUnit(1, {Train(-1, &slt4), Train(-1, &slt6)}), &r0, &b0, 0, true, 0);
+			ExitAction exitAction(stateSU, 0, &outgoing);
+			CHECK(rule.IsValid(&state, &exitAction).first);
+		}
+	}
+
+	TEST_CASE("A scenario of an older schema version is read as before") {
+		Scenario scenario;
+		scenario.SetSchemaVersion(HEAD_FIRST_SCHEMA_VERSION - 1);
+		Track r0("r0", TrackPartType::Railroad, 200, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType slt4("SLT", 4, 100, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+		TrainUnitType slt6("SLT", 6, 150, 100, 100, 100, 100, 50, 100, "SLT", false, false, true);
+
+		Incoming incoming(1, new ShuntingUnit(1, {Train(2, &slt6), Train(1, &slt4)}), &r0, &b0, 0, false, 0, {});
+		ArriveAction arrive(incoming.GetShuntingUnit(), &incoming);
+		arrive.Start(&state);
+		const ShuntingUnit* stateSU = state.GetShuntingUnitByID(1);
+		// The front train is the first internal train, the last element of the file, as it always was.
+		CHECK(state.GetFrontTrain(stateSU)->GetID() == 2);
+
+		Config config;
+		out_correct_order_rule rule(&config);
+		// Both orders are accepted: there is no head to judge them against.
+		for (auto internal : {vector<Train>{Train(-1, &slt6), Train(-1, &slt4)}, vector<Train>{Train(-1, &slt4), Train(-1, &slt6)}}) {
+			Outgoing outgoing(1, new ShuntingUnit(1, internal), &r0, &b0, 0, false, 0);
+			ExitAction exitAction(stateSU, 0, &outgoing);
+			CHECK(rule.IsValid(&state, &exitAction).first);
 		}
 	}
 
 	TEST_CASE("The head of an arriving unit is index 0 of the scenario file, which decides where a Split puts the parts") {
 		Scenario scenario;
+		scenario.SetSchemaVersion(HEAD_FIRST_SCHEMA_VERSION);
 		Track r0("r0", TrackPartType::Railroad, 400, "rail0", false, false, true);
 		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
 		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
@@ -796,6 +817,7 @@ namespace cTORSTest
 
 	TEST_CASE("A standing unit can still be split after arriving") {
 		Scenario scenario;
+		scenario.SetSchemaVersion(HEAD_FIRST_SCHEMA_VERSION);
 		Track r0("r0", TrackPartType::Railroad, 400, "rail0", false, false, true);
 		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
 		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);

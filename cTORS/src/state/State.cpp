@@ -6,6 +6,7 @@ State::State(const Scenario &scenario, const vector<Track *> &tracks)
 	startTime = scenario.GetStartTime();
 	endTime = scenario.GetEndTime();
 	departureDelay = scenario.GetDepartureDelay();
+	headFirstUnitOrder = scenario.GetSchemaVersion() >= HEAD_FIRST_SCHEMA_VERSION;
 	for (auto inc : scenario.GetIncomingTrains())
 		incomingTrains.push_back(new Incoming(*inc));
 	for (auto out : scenario.GetOutgoingTrains())

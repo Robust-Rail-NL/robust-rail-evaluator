@@ -742,4 +742,84 @@ namespace cTORSTest
 			CHECK(!res.first);
 		}
 	}
+
+	TEST_CASE("The head of an arriving unit is index 0 of the scenario file, which decides where a Split puts the parts") {
+		Scenario scenario;
+		Track r0("r0", TrackPartType::Railroad, 400, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType type("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, true);
+		// The file lists [1, 2, 3] from the head, so train 1 leads the unit into the yard.
+		// ReverseTrainOrder makes the internal order {3, 2, 1}.
+		const Track* entry = &b0;
+		SUBCASE("entering from the A side") { entry = &b0; }
+		SUBCASE("entering from the B side") { entry = &b1; }
+		bool fromASide = entry == &b0;
+
+		Incoming incoming(1, new ShuntingUnit(1, {Train(3, &type), Train(2, &type), Train(1, &type)}), &r0, entry, 0, false, 0, {});
+		ArriveAction arrive(incoming.GetShuntingUnit(), &incoming);
+		arrive.Start(&state);
+		arrive.Finish(&state);
+		const ShuntingUnit* arrived = state.GetShuntingUnitByID(1);
+		REQUIRE(state.GetFrontTrain(arrived)->GetID() == 1);
+
+		// Split off the first unit from the head.
+		SplitActionGenerator generator(json::object(), nullptr);
+		unique_ptr<const Action> split(generator.Generate(&state, Split(arrived, 1)));
+		split->Start(&state);
+
+		const ShuntingUnit* headPart = state.GetShuntingUnitByTrainIDs({1});
+		const ShuntingUnit* tailPart = state.GetShuntingUnitByTrainIDs({2, 3});
+		REQUIRE(headPart != nullptr);
+		REQUIRE(tailPart != nullptr);
+		CHECK(headPart->GetTrains().size() == 1);
+		CHECK(tailPart->GetTrains().size() == 2);
+
+		// The head went in first, so it is the unit deepest in the track, at the end away from
+		// the side the train entered by.
+		auto& occupations = state.GetOccupations(&r0);
+		REQUIRE(occupations.size() == 2);
+		if (fromASide) {
+			CHECK(occupations.front() == tailPart);
+			CHECK(occupations.back() == headPart);
+		} else {
+			CHECK(occupations.front() == headPart);
+			CHECK(occupations.back() == tailPart);
+		}
+	}
+
+	TEST_CASE("A standing unit can still be split after arriving") {
+		Scenario scenario;
+		Track r0("r0", TrackPartType::Railroad, 400, "rail0", false, false, true);
+		Track b0("b0", TrackPartType::Bumper, 10, "bumper0", false, false, true);
+		Track b1("b1", TrackPartType::Bumper, 10, "bumper1", false, false, true);
+		r0.AssignNeighbors({&b0}, {&b1});
+		b0.AssignNeighbors({&r0}, {});
+		b1.AssignNeighbors({&r0}, {});
+		vector<Track*> tracks = {&r0, &b0, &b1};
+		State state(scenario, tracks);
+
+		TrainUnitType type("TestType", 1, 100, 100, 100, 100, 100, 50, 100, "TT", false, false, true);
+		// A standing unit is listed along the track, not from a head. The arrival still has to
+		// give it a front train, and a Split has to produce two parts that cover its units.
+		Incoming incoming(1, new ShuntingUnit(1, {Train(2, &type), Train(1, &type)}), &r0, &b0, 0, true, 0, {});
+		ArriveAction arrive(incoming.GetShuntingUnit(), &incoming);
+		arrive.Start(&state);
+		arrive.Finish(&state);
+		const ShuntingUnit* arrived = state.GetShuntingUnitByID(1);
+
+		SplitActionGenerator generator(json::object(), nullptr);
+		unique_ptr<const Action> split(generator.Generate(&state, Split(arrived, 1)));
+		split->Start(&state);
+
+		REQUIRE(state.GetShuntingUnitByTrainIDs({1}) != nullptr);
+		REQUIRE(state.GetShuntingUnitByTrainIDs({2}) != nullptr);
+		CHECK(state.GetOccupations(&r0).size() == 2);
+	}
 }

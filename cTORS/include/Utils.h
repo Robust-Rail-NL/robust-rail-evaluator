@@ -109,7 +109,7 @@ string Join(list<Obj> objects, const string& sep) {
 // increments only on breaking changes to the wire format. See
 // SCHEMA_CHANGELOG.md in robust-rail-general for what changed at each
 // version.
-constexpr int EXPECTED_SCHEMA_VERSION = 2;
+constexpr int EXPECTED_SCHEMA_VERSION = 3;
 
 // The Plan schemaVersion at and above which a Move embedding an unflagged
 // saw movement (see blocked_track_rule) is rejected rather than merely
@@ -121,14 +121,15 @@ constexpr int EXPECTED_SCHEMA_VERSION = 2;
 // for unrelated reasons in the future.
 constexpr int REVERSE_REQUIRED_SCHEMA_VERSION = 2;
 
-// The Plan schemaVersion at and above which a departing unit must have the
-// requested units in the requested order read from the head (see
-// out_correct_order_rule), rather than merely in that order or its mirror.
-// Below it a mirror-only departure is accepted with a warning. Its own named
-// constant for the same reason as REVERSE_REQUIRED_SCHEMA_VERSION. No schema
-// version of this value is defined yet: robust-rail-general decides when the
-// head-first unit order (general#50) is declared by a version bump.
-constexpr int HEAD_FIRST_REQUIRED_SCHEMA_VERSION = 3;
+// The Scenario schemaVersion at and above which the units of a train are listed
+// from its head (robust-rail-general#50, SCHEMA_CHANGELOG.md): index 0 of an
+// arriving or departing train is the unit that leads it. A scenario declaring an
+// older version, or none, lists them along the track as before and is read the
+// old way (the head of an arriving unit is the last element, and an Exit accepts
+// the requested order from either end). It is the Scenario's version that
+// decides, not the Plan's: the convention is a property of how the scenario's
+// lists are written. Its own named constant, as REVERSE_REQUIRED_SCHEMA_VERSION.
+constexpr int HEAD_FIRST_SCHEMA_VERSION = 3;
 
 // Warn-and-continue: a missing or unexpected schemaVersion is logged, never
 // a hard reject. Messages that don't declare a schemaVersion field (e.g.

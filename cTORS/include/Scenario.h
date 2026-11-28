@@ -159,6 +159,12 @@ public:
 	inline void SetEvaluatiorStoragePath(string path) {pathToStoreEval = path;}
 	inline const string GetEvaluatiorStoragePath() const {return pathToStoreEval;}
 
+	// The interchange schemaVersion the scenario file declares; 1 if it declares none. At or above
+	// HEAD_FIRST_SCHEMA_VERSION the unit lists are read from the head, see Utils.h.
+	int schemaVersion = 1;
+	inline int GetSchemaVersion() const {return schemaVersion;}
+	inline void SetSchemaVersion(int version) {schemaVersion = version;}
+
 	mutable int departureDelay = 0;
 	inline void InitDepartureDelay(int _departureDelay) const {departureDelay = _departureDelay;}
 	inline const int GetDepartureDelay() const {return departureDelay;}

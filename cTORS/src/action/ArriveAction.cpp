@@ -5,9 +5,13 @@ void ArriveAction::Start(State* state) const {
 	const Track* parkingTrack = incoming->GetParkingTrack();
 	const Track* sideTrack = incoming->GetSideTrack();
 	const ShuntingUnit* su = GetShuntingUnit();
-	// The scenario lists the units of an arriving train from its head, and the internal order is
-	// the reverse (see ReverseTrainOrder), so the head is the last of the internal trains.
-	state->AddShuntingUnit(su, parkingTrack, sideTrack, &su->GetTrains().back());
+	// A scenario of schemaVersion HEAD_FIRST_SCHEMA_VERSION or later lists the units of an arriving
+	// train from its head, and the internal order is the reverse (see ReverseTrainOrder), so the head
+	// is the last of the internal trains. An older scenario is read as before: the first.
+	if (state->HeadFirstUnitOrder())
+		state->AddShuntingUnit(su, parkingTrack, sideTrack, &su->GetTrains().back());
+	else
+		state->AddShuntingUnit(su, parkingTrack, sideTrack);
 	if (!incoming->IsInstanding())
 		state->ReserveTracks(vector({ parkingTrack, sideTrack }));
 	state->AddTasksToTrains(incoming->GetTasks());

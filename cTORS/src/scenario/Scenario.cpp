@@ -52,6 +52,11 @@ void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location
 		ImportEmployees(pb_scenario, location);
 		ImportShuntingUnits(pb_scenario, location);
 		ImportAncillary(pb_scenario);
+		schemaVersion = pb_scenario.has_schemaversion() ? pb_scenario.schemaversion() : 1;
+		if (schemaVersion < HEAD_FIRST_SCHEMA_VERSION)
+			cerr << "Warning: the scenario declares schemaVersion " << schemaVersion << ", below " << HEAD_FIRST_SCHEMA_VERSION
+				 << ": the units of a train are read as listed along the track, as before (from schemaVersion "
+				 << HEAD_FIRST_SCHEMA_VERSION << " they are listed from the head, and a departure in the mirrored order is rejected)." << endl;
 		startTime = pb_scenario.starttime();
 		endTime = pb_scenario.endtime();
 	}
@@ -63,7 +68,7 @@ void Scenario::Init(const PB_HIP_Scenario &pb_scenario, const Location &location
 	}
 }
 
-Scenario::Scenario(const Scenario &scenario) : startTime(scenario.startTime), endTime(scenario.endTime), departureDelay(scenario.departureDelay)
+Scenario::Scenario(const Scenario &scenario) : startTime(scenario.startTime), endTime(scenario.endTime), schemaVersion(scenario.schemaVersion), departureDelay(scenario.departureDelay)
 {
 	disturbances = scenario.disturbances;
 	for (auto inc : scenario.incomingTrains)

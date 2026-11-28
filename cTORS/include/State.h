@@ -85,6 +85,9 @@ private:
 	// POSPlan::GetSchemaVersion(). Not known at construction time: State is
 	// built from a Scenario alone, before any plan is attached.
 	int planSchemaVersion = 1;
+	// Whether the scenario lists the units of a train from its head (its schemaVersion is at
+	// least HEAD_FIRST_SCHEMA_VERSION). Otherwise they are read as they always were.
+	bool headFirstUnitOrder = false;
 public:
 	State() = delete;
 	/** Construct an initial State object from a Scenario object and a vector of Track%s in a Location */
@@ -120,6 +123,7 @@ public:
 	inline int GetStartTime() const { return startTime; }
 	/** Get the interchange schemaVersion of the plan being evaluated (1 if none set) */
 	inline int GetPlanSchemaVersion() const { return planSchemaVersion; }
+	inline bool HeadFirstUnitOrder() const { return headFirstUnitOrder; }
 	/** Set the interchange schemaVersion of the plan being evaluated */
 	inline void SetPlanSchemaVersion(int version) { planSchemaVersion = version; }
 	/** Get the slack allowed either side of a scheduled departure */
